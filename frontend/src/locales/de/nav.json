@@ -1,0 +1,18 @@
+{
+  "groups": {
+    "work": "Arbeitsbereich",
+    "operations": "Betrieb"
+  },
+  "dashboard": "Dashboard",
+  "approvals": "Freigabevorgänge",
+  "masterdata": "Stammdaten",
+  "parts": "Teile",
+  "partners": "Partner",
+  "sites": "Standorte",
+  "relationships": "Beziehungen",
+  "elementCatalog": "Elementkatalog",
+  "cockpit": "Connector-Cockpit",
+  "dataspace": "Datenraum (Demo)",
+  "system": "Systemstatus",
+  "home": "Start"
+}

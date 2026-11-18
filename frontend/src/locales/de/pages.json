@@ -1,0 +1,27 @@
+{
+  "comingSoon": "Geplant für Phase {{phase}}",
+  "approvals": {
+    "description": "Anfordern, Bearbeiten, Einreichen und Entscheiden von PPF-Paketen – inklusive Revisionen, Kommentaren und Audit-Trail."
+  },
+  "parts": {
+    "description": "Teile mit Sachnummern von Kunde und Lieferant, Zeichnungsständen und Zuordnung zu digitalen Zwillingen."
+  },
+  "partners": {
+    "description": "Geschäftspartner mit BPNL, Rolle (Kunde/Lieferant) und Connector-Endpunkt."
+  },
+  "sites": {
+    "description": "Fertigungs- und Lieferstandorte (BPNS) Ihres Unternehmens und Ihrer Partner."
+  },
+  "relationships": {
+    "description": "Liefer- und Kundenbeziehungen je Teil und Standort als Grundlage für Freigabevorgänge."
+  },
+  "elementCatalog": {
+    "description": "Katalog der Vorlageelemente (z. B. Prüfbericht, Werkstoffdaten) mit Pflicht- und Formatvorgaben."
+  },
+  "cockpit": {
+    "description": "Überwachung der EDC-Anbindung: Verträge, Policies, Transfers und Partnerverbindungen."
+  },
+  "dataspace": {
+    "description": "Demo-Ansicht des Catena-X-Datenraums: Teilnehmer, Kataloge und Nachrichtenfluss zwischen den Instanzen."
+  }
+}

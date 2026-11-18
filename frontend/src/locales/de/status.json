@@ -1,0 +1,19 @@
+{
+  "approval": {
+    "draft": "Entwurf",
+    "requested": "Angefordert",
+    "in-progress": "In Bearbeitung",
+    "submitted": "Eingereicht",
+    "in-review": "In Prüfung",
+    "approved": "Freigegeben",
+    "conditionally-approved": "Bedingt freigegeben",
+    "rejected": "Abgelehnt",
+    "cancelled": "Storniert"
+  },
+  "health": {
+    "UP": "Verfügbar",
+    "DOWN": "Gestört",
+    "UNKNOWN": "Unbekannt"
+  },
+  "badgeLabel": "Status: {{label}}"
+}

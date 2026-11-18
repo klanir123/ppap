@@ -1,0 +1,22 @@
+{
+  "notFound": {
+    "code": "404",
+    "title": "Page not found",
+    "description": "The requested page does not exist or has been moved.",
+    "back": "Go to dashboard"
+  },
+  "config": {
+    "title": "Configuration unavailable",
+    "description": "The runtime configuration of this instance could not be loaded. Is the backend running?"
+  },
+  "generic": {
+    "title": "Something went wrong",
+    "description": "An unexpected error occurred."
+  },
+  "forbidden": {
+    "title": "No access",
+    "description": "You do not have permission for this area."
+  },
+  "technicalDetails": "Technical details",
+  "correlationId": "Correlation ID"
+}

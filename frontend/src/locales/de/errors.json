@@ -1,0 +1,22 @@
+{
+  "notFound": {
+    "code": "404",
+    "title": "Seite nicht gefunden",
+    "description": "Die angeforderte Seite existiert nicht oder wurde verschoben.",
+    "back": "Zum Dashboard"
+  },
+  "config": {
+    "title": "Konfiguration nicht verfügbar",
+    "description": "Die Laufzeitkonfiguration dieser Instanz konnte nicht geladen werden. Läuft das Backend?"
+  },
+  "generic": {
+    "title": "Etwas ist schiefgelaufen",
+    "description": "Ein unerwarteter Fehler ist aufgetreten."
+  },
+  "forbidden": {
+    "title": "Kein Zugriff",
+    "description": "Ihnen fehlt die Berechtigung für diesen Bereich."
+  },
+  "technicalDetails": "Technische Details",
+  "correlationId": "Korrelations-ID"
+}

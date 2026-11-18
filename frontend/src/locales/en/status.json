@@ -1,0 +1,19 @@
+{
+  "approval": {
+    "draft": "Draft",
+    "requested": "Requested",
+    "in-progress": "In progress",
+    "submitted": "Submitted",
+    "in-review": "In review",
+    "approved": "Approved",
+    "conditionally-approved": "Conditionally approved",
+    "rejected": "Rejected",
+    "cancelled": "Cancelled"
+  },
+  "health": {
+    "UP": "Operational",
+    "DOWN": "Down",
+    "UNKNOWN": "Unknown"
+  },
+  "badgeLabel": "Status: {{label}}"
+}

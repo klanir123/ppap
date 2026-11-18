@@ -1,0 +1,18 @@
+{
+  "groups": {
+    "work": "Workspace",
+    "operations": "Operations"
+  },
+  "dashboard": "Dashboard",
+  "approvals": "Approval processes",
+  "masterdata": "Master data",
+  "parts": "Parts",
+  "partners": "Partners",
+  "sites": "Sites",
+  "relationships": "Relationships",
+  "elementCatalog": "Element catalogue",
+  "cockpit": "Connector cockpit",
+  "dataspace": "Data space (demo)",
+  "system": "System status",
+  "home": "Home"
+}

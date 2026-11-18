@@ -1,0 +1,39 @@
+{
+  "title": "System status",
+  "description": "Live state of the infrastructure components of this participant instance. Refreshed every 10 seconds.",
+  "lastChecked": "Last checked: {{time}}",
+  "refresh": "Refresh now",
+  "overall": {
+    "UP": "All systems operational",
+    "DOWN": "At least one component is down",
+    "UNKNOWN": "State partially unknown"
+  },
+  "components": {
+    "database": {
+      "name": "Database",
+      "description": "PostgreSQL – business data, outbox and audit",
+      "short": "Database"
+    },
+    "edc": {
+      "name": "Eclipse Dataspace Connector",
+      "description": "Tractus-X EDC – data exchange with partners",
+      "short": "EDC"
+    },
+    "objectStorage": {
+      "name": "Object storage",
+      "description": "S3-compatible storage for documents",
+      "short": "Object storage"
+    },
+    "dtr": {
+      "name": "Digital Twin Registry",
+      "description": "Registration of digital twins (AAS)",
+      "short": "Digital Twin Registry"
+    }
+  },
+  "details": "Details",
+  "empty": "No components reported.",
+  "error": {
+    "title": "System status unavailable",
+    "description": "The status could not be loaded from the backend."
+  }
+}

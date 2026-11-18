@@ -1,0 +1,50 @@
+{
+  "productName": "msg CX PPAP Connector",
+  "productTagline": "PPAP/PPF data exchange via Catena-X",
+  "vendor": "msg for automotive",
+  "skipToContent": "Skip to content",
+  "loading": "Loading …",
+  "notAvailable": "–",
+  "retry": "Try again",
+  "copy": "Copy",
+  "copied": "Copied to clipboard",
+  "copyFailed": "Could not copy",
+  "copyBpnl": "Copy BPNL",
+  "participant": "Participant",
+  "participantContext": "Participant context",
+  "bpnl": "BPNL",
+  "version": "Version {{version}}",
+  "availableInPhase": "Available from phase {{phase}}",
+  "language": {
+    "label": "Language",
+    "de": "Deutsch",
+    "en": "English"
+  },
+  "theme": {
+    "label": "Appearance",
+    "light": "Light",
+    "dark": "Dark",
+    "system": "System"
+  },
+  "user": {
+    "menu": "User menu",
+    "roles": "Roles",
+    "systemStatus": "System status",
+    "logout": "Sign out"
+  },
+  "roles": {
+    "CUSTOMER_QUALITY_ENGINEER": "Customer quality engineer",
+    "SUPPLIER_QUALITY_MANAGER": "Supplier quality manager",
+    "MASTERDATA_MANAGER": "Master data management",
+    "CONNECTOR_ADMIN": "Connector administration",
+    "SYSTEM_INTEGRATION": "System integration"
+  },
+  "sidebar": {
+    "toggle": "Toggle sidebar",
+    "title": "Navigation",
+    "description": "Main navigation of the application"
+  },
+  "breadcrumb": "Breadcrumb",
+  "close": "Close",
+  "more": "More"
+}

@@ -1,0 +1,39 @@
+{
+  "title": "Systemstatus",
+  "description": "Live-Zustand der Infrastrukturkomponenten dieser Teilnehmer-Instanz. Aktualisiert alle 10 Sekunden.",
+  "lastChecked": "Zuletzt geprüft: {{time}}",
+  "refresh": "Jetzt aktualisieren",
+  "overall": {
+    "UP": "Alle Systeme verfügbar",
+    "DOWN": "Mindestens eine Komponente ist gestört",
+    "UNKNOWN": "Zustand teilweise unbekannt"
+  },
+  "components": {
+    "database": {
+      "name": "Datenbank",
+      "description": "PostgreSQL – fachliche Daten, Outbox und Audit",
+      "short": "Datenbank"
+    },
+    "edc": {
+      "name": "Eclipse Dataspace Connector",
+      "description": "Tractus-X EDC – Datenaustausch mit Partnern",
+      "short": "EDC"
+    },
+    "objectStorage": {
+      "name": "Object Storage",
+      "description": "S3-kompatibler Speicher für Dokumente",
+      "short": "Object Storage"
+    },
+    "dtr": {
+      "name": "Digital Twin Registry",
+      "description": "Registrierung digitaler Zwillinge (AAS)",
+      "short": "Digital Twin Registry"
+    }
+  },
+  "details": "Details",
+  "empty": "Keine Komponenten gemeldet.",
+  "error": {
+    "title": "Systemstatus nicht abrufbar",
+    "description": "Der Status konnte nicht vom Backend geladen werden."
+  }
+}

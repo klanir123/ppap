@@ -1,0 +1,27 @@
+{
+  "comingSoon": "Planned for phase {{phase}}",
+  "approvals": {
+    "description": "Request, prepare, submit and decide PPF packages – including revisions, comments and audit trail."
+  },
+  "parts": {
+    "description": "Parts with customer and supplier part numbers, drawing revisions and mapping to digital twins."
+  },
+  "partners": {
+    "description": "Business partners with BPNL, role (customer/supplier) and connector endpoint."
+  },
+  "sites": {
+    "description": "Manufacturing and delivery sites (BPNS) of your company and your partners."
+  },
+  "relationships": {
+    "description": "Supply and customer relationships per part and site as the basis for approval processes."
+  },
+  "elementCatalog": {
+    "description": "Catalogue of submission elements (e.g. inspection report, material data) with mandatory and format rules."
+  },
+  "cockpit": {
+    "description": "Monitoring of the EDC connection: contracts, policies, transfers and partner connections."
+  },
+  "dataspace": {
+    "description": "Demo view of the Catena-X data space: participants, catalogues and message flow between instances."
+  }
+}

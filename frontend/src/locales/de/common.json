@@ -1,0 +1,50 @@
+{
+  "productName": "msg CX PPAP Connector",
+  "productTagline": "PPAP/PPF-Datenaustausch über Catena-X",
+  "vendor": "msg for automotive",
+  "skipToContent": "Zum Inhalt springen",
+  "loading": "Wird geladen …",
+  "notAvailable": "–",
+  "retry": "Erneut versuchen",
+  "copy": "Kopieren",
+  "copied": "In die Zwischenablage kopiert",
+  "copyFailed": "Kopieren nicht möglich",
+  "copyBpnl": "BPNL kopieren",
+  "participant": "Teilnehmer",
+  "participantContext": "Teilnehmerkontext",
+  "bpnl": "BPNL",
+  "version": "Version {{version}}",
+  "availableInPhase": "Verfügbar ab Phase {{phase}}",
+  "language": {
+    "label": "Sprache",
+    "de": "Deutsch",
+    "en": "English"
+  },
+  "theme": {
+    "label": "Darstellung",
+    "light": "Hell",
+    "dark": "Dunkel",
+    "system": "System"
+  },
+  "user": {
+    "menu": "Benutzermenü",
+    "roles": "Rollen",
+    "systemStatus": "Systemstatus",
+    "logout": "Abmelden"
+  },
+  "roles": {
+    "CUSTOMER_QUALITY_ENGINEER": "Qualitätsingenieur Kunde",
+    "SUPPLIER_QUALITY_MANAGER": "Qualitätsverantwortlicher Lieferant",
+    "MASTERDATA_MANAGER": "Stammdatenpflege",
+    "CONNECTOR_ADMIN": "Connector-Administration",
+    "SYSTEM_INTEGRATION": "Systemintegration"
+  },
+  "sidebar": {
+    "toggle": "Seitenleiste ein-/ausblenden",
+    "title": "Navigation",
+    "description": "Hauptnavigation der Anwendung"
+  },
+  "breadcrumb": "Brotkrumennavigation",
+  "close": "Schließen",
+  "more": "Mehr"
+}

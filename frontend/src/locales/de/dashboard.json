@@ -1,0 +1,26 @@
+{
+  "title": "Dashboard",
+  "greeting": "Guten Tag, {{name}}",
+  "description": "Überblick über Ihre Freigabevorgänge und den Datenaustausch mit Partnern.",
+  "kpi": {
+    "openRequests": "Offene Anforderungen",
+    "inReview": "In Prüfung",
+    "approved": "Freigegeben (30 Tage)",
+    "overdue": "Überfällig",
+    "noData": "Noch keine Daten"
+  },
+  "recent": {
+    "title": "Aktuelle Freigabevorgänge",
+    "description": "Zuletzt bearbeitete Vorgänge Ihres Unternehmens"
+  },
+  "empty": {
+    "title": "Noch keine Freigabevorgänge",
+    "description": "Sobald Sie eine PPF-Vorlage anfordern oder eine Anforderung eines Kunden erhalten, erscheinen die Vorgänge hier.",
+    "cta": "Vorgang anlegen"
+  },
+  "systemCard": {
+    "title": "Systemzustand",
+    "description": "Verbindung zu Datenbank, EDC, Object Storage und DTR",
+    "link": "Systemstatus öffnen"
+  }
+}

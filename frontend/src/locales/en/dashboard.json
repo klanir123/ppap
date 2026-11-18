@@ -1,0 +1,26 @@
+{
+  "title": "Dashboard",
+  "greeting": "Hello, {{name}}",
+  "description": "Overview of your approval processes and data exchange with partners.",
+  "kpi": {
+    "openRequests": "Open requests",
+    "inReview": "In review",
+    "approved": "Approved (30 days)",
+    "overdue": "Overdue",
+    "noData": "No data yet"
+  },
+  "recent": {
+    "title": "Recent approval processes",
+    "description": "Recently updated processes of your company"
+  },
+  "empty": {
+    "title": "No approval processes yet",
+    "description": "As soon as you request a PPF submission or receive a request from a customer, the processes will appear here.",
+    "cta": "Create process"
+  },
+  "systemCard": {
+    "title": "System health",
+    "description": "Connection to database, EDC, object storage and DTR",
+    "link": "Open system status"
+  }
+}
