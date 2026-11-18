@@ -1,0 +1,4 @@
+bpnl;name;roles;dspEndpoint;did;contactEmail
+BPNL000000TIER01;Demo-Tier1 GmbH;SUPPLIER;http://tier1-edc-cp:8084/api/v1/dsp/2025-1;did:web:wallet-stub:BPNL000000TIER01;ppap@demotier1-er01.example
+BPNL0000000SUP03;Beispiel Kunststofftechnik GmbH;SUPPLIER;;;ppap@beispiel-up03.example
+BPNL0000000SUP04;Muster Metallverarbeitung AG;SUPPLIER;;;ppap@muster-up04.example

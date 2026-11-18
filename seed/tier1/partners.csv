@@ -1,0 +1,4 @@
+bpnl;name;roles;dspEndpoint;did;contactEmail
+BPNL00000000OEM1;Demo-OEM AG;CUSTOMER;http://oem-edc-cp:8084/api/v1/dsp/2025-1;did:web:wallet-stub:BPNL00000000OEM1;ppap@demooem-oem1.example
+BPNL0000000CUST2;Beispiel Nutzfahrzeuge AG;CUSTOMER;;;ppap@beispiel-ust2.example
+BPNL000000TIER02;Demo-Tier2 KG;SUPPLIER;http://tier2-edc-cp:8084/api/v1/dsp/2025-1;did:web:wallet-stub:BPNL000000TIER02;ppap@demotier2-er02.example

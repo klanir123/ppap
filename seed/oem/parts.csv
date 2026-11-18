@@ -1,0 +1,46 @@
+partNumber;nameDe;nameEn;drawingNumber;drawingRevision;material
+D10-04711-01;Halter Stoßfänger vorne links;Bumper bracket front left;Z-D10-04711-01;B;PP-TD20
+D10-04718-02;Halter Stoßfänger vorne rechts;Bumper bracket front right;Z-D10-04718-02;D;PP-TD20
+D10-04725-03;Türgriff außen Fahrerseite;Outside door handle driver side;Z-D10-04725-03;A;PC/ABS
+D10-04732-01;Türgriff außen Beifahrerseite;Outside door handle passenger side;Z-D10-04732-01;C;PC/ABS
+D10-04739-02;Sensorhalter Radar Front;Front radar sensor bracket;Z-D10-04739-02;C;PA6-GF30
+D10-04746-03;Kameraträger Windschutzscheibe;Windscreen camera carrier;Z-D10-04746-03;A;PA66-GF35
+D10-04753-01;Kabelkanal Motorraum;Engine bay cable duct;Z-D10-04753-01;C;PA6-GF15
+D10-04760-02;Luftführung Kühler oben;Upper radiator air guide;Z-D10-04760-02;A;PP-T20
+D10-04767-03;Luftführung Kühler unten;Lower radiator air guide;Z-D10-04767-03;D;PP-T20
+D10-04774-01;Abdeckung Scheinwerfer links;Headlamp cover left;Z-D10-04774-01;C;PC
+D10-04781-02;Abdeckung Scheinwerfer rechts;Headlamp cover right;Z-D10-04781-02;C;PC
+D10-04788-03;Konsole Mittelarmlehne;Centre armrest console;Z-D10-04788-03;C;PP-GF20
+D10-04795-01;Lüftungsgitter Armaturentafel;Dashboard air vent;Z-D10-04795-01;B;ABS
+D10-04802-02;Halteblech Batterie;Battery holding plate;Z-D10-04802-02;B;DC04
+D10-04809-03;Querträger Instrumententafel;Instrument panel cross member;Z-D10-04809-03;A;AlSi10Mg
+D10-04816-01;Lagerbock Motor links;Engine mount bracket left;Z-D10-04816-01;C;EN-GJS-500-7
+D10-04823-02;Lagerbock Motor rechts;Engine mount bracket right;Z-D10-04823-02;B;EN-GJS-500-7
+D10-04830-03;Schutzblech Unterboden;Underbody heat shield;Z-D10-04830-03;D;AlMg3
+D10-04837-01;Abdeckung Ladeanschluss;Charging port cover;Z-D10-04837-01;A;PC/PBT
+D10-04844-02;Gehäuse Steuergerät Tür;Door control unit housing;Z-D10-04844-02;B;PBT-GF30
+D10-04851-03;Dichtung Tür vorne;Front door seal;Z-D10-04851-03;C;EPDM
+D10-04858-01;Dichtung Tür hinten;Rear door seal;Z-D10-04858-01;A;EPDM
+D10-04865-02;Clip Verkleidung Radhaus;Wheel arch liner clip;Z-D10-04865-02;B;POM
+D10-04872-03;Halter Kennzeichenleuchte;Licence plate lamp holder;Z-D10-04872-03;B;PA6
+D10-04879-01;Spoiler Heckklappe;Tailgate spoiler;Z-D10-04879-01;A;ASA
+D10-04886-02;Griffschale Heckklappe;Tailgate handle recess;Z-D10-04886-02;A;PC/ABS
+D10-04893-03;Rahmen Schiebedach;Sunroof frame;Z-D10-04893-03;A;AlSi7Mg
+D10-04900-01;Konsole Lenksäule;Steering column bracket;Z-D10-04900-01;B;S355MC
+D10-04907-02;Abdeckkappe Spiegel links;Mirror cap left;Z-D10-04907-02;A;ASA
+D10-04914-03;Abdeckkappe Spiegel rechts;Mirror cap right;Z-D10-04914-03;B;ASA
+D20-K3100-01;Einstiegsleiste vorne;Front sill trim;Z-D20-K3100-01;D;PP
+D20-K3101-01;Verkleidung A-Säule;A-pillar trim;Z-D20-K3101-01;A;PP-T20
+D20-K3102-01;Ablagefach Tür;Door storage pocket;Z-D20-K3102-01;C;PP
+D20-K3103-01;Getränkehalter;Cup holder;Z-D20-K3103-01;D;ABS
+D20-K3104-01;Blende Schalthebel;Gear lever trim;Z-D20-K3104-01;D;PC/ABS
+D20-K3105-01;Haltegriff Dachhimmel;Roof grab handle;Z-D20-K3105-01;B;PP-GF10
+D20-K3106-01;Abdeckung Sicherungskasten;Fuse box cover;Z-D20-K3106-01;A;PP
+D20-K3107-01;Verkleidung Kofferraum links;Trunk trim left;Z-D20-K3107-01;B;PP-T20
+D20-M4100-01;Scharnier Motorhaube links;Bonnet hinge left;Z-D20-M4100-01;A;S420MC
+D20-M4101-01;Scharnier Motorhaube rechts;Bonnet hinge right;Z-D20-M4101-01;B;S420MC
+D20-M4102-01;Schlossbügel Heckklappe;Tailgate striker;Z-D20-M4102-01;B;C45
+D20-M4103-01;Halter Abgasanlage;Exhaust hanger bracket;Z-D20-M4103-01;B;1.4509
+D20-M4104-01;Verstärkung B-Säule;B-pillar reinforcement;Z-D20-M4104-01;C;22MnB5
+D20-M4105-01;Befestigungswinkel Kotflügel;Fender mounting bracket;Z-D20-M4105-01;A;DC04
+D20-M4106-01;Abschleppöse;Towing eye;Z-D20-M4106-01;C;42CrMo4

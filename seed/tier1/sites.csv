@@ -1,0 +1,7 @@
+bpns;name;ownerBpnl;street;postalCode;city;country
+BPNS00000000OEMA;Werk Nord;BPNL00000000OEM1;Fahrzeugallee 1;10001;Nordhausen am See;DE
+BPNS00000000OEMB;Werk Süd;BPNL00000000OEM1;Montagering 8;80002;Südstadt;DE
+BPNS0000000T1W01;Werk Hauptsitz;BPNL000000TIER01;Zulieferweg 12;70003;Teilestadt;DE
+BPNS0000000T1W02;Werk Ost;BPNL000000TIER01;Industriepark 4;01004;Oststadt;DE
+BPNS0000000T2W01;Werk Kunststoff;BPNL000000TIER02;Spritzgussstraße 3;90005;Formhausen;DE
+BPNS00000CUST021;Werk Nutzfahrzeuge;BPNL0000000CUST2;Lastwagenstraße 9;30008;Exempeldorf;DE

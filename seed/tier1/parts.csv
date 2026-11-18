@@ -1,0 +1,43 @@
+partNumber;nameDe;nameEn;drawingNumber;drawingRevision;material
+T1-310000-01;Halter Stoßfänger vorne links;Bumper bracket front left;T1Z-3100;B;PP-TD20
+T1-310001-01;Halter Stoßfänger vorne rechts;Bumper bracket front right;T1Z-3101;D;PP-TD20
+T1-310002-01;Türgriff außen Fahrerseite;Outside door handle driver side;T1Z-3102;A;PC/ABS
+T1-310003-01;Türgriff außen Beifahrerseite;Outside door handle passenger side;T1Z-3103;C;PC/ABS
+T1-310004-01;Sensorhalter Radar Front;Front radar sensor bracket;T1Z-3104;C;PA6-GF30
+T1-310005-01;Kameraträger Windschutzscheibe;Windscreen camera carrier;T1Z-3105;A;PA66-GF35
+T1-310006-01;Kabelkanal Motorraum;Engine bay cable duct;T1Z-3106;C;PA6-GF15
+T1-310007-01;Luftführung Kühler oben;Upper radiator air guide;T1Z-3107;A;PP-T20
+T1-310008-01;Luftführung Kühler unten;Lower radiator air guide;T1Z-3108;D;PP-T20
+T1-310009-01;Abdeckung Scheinwerfer links;Headlamp cover left;T1Z-3109;C;PC
+T1-310010-01;Abdeckung Scheinwerfer rechts;Headlamp cover right;T1Z-3110;C;PC
+T1-310011-01;Konsole Mittelarmlehne;Centre armrest console;T1Z-3111;C;PP-GF20
+T1-310012-01;Lüftungsgitter Armaturentafel;Dashboard air vent;T1Z-3112;B;ABS
+T1-310013-01;Halteblech Batterie;Battery holding plate;T1Z-3113;B;DC04
+T1-310014-01;Querträger Instrumententafel;Instrument panel cross member;T1Z-3114;A;AlSi10Mg
+T1-310015-01;Lagerbock Motor links;Engine mount bracket left;T1Z-3115;C;EN-GJS-500-7
+T1-310016-01;Lagerbock Motor rechts;Engine mount bracket right;T1Z-3116;B;EN-GJS-500-7
+T1-310017-01;Schutzblech Unterboden;Underbody heat shield;T1Z-3117;D;AlMg3
+T1-310018-01;Abdeckung Ladeanschluss;Charging port cover;T1Z-3118;A;PC/PBT
+T1-310019-01;Gehäuse Steuergerät Tür;Door control unit housing;T1Z-3119;B;PBT-GF30
+T1-310020-01;Dichtung Tür vorne;Front door seal;T1Z-3120;C;EPDM
+T1-310021-01;Dichtung Tür hinten;Rear door seal;T1Z-3121;A;EPDM
+T1-310022-01;Clip Verkleidung Radhaus;Wheel arch liner clip;T1Z-3122;B;POM
+T1-310023-01;Halter Kennzeichenleuchte;Licence plate lamp holder;T1Z-3123;B;PA6
+T1-310024-01;Spoiler Heckklappe;Tailgate spoiler;T1Z-3124;A;ASA
+T1-310025-01;Griffschale Heckklappe;Tailgate handle recess;T1Z-3125;A;PC/ABS
+T1-310026-01;Rahmen Schiebedach;Sunroof frame;T1Z-3126;A;AlSi7Mg
+T1-310027-01;Konsole Lenksäule;Steering column bracket;T1Z-3127;B;S355MC
+T1-310028-01;Abdeckkappe Spiegel links;Mirror cap left;T1Z-3128;A;ASA
+T1-310029-01;Abdeckkappe Spiegel rechts;Mirror cap right;T1Z-3129;B;ASA
+T1-520000-00;Rastnase Türgriff;Door handle latch;T1Z-5200;C;POM
+T1-520001-00;Feder Türgriff;Door handle spring;T1Z-5201;B;1.4310
+T1-520002-00;Linse Kameraträger;Camera carrier lens;T1Z-5202;C;PMMA
+T1-520003-00;Dämpfer Konsole;Console damper;T1Z-5203;C;TPE
+T1-520004-00;Clip Kabelkanal;Cable duct clip;T1Z-5204;B;PA66
+T1-520005-00;Lamelle Lüftungsgitter;Air vent louvre;T1Z-5205;C;ABS
+T1-520006-00;Dichtlippe Ladeklappe;Charging flap seal lip;T1Z-5206;B;TPV
+T1-520007-00;Kontaktträger Steuergerät;Control unit contact carrier;T1Z-5207;C;PBT-GF30
+T1-520008-00;Führung Schiebedach;Sunroof guide;T1Z-5208;C;POM
+T1-520009-00;Abstandshalter Hitzeschild;Heat shield spacer;T1Z-5209;C;PA46
+T1-520010-00;Buchse Lagerbock;Engine mount bushing;T1Z-5210;D;NR
+T1-520011-00;Halteklammer Spiegelkappe;Mirror cap retaining clip;T1Z-5211;A;PA6-GF30
