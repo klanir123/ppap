@@ -1,0 +1,200 @@
+{
+  "realm": "tier2",
+  "displayName": "Demo-Tier2 KG",
+  "enabled": true,
+  "sslRequired": "none",
+  "registrationAllowed": false,
+  "loginWithEmailAllowed": true,
+  "internationalizationEnabled": true,
+  "supportedLocales": [
+    "de",
+    "en"
+  ],
+  "defaultLocale": "de",
+  "accessTokenLifespan": 900,
+  "ssoSessionIdleTimeout": 3600,
+  "roles": {
+    "realm": [
+      {
+        "name": "CUSTOMER_QUALITY_ENGINEER",
+        "description": "Qualitätsingenieur Kunde – fordert an, prüft, entscheidet"
+      },
+      {
+        "name": "SUPPLIER_QUALITY_MANAGER",
+        "description": "Qualitätsverantwortlicher Lieferant – erstellt und reicht PPF-Pakete ein"
+      },
+      {
+        "name": "MASTERDATA_MANAGER",
+        "description": "Stammdatenpfleger – Teile, Partner, Standorte, Elementkatalog"
+      },
+      {
+        "name": "CONNECTOR_ADMIN",
+        "description": "Connector-Administrator – EDC-Anbindung, Policies, Monitoring"
+      },
+      {
+        "name": "SYSTEM_INTEGRATION",
+        "description": "Technischer Client für ERP/QM-Anbindung"
+      }
+    ],
+    "client": {
+      "ppap-dtr": [
+        {
+          "name": "view_digital_twin"
+        },
+        {
+          "name": "add_digital_twin"
+        },
+        {
+          "name": "update_digital_twin"
+        },
+        {
+          "name": "delete_digital_twin"
+        },
+        {
+          "name": "submodel_access_control"
+        },
+        {
+          "name": "read_access_rules"
+        },
+        {
+          "name": "write_access_rules"
+        }
+      ]
+    }
+  },
+  "clients": [
+    {
+      "clientId": "ppap-ui",
+      "name": "PPAP Connector UI",
+      "publicClient": true,
+      "protocol": "openid-connect",
+      "standardFlowEnabled": true,
+      "directAccessGrantsEnabled": false,
+      "implicitFlowEnabled": false,
+      "redirectUris": [
+        "http://localhost:8083/*",
+        "http://localhost:5173/*"
+      ],
+      "webOrigins": [
+        "http://localhost:8083",
+        "http://localhost:5173"
+      ],
+      "attributes": {
+        "pkce.code.challenge.method": "S256",
+        "post.logout.redirect.uris": "+"
+      }
+    },
+    {
+      "clientId": "ppap-integration",
+      "name": "ERP/QM-Integration",
+      "publicClient": false,
+      "secret": "tier2-integration-local-secret",
+      "serviceAccountsEnabled": true,
+      "standardFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "protocol": "openid-connect"
+    },
+    {
+      "clientId": "ppap-dtr",
+      "name": "Digital Twin Registry",
+      "bearerOnly": true,
+      "publicClient": false,
+      "standardFlowEnabled": false,
+      "protocol": "openid-connect"
+    },
+    {
+      "clientId": "ppap-backend-dtr",
+      "publicClient": false,
+      "secret": "tier2-ppap-backend-dtr-local-secret",
+      "serviceAccountsEnabled": true,
+      "standardFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "protocol": "openid-connect"
+    },
+    {
+      "clientId": "ppap-edc-dtr",
+      "publicClient": false,
+      "secret": "tier2-ppap-edc-dtr-local-secret",
+      "serviceAccountsEnabled": true,
+      "standardFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "protocol": "openid-connect"
+    }
+  ],
+  "users": [
+    {
+      "username": "tier2.quality",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "Qualitätsverantwortlicher",
+      "lastName": "Tier-2",
+      "email": "tier2.quality@tier2.example",
+      "realmRoles": [
+        "SUPPLIER_QUALITY_MANAGER",
+        "MASTERDATA_MANAGER"
+      ],
+      "credentials": [
+        {
+          "type": "password",
+          "value": "demo",
+          "temporary": false
+        }
+      ]
+    },
+    {
+      "username": "tier2.admin",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "Administrator",
+      "lastName": "Tier-2",
+      "email": "tier2.admin@tier2.example",
+      "realmRoles": [
+        "CUSTOMER_QUALITY_ENGINEER",
+        "SUPPLIER_QUALITY_MANAGER",
+        "MASTERDATA_MANAGER",
+        "CONNECTOR_ADMIN"
+      ],
+      "credentials": [
+        {
+          "type": "password",
+          "value": "demo",
+          "temporary": false
+        }
+      ]
+    },
+    {
+      "username": "service-account-ppap-integration",
+      "enabled": true,
+      "serviceAccountClientId": "ppap-integration",
+      "realmRoles": [
+        "SYSTEM_INTEGRATION"
+      ]
+    },
+    {
+      "username": "service-account-ppap-backend-dtr",
+      "enabled": true,
+      "serviceAccountClientId": "ppap-backend-dtr",
+      "clientRoles": {
+        "ppap-dtr": [
+          "view_digital_twin",
+          "add_digital_twin",
+          "update_digital_twin",
+          "delete_digital_twin",
+          "submodel_access_control",
+          "read_access_rules",
+          "write_access_rules"
+        ]
+      }
+    },
+    {
+      "username": "service-account-ppap-edc-dtr",
+      "enabled": true,
+      "serviceAccountClientId": "ppap-edc-dtr",
+      "clientRoles": {
+        "ppap-dtr": [
+          "view_digital_twin"
+        ]
+      }
+    }
+  ]
+}

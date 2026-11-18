@@ -1,0 +1,10 @@
+{
+  "identities": [
+    { "name": "oem",   "credentials": [{ "accessKey": "oem-local",   "secretKey": "oem-local-secret" }],
+      "actions": ["Read:oem-documents", "Write:oem-documents", "List:oem-documents", "Tagging:oem-documents", "Admin:oem-documents"] },
+    { "name": "tier1", "credentials": [{ "accessKey": "tier1-local", "secretKey": "tier1-local-secret" }],
+      "actions": ["Read:tier1-documents", "Write:tier1-documents", "List:tier1-documents", "Tagging:tier1-documents", "Admin:tier1-documents"] },
+    { "name": "tier2", "credentials": [{ "accessKey": "tier2-local", "secretKey": "tier2-local-secret" }],
+      "actions": ["Read:tier2-documents", "Write:tier2-documents", "List:tier2-documents", "Tagging:tier2-documents", "Admin:tier2-documents"] }
+  ]
+}

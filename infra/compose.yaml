@@ -85,6 +85,41 @@ x-vault-seed: &vault-seed
   volumes:
     - ./bootstrap:/bootstrap:ro
 
+x-app-service: &app-service
+  image: ${APP_IMAGE:-ppap-connector:local}
+  restart: unless-stopped
+  mem_limit: 768m
+  healthcheck:
+    # the JRE base image has no curl/wget – plain bash HTTP request
+    test: ["CMD", "bash", "-c", "exec 3<>/dev/tcp/127.0.0.1/8080 && printf 'GET /actuator/health/liveness HTTP/1.1\\r\\nHost: localhost\\r\\nConnection: close\\r\\n\\r\\n' >&3 && grep -q UP <&3"]
+    interval: 10s
+    timeout: 5s
+    retries: 30
+    start_period: 40s
+
+x-app-env: &app-env
+  SPRING_PROFILES_ACTIVE: ${APP_SPRING_PROFILES:-}
+  # JSON (ECS) logs with correlation id; set to empty for human-readable logs
+  LOGGING_STRUCTURED_FORMAT_CONSOLE: ${APP_LOG_FORMAT:-ecs}
+  SPRING_DATASOURCE_PASSWORD: ${APP_DB_PASSWORD:-app-local}
+  PPAP_OIDC_CLIENT_ID: ppap-ui
+  PPAP_EDC_API_KEY: ${EDC_MANAGEMENT_API_KEY:-local-management-key}
+  PPAP_S3_ENDPOINT: http://seaweedfs:8333
+  PPAP_S3_CREATE_BUCKET: "true"
+
+x-dtr-service: &dtr-service
+  image: tractusx/sldt-digital-twin-registry:${DTR_VERSION:-0.13.0}
+  restart: unless-stopped
+  mem_limit: 768m
+
+x-dtr-env: &dtr-env
+  SPRING_DATASOURCE_DRIVERCLASSNAME: org.postgresql.Driver
+  SPRING_DATASOURCE_PASSWORD: ${DTR_DB_PASSWORD:-dtr-local}
+  REGISTRY_IDM_PUBLIC_CLIENT_ID: ppap-dtr
+  REGISTRY_USE_GRANULAR_ACCESS_CONTROL: "false"
+  REGISTRY_EXTERNAL_SUBJECT_ID_WILDCARD_PREFIX: PUBLIC_READABLE
+  REGISTRY_EXTERNAL_SUBJECT_ID_WILDCARD_ALLOWED_TYPES: manufacturerPartId,assetLifecyclePhase
+
 services:
   # ------------------------------------------------------------------ shared
   postgres:
@@ -96,12 +131,15 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres-local}
       # db:user:password – one EDC database per participant
       POSTGRES_MULTIPLE_DATABASES: >-
-        oem_edc:edc_oem:${EDC_DB_PASSWORD:-edc-local},tier1_edc:edc_tier1:${EDC_DB_PASSWORD:-edc-local},tier2_edc:edc_tier2:${EDC_DB_PASSWORD:-edc-local}
+        keycloak:keycloak:${KEYCLOAK_DB_PASSWORD:-keycloak-local},
+        oem_edc:edc_oem:${EDC_DB_PASSWORD:-edc-local},tier1_edc:edc_tier1:${EDC_DB_PASSWORD:-edc-local},tier2_edc:edc_tier2:${EDC_DB_PASSWORD:-edc-local},
+        oem_app:app_oem:${APP_DB_PASSWORD:-app-local},tier1_app:app_tier1:${APP_DB_PASSWORD:-app-local},tier2_app:app_tier2:${APP_DB_PASSWORD:-app-local},
+        tier1_dtr:dtr_tier1:${DTR_DB_PASSWORD:-dtr-local},tier2_dtr:dtr_tier2:${DTR_DB_PASSWORD:-dtr-local}
     volumes:
       - pg-data:/var/lib/postgresql
       - ./postgres/init-databases.sh:/docker-entrypoint-initdb.d/10-init-databases.sh:ro
     ports: ["${POSTGRES_HOST_PORT:-5432}:5432"]
-    networks: [net-oem, net-tier1, net-tier2]
+    networks: [net-oem, net-tier1, net-tier2, net-shared]
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 5s
@@ -124,6 +162,45 @@ services:
       APP_LOG_LEVEL: INFO
     ports: ["${WALLET_STUB_HOST_PORT:-8090}:80"]
     networks: [dataspace]
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:${KEYCLOAK_VERSION:-26.8.2}
+    restart: unless-stopped
+    mem_limit: 1g
+    command: ["start-dev", "--import-realm"]
+    environment:
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://postgres:5432/keycloak
+      KC_DB_USERNAME: keycloak
+      KC_DB_PASSWORD: ${KEYCLOAK_DB_PASSWORD:-keycloak-local}
+      # Browser-facing issuer; containers use keycloak:8080 for back-channel calls (JWKS, token endpoint)
+      KC_HOSTNAME: http://localhost:${KEYCLOAK_HOST_PORT:-8180}
+      KC_HOSTNAME_BACKCHANNEL_DYNAMIC: "true"
+      KC_HEALTH_ENABLED: "true"
+      KC_BOOTSTRAP_ADMIN_USERNAME: admin
+      KC_BOOTSTRAP_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD:-admin}
+    volumes:
+      - ./keycloak/realms:/opt/keycloak/data/import:ro
+    ports: ["${KEYCLOAK_HOST_PORT:-8180}:8080"]
+    depends_on: { postgres: { condition: service_healthy } }
+    networks: [net-shared]
+    healthcheck:
+      test: ["CMD-SHELL", "exec 3<>/dev/tcp/127.0.0.1/9000 && printf 'GET /health/ready HTTP/1.1\\r\\nHost: localhost\\r\\nConnection: close\\r\\n\\r\\n' >&3 && grep -q UP <&3"]
+      interval: 10s
+      retries: 30
+      start_period: 30s
+
+  # S3-compatible object storage (ADR-0007); one bucket + credentials per participant (seaweedfs/s3.json)
+  seaweedfs:
+    image: chrislusf/seaweedfs:${SEAWEEDFS_VERSION:-4.54}
+    restart: unless-stopped
+    mem_limit: 512m
+    command: ["server", "-dir=/data", "-s3", "-s3.port=8333", "-s3.config=/etc/seaweedfs/s3.json", "-volume.max=0", "-master.volumeSizeLimitMB=256"]
+    volumes:
+      - s3-data:/data
+      - ./seaweedfs/s3.json:/etc/seaweedfs/s3.json:ro
+    ports: ["${S3_HOST_PORT:-8333}:8333"]
+    networks: [net-shared]
 
   # ------------------------------------------------------------------ OEM
   oem-vault:
@@ -175,6 +252,31 @@ services:
       oem-edc-cp: { condition: service_healthy }
     networks: [net-oem, dataspace]
 
+  oem-app:
+    <<: *app-service
+    environment:
+      <<: *app-env
+      PPAP_TENANT_BPNL: ${OEM_BPNL:-BPNL00000000OEM1}
+      PPAP_TENANT_NAME: "Demo-OEM AG"
+      PPAP_TENANT_ROLE_LABEL: OEM
+      PPAP_TENANT_DID: did:web:wallet-stub:${OEM_BPNL:-BPNL00000000OEM1}
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/oem_app
+      SPRING_DATASOURCE_USERNAME: app_oem
+      PPAP_OIDC_ISSUER_URI: http://localhost:${KEYCLOAK_HOST_PORT:-8180}/realms/oem
+      PPAP_OIDC_JWK_SET_URI: http://keycloak:8080/realms/oem/protocol/openid-connect/certs
+      PPAP_EDC_MANAGEMENT_URL: http://oem-edc-cp:8081/management
+      PPAP_EDC_DSP_URL: http://oem-edc-cp:8084/api/v1/dsp/2025-1
+      PPAP_EDC_PARTICIPANT_ID: did:web:wallet-stub:${OEM_BPNL:-BPNL00000000OEM1}
+      PPAP_S3_ACCESS_KEY: oem-local
+      PPAP_S3_SECRET_KEY: oem-local-secret
+      PPAP_S3_BUCKET: oem-documents
+    ports: ["${OEM_APP_HOST_PORT:-8081}:8080"]
+    depends_on:
+      postgres: { condition: service_healthy }
+      keycloak: { condition: service_healthy }
+      oem-edc-cp: { condition: service_healthy }
+    networks: [net-oem, net-shared]
+
   # ------------------------------------------------------------------ Tier-1
   tier1-vault:
     <<: *vault-service
@@ -224,12 +326,144 @@ services:
     depends_on:
       tier1-edc-cp: { condition: service_healthy }
     networks: [net-tier1, dataspace]
+  tier1-app:
+    <<: *app-service
+    environment:
+      <<: *app-env
+      PPAP_TENANT_BPNL: ${TIER1_BPNL:-BPNL000000TIER01}
+      PPAP_TENANT_NAME: "Demo-Tier1 GmbH"
+      PPAP_TENANT_ROLE_LABEL: Tier-1
+      PPAP_TENANT_DID: did:web:wallet-stub:${TIER1_BPNL:-BPNL000000TIER01}
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/tier1_app
+      SPRING_DATASOURCE_USERNAME: app_tier1
+      PPAP_OIDC_ISSUER_URI: http://localhost:${KEYCLOAK_HOST_PORT:-8180}/realms/tier1
+      PPAP_OIDC_JWK_SET_URI: http://keycloak:8080/realms/tier1/protocol/openid-connect/certs
+      PPAP_EDC_MANAGEMENT_URL: http://tier1-edc-cp:8081/management
+      PPAP_EDC_DSP_URL: http://tier1-edc-cp:8084/api/v1/dsp/2025-1
+      PPAP_EDC_PARTICIPANT_ID: did:web:wallet-stub:${TIER1_BPNL:-BPNL000000TIER01}
+      PPAP_S3_ACCESS_KEY: tier1-local
+      PPAP_S3_SECRET_KEY: tier1-local-secret
+      PPAP_S3_BUCKET: tier1-documents
+      PPAP_DTR_URL: http://tier1-dtr:4243/api/v3
+    ports: ["${TIER1_APP_HOST_PORT:-8082}:8080"]
+    depends_on:
+      postgres: { condition: service_healthy }
+      keycloak: { condition: service_healthy }
+      tier1-edc-cp: { condition: service_healthy }
+    networks: [net-tier1, net-shared]
+  tier1-dtr:
+    <<: *dtr-service
+    environment:
+      <<: *dtr-env
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/tier1_dtr
+      SPRING_DATASOURCE_USERNAME: dtr_tier1
+      REGISTRY_IDM_OWNING_TENANT_ID: ${TIER1_BPNL:-BPNL000000TIER01}
+      # JWKS via internal URL; the backend obtains its tokens via keycloak:8080 (back-channel)
+      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI: http://keycloak:8080/realms/tier1/protocol/openid-connect/certs
+    depends_on:
+      postgres: { condition: service_healthy }
+    networks: [net-tier1, net-shared]
+
+  # ------------------------------------------------------------------ Tier-2 (profile tier2)
+  tier2-vault:
+    profiles: [tier2]
+    <<: *vault-service
+    networks: [net-tier2]
+  tier2-vault-seed:
+    profiles: [tier2]
+    <<: *vault-seed
+    environment: { VAULT_ADDR: "http://tier2-vault:8200", VAULT_TOKEN: "${VAULT_ROOT_TOKEN:-root}", STS_CLIENT_SECRET: "${STS_CLIENT_SECRET:-not-validated-by-stub}" }
+    depends_on: { tier2-vault: { condition: service_healthy } }
+    networks: [net-tier2]
+  tier2-edc-cp:
+    profiles: [tier2]
+    <<: *edc-cp-service
+    environment:
+      <<: *edc-controlplane
+      EDC_RUNTIME_ID: tier2-edc-cp
+      EDC_PARTICIPANT_ID: did:web:wallet-stub:${TIER2_BPNL:-BPNL000000TIER02}
+      EDC_IAM_ISSUER_ID: did:web:wallet-stub:${TIER2_BPNL:-BPNL000000TIER02}
+      EDC_PARTICIPANT_CONTEXT_ID: 6b0c3f4e-0e57-4d55-9a0a-000000000003
+      TRACTUSX_EDC_PARTICIPANT_BPN: ${TIER2_BPNL:-BPNL000000TIER02}
+      EDC_IAM_STS_OAUTH_CLIENT_ID: ${TIER2_BPNL:-BPNL000000TIER02}
+      EDC_CONTROL_ENDPOINT: http://tier2-edc-cp:8083/control
+      EDC_DSP_CALLBACK_ADDRESS: http://tier2-edc-cp:8084/api/v1/dsp
+      EDC_DATASOURCE_DEFAULT_URL: jdbc:postgresql://postgres:5432/tier2_edc
+      EDC_DATASOURCE_DEFAULT_USER: edc_tier2
+      EDC_VAULT_HASHICORP_URL: http://tier2-vault:8200
+    depends_on:
+      postgres: { condition: service_healthy }
+      tier2-vault-seed: { condition: service_completed_successfully }
+      wallet-stub: { condition: service_started }
+    ports: ["${TIER2_EDC_MGMT_HOST_PORT:-8391}:8081"]
+    networks: [net-tier2, dataspace]
+  tier2-edc-dp:
+    profiles: [tier2]
+    <<: *edc-dp-service
+    environment:
+      <<: *edc-dataplane
+      EDC_RUNTIME_ID: tier2-edc-dp
+      EDC_PARTICIPANT_ID: did:web:wallet-stub:${TIER2_BPNL:-BPNL000000TIER02}
+      EDC_IAM_ISSUER_ID: did:web:wallet-stub:${TIER2_BPNL:-BPNL000000TIER02}
+      EDC_PARTICIPANT_CONTEXT_ID: 6b0c3f4e-0e57-4d55-9a0a-000000000003
+      EDC_IAM_STS_OAUTH_CLIENT_ID: ${TIER2_BPNL:-BPNL000000TIER02}
+      EDC_CONTROL_ENDPOINT: http://tier2-edc-dp:8084/api/control
+      EDC_DPF_SELECTOR_URL: http://tier2-edc-cp:8083/control/v1/dataplanes
+      EDC_DATAPLANE_API_PUBLIC_BASEURL: http://tier2-edc-dp:8081/api/public
+      TX_EDC_DATAPLANE_TOKEN_REFRESH_ENDPOINT: http://tier2-edc-dp:8081/api/public/token
+      EDC_DATASOURCE_DEFAULT_URL: jdbc:postgresql://postgres:5432/tier2_edc
+      EDC_DATASOURCE_DEFAULT_USER: edc_tier2
+      EDC_VAULT_HASHICORP_URL: http://tier2-vault:8200
+    depends_on:
+      tier2-edc-cp: { condition: service_healthy }
+    networks: [net-tier2, dataspace]
+  tier2-app:
+    profiles: [tier2]
+    <<: *app-service
+    environment:
+      <<: *app-env
+      PPAP_TENANT_BPNL: ${TIER2_BPNL:-BPNL000000TIER02}
+      PPAP_TENANT_NAME: "Demo-Tier2 KG"
+      PPAP_TENANT_ROLE_LABEL: Tier-2
+      PPAP_TENANT_DID: did:web:wallet-stub:${TIER2_BPNL:-BPNL000000TIER02}
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/tier2_app
+      SPRING_DATASOURCE_USERNAME: app_tier2
+      PPAP_OIDC_ISSUER_URI: http://localhost:${KEYCLOAK_HOST_PORT:-8180}/realms/tier2
+      PPAP_OIDC_JWK_SET_URI: http://keycloak:8080/realms/tier2/protocol/openid-connect/certs
+      PPAP_EDC_MANAGEMENT_URL: http://tier2-edc-cp:8081/management
+      PPAP_EDC_DSP_URL: http://tier2-edc-cp:8084/api/v1/dsp/2025-1
+      PPAP_EDC_PARTICIPANT_ID: did:web:wallet-stub:${TIER2_BPNL:-BPNL000000TIER02}
+      PPAP_S3_ACCESS_KEY: tier2-local
+      PPAP_S3_SECRET_KEY: tier2-local-secret
+      PPAP_S3_BUCKET: tier2-documents
+      PPAP_DTR_URL: http://tier2-dtr:4243/api/v3
+    ports: ["${TIER2_APP_HOST_PORT:-8083}:8080"]
+    depends_on:
+      postgres: { condition: service_healthy }
+      keycloak: { condition: service_healthy }
+      tier2-edc-cp: { condition: service_healthy }
+    networks: [net-tier2, net-shared]
+  tier2-dtr:
+    profiles: [tier2]
+    <<: *dtr-service
+    environment:
+      <<: *dtr-env
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/tier2_dtr
+      SPRING_DATASOURCE_USERNAME: dtr_tier2
+      REGISTRY_IDM_OWNING_TENANT_ID: ${TIER2_BPNL:-BPNL000000TIER02}
+      # JWKS via internal URL; the backend obtains its tokens via keycloak:8080 (back-channel)
+      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI: http://keycloak:8080/realms/tier2/protocol/openid-connect/certs
+    depends_on:
+      postgres: { condition: service_healthy }
+    networks: [net-tier2, net-shared]
 
 networks:
   dataspace: {}
+  net-shared: {}
   net-oem: {}
   net-tier1: {}
   net-tier2: {}
 
 volumes:
   pg-data: {}
+  s3-data: {}

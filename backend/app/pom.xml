@@ -140,6 +140,30 @@
   <build>
     <finalName>ppap-connector</finalName>
     <plugins>
+      <!-- Bundle the SPA: copies frontend/dist (built by `npm run build`) into classpath:/static.
+           Missing dist is skipped, so backend-only builds keep working. -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-resources-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>copy-frontend</id>
+            <goals>
+              <goal>copy-resources</goal>
+            </goals>
+            <phase>process-resources</phase>
+            <configuration>
+              <outputDirectory>${project.build.outputDirectory}/static</outputDirectory>
+              <resources>
+                <resource>
+                  <directory>${maven.multiModuleProjectDirectory}/frontend/dist</directory>
+                  <filtering>false</filtering>
+                </resource>
+              </resources>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
       <!-- Exposes ${org.mockito:mockito-core:jar} so Mockito is attached as agent instead of self-attaching
            (dynamic agent loading is deprecated since JDK 21). -->
       <plugin>
