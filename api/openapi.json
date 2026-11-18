@@ -1,0 +1,201 @@
+{
+  "openapi" : "3.1.0",
+  "info" : {
+    "description" : "REST API of the msg CX PPAP Connector backend.",
+    "title" : "msg CX PPAP Connector API",
+    "version" : "v1"
+  },
+  "servers" : [ {
+    "url" : "/"
+  } ],
+  "security" : [ {
+    "bearerAuth" : [ ]
+  } ],
+  "paths" : {
+    "/api/v1/config" : {
+      "get" : {
+        "operationId" : "getConfig",
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ConfigResponse"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "security" : [ ],
+        "summary" : "Public runtime configuration for the web UI",
+        "tags" : [ "Identity" ]
+      }
+    },
+    "/api/v1/me" : {
+      "get" : {
+        "operationId" : "getMe",
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/MeResponse"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "summary" : "The authenticated user and tenant",
+        "tags" : [ "Identity" ]
+      }
+    },
+    "/api/v1/system/status" : {
+      "get" : {
+        "operationId" : "getSystemStatus",
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/SystemStatusResponse"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "summary" : "Status of database, EDC, object storage and DTR",
+        "tags" : [ "System" ]
+      }
+    }
+  },
+  "components" : {
+    "schemas" : {
+      "ComponentStatus" : {
+        "type" : "object",
+        "properties" : {
+          "details" : {
+            "type" : "object",
+            "additionalProperties" : { }
+          },
+          "name" : {
+            "type" : "string"
+          },
+          "status" : {
+            "type" : "string",
+            "enum" : [ "UP", "DOWN", "UNKNOWN" ]
+          }
+        },
+        "required" : [ "details", "name", "status" ]
+      },
+      "ConfigResponse" : {
+        "type" : "object",
+        "properties" : {
+          "defaultLocale" : {
+            "type" : "string"
+          },
+          "oidc" : {
+            "$ref" : "#/components/schemas/OidcInfo"
+          },
+          "participant" : {
+            "$ref" : "#/components/schemas/ParticipantInfo"
+          },
+          "version" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "defaultLocale", "oidc", "participant", "version" ]
+      },
+      "MeResponse" : {
+        "type" : "object",
+        "properties" : {
+          "displayName" : {
+            "type" : "string"
+          },
+          "email" : {
+            "type" : "string"
+          },
+          "roles" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string"
+            }
+          },
+          "tenant" : {
+            "$ref" : "#/components/schemas/TenantInfo"
+          },
+          "userId" : {
+            "type" : "string"
+          },
+          "username" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "roles", "tenant", "userId" ]
+      },
+      "OidcInfo" : {
+        "type" : "object",
+        "properties" : {
+          "authority" : {
+            "type" : "string"
+          },
+          "clientId" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "authority", "clientId" ]
+      },
+      "ParticipantInfo" : {
+        "type" : "object",
+        "properties" : {
+          "bpnl" : {
+            "type" : "string"
+          },
+          "name" : {
+            "type" : "string"
+          },
+          "roleLabel" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "bpnl", "name", "roleLabel" ]
+      },
+      "SystemStatusResponse" : {
+        "type" : "object",
+        "properties" : {
+          "components" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/ComponentStatus"
+            }
+          }
+        },
+        "required" : [ "components" ]
+      },
+      "TenantInfo" : {
+        "type" : "object",
+        "properties" : {
+          "bpnl" : {
+            "type" : "string"
+          },
+          "name" : {
+            "type" : "string"
+          },
+          "roleLabel" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "bpnl", "name", "roleLabel" ]
+      }
+    },
+    "securitySchemes" : {
+      "bearerAuth" : {
+        "bearerFormat" : "JWT",
+        "scheme" : "bearer",
+        "type" : "http"
+      }
+    }
+  }
+}
