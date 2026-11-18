@@ -17,7 +17,7 @@ Storypunkte sind grobe Schätzungen (Fibonacci) zur Planung, nicht verbindlich.
 | E0-08 | OpenAPI-Pipeline: springdoc → `openapi.json` als Build-Artefakt → orval-Client im Frontend; Drift-Check in CI | M | 3 |
 | E0-09 | CI (GitHub Actions): Build, Unit/IT-Tests, Lint (Spotless, ESLint), OWASP Dependency-Check/Trivy, Lizenzprüfung | M | 5 |
 | E0-10 | Strukturierte JSON-Logs, Korrelations-ID (`traceparent`/`X-Correlation-Id`) über Backend → EDC-Calls → Notifications | S | 3 |
-| E0-11 | Analyse Customs-Demonstrator (sobald Zugriff, siehe A-02) | S | 2 |
+| E0-11 | ~~Analyse Customs-Demonstrator~~ – erledigt in Phase 0, siehe `docs/analysis/customs-demonstrator.md` | – | 0 |
 
 ## Epic E1 – Stammdaten (Phase 2, UC-01/02)
 

@@ -296,7 +296,7 @@ Siehe §1 und Prompt §13; messbare Kriterien sind als Akzeptanzkriterien in den
 | R5 | OpenBao nicht vollständig kompatibel zu EDC-Vault-Extension | Startprobleme | Fallback `hashicorp/vault` (dev) |
 | R6 | DTR-Visibility (`Edc-Bpn`) im `local`-Profil ohne Auth eingeschränkt | Pull-Sicherheit | DTR mit Keycloak-OAuth (produktionsnah), Client für Backend + EDC-DataAddress OAuth2 |
 | R7 | Neue Major-Versionen (Boot 4.2, TS 7, POI 6) instabil | Build-Probleme | Versionen in Phase 1 fixieren; Renovate mit Gruppen |
-| R8 | Customs-Demonstrator nicht zugänglich | keine Wiederverwendung | Zugriff klären (A-02) |
+| R8 | Kein wiederverwendbarer EDC-Code aus früheren Demonstratoren (Customs-Demonstrator: nur Stubs) | EDC-Adapter vollständig neu | im Plan berücksichtigt (E3-01), Spike in Phase 1 |
 
 ## 12. Phasenplan
 

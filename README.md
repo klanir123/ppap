@@ -15,6 +15,7 @@ Digitaler, strukturierter PPAP/PPF-Datenaustausch zwischen OEMs und Zulieferern 
 | [docs/backlog.md](docs/backlog.md) | Priorisiertes Backlog (Epics/Stories) |
 | [docs/versions.md](docs/versions.md) · [docs/tractusx-versions.md](docs/tractusx-versions.md) | Verifizierte Versionen (Stand 18.11.2026) |
 | [ASSUMPTIONS.md](ASSUMPTIONS.md) | Annahmen und offene Punkte (`TODO(EG)`) |
+| [docs/analysis/customs-demonstrator.md](docs/analysis/customs-demonstrator.md) | Analyse des Customs-Demonstrators (Wiederverwendung) |
 | [CLAUDE.md](CLAUDE.md) | Arbeitsregeln für KI-gestützte Entwicklung |
 
 ## Schnellstart (ab Phase 1)
