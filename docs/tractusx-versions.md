@@ -24,7 +24,9 @@ Recherchiert am **2026-11-18** aus Primärquellen (Git-Tags und Quellcode der Re
 - Management API v3: `/v3/assets`, `/v3/policydefinitions`, `/v3/contractdefinitions`, `/v3/catalog/request`, `/v3/contractnegotiations`, `/v3/transferprocesses`, **`/v3/edrs`** (in 0.12: `/v2/edrs`), `/v3/connectordiscovery`.
 - DSP-Endpoint: `…/api/v1/dsp/2025-1`, Protokoll `dataspace-protocol-http:2025-1`.
 - Federated Catalog entfernt; Postgres 18.
-- **Risiko:** Wallet-Stub-Doku zeigt noch die alten Keys (`dim`, `iatp`) – Kompatibilität Stub 0.1.0 ↔ EDC 0.13 ist ungeprüft → **Spike zu Beginn von Phase 1**; Fallback EDC 0.12.3 (vom Umbrella mit Stub erprobt). Der EDC-Adapter kapselt die Unterschiede (`/v2/edrs` vs. `/v3/edrs`).
+- **Spike Phase 1 (18.11.2026): erfolgreich.** EDC 0.13.0 + Wallet-Stub 0.1.0 funktionieren mit den neuen Keys (`tx.edc.iam.sts.div.url`, `tx.edc.iam.dcp.*`) und DID als Participant-ID. Katalog → Negotiation → EDR → Data-Plane-Abruf OEM ↔ Tier-1 in < 10 s (`make smoke`, `infra/scripts/edc-smoke.py`). Fallback 0.12.3 nicht nötig.
+- Das BPN-Directory des Wallet-Stubs ersetzt den BDRS (`TX_EDC_IAM_DCP_BDRS_SERVER_URL=http://wallet-stub/api/v1/directory`).
+- DTR 0.13.0 benötigt zusätzlich `REGISTRY_IDM_OWNING_TENANT_ID` (BPNL des Betreibers).
 - Wallet-Stub: DID-Auflösung funktioniert laut Doku nur auf **Port 80** → Stub im Compose-Netz auf Container-Port 80 betreiben (`DID_HOST=wallet-stub`).
 
 ### Notifications (Industry Core KIT / CX-0125)

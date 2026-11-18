@@ -12,7 +12,7 @@ Geprüft am **2026-11-18** gegen offizielle Quellen (Maven Central, npm-Registry
 | Spring Cloud | 2025.1.4 | nur falls benötigt |
 | springdoc-openapi | 3.2.0 | 3.x = Boot 4 |
 | openapi-generator-maven-plugin | 7.27.0 | |
-| Flyway | 13.12.2 | |
+| Flyway | 13.12.2 | explizit gepinnt (Boot 4.1.2 managt 12.4.0) |
 | Testcontainers | 2.0.5 | Module heißen `testcontainers-<modul>`, kein JUnit 4 |
 | ArchUnit | 1.5.1 | |
 | jMolecules | BOM 2025.0.2 | |
@@ -42,7 +42,7 @@ Wichtige Breaking Changes: Spring Boot 4 = Spring Framework 7, Jakarta EE 11, **
 | Paket | Version | Hinweis |
 |---|---|---|
 | react / react-dom | 19.3.1 | |
-| typescript | 7.0.2 | nativer Compiler; Fallback 5.x/6.x, falls Tooling inkompatibel |
+| typescript | **6.0.x** (gepinnt `~6.0.3`) | TS 7 liefert die klassische Compiler-API nicht mehr; typescript-eslint 8.x verlangt `<6.1` |
 | vite / @vitejs/plugin-react | 8.3.8 / 6.3.0 | |
 | @tanstack/react-query | 5.108.0 | |
 | @tanstack/react-router | 1.170.46 | |
@@ -54,4 +54,6 @@ Wichtige Breaking Changes: Spring Boot 4 = Spring Framework 7, Jakarta EE 11, **
 | orval | 8.48.0 | OpenAPI-Client inkl. TanStack-Query-Hooks (statt @hey-api/openapi-ts, noch < 1.0) |
 | @playwright/test | 1.65.1 | |
 | vitest | 5.1.1 | |
+| eslint | 9.39 | jsx-a11y 6.10 unterstützt ESLint 10 noch nicht |
+| oidc-client-ts | 3.5.0 | |
 | react-pdf / pdfjs-dist | 11.1.0 / 6.5.438 | Dokumentvorschau |

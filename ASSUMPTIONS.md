@@ -40,7 +40,7 @@ Status: **offen** = Freigabe durch Product Owner nötig · **gesetzt** = Entsche
 | A-25 | Dokumente werden nicht in Notifications eingebettet, sondern immer per Pull über EDC übertragen (Binärdaten, Größe, Policies). | gesetzt |
 | A-26 | Die DTR läuft beim Lieferanten. Da ein Tier-1 auch Lieferant ist, haben OEM **keine**, Tier-1 und Tier-2 **je eine** DTR. Ein OEM, der selbst Anhänge zur Anforderung bereitstellt (Zeichnung), nutzt im MVP direkte EDC-Assets ohne DTR. | offen |
 | A-27 | Lokale Hostnamen in Docker Compose sind gleichzeitig die DSP-Endpoints (z. B. `http://oem-edc-cp:8084/api/v1/dsp`). TLS ist im lokalen Setup aus; in Zielumgebungen per Reverse-Proxy. | gesetzt |
-| A-28 | Ressourcenbudget: Ziel ≤ 24 GB RAM für Vollausbau mit Tier-2 auf einem 32-GB-Laptop; ohne Tier-2 ≤ 16 GB (Abschätzung in ARCHITECTURE.md, Messung in Phase 1). | offen |
+| A-28 | Ressourcenbudget gemessen (Phase 1, Leerlauf): **Vollausbau mit Tier-2 = 4,4 GiB** (18 Container), Summe der Speicherlimits ≈ 13 GiB → passt auf 32-GB-Laptop. Messung unter Last folgt in Phase 7. | gesetzt |
 
 ## Produkt / Lizenz
 

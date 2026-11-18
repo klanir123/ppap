@@ -3,7 +3,7 @@
 Kommerzielles Produkt (Closed Source) von msg for automotive: digitaler PPAP/PPF-Datenaustausch zwischen OEM und Zulieferern über Catena-X (Tractus-X EDC, DSP). Prototyp → MVP, kein Wegwerf-PoC.
 
 ## Projektstatus
-- **Phase 0 (Recherche & Plan) abgeschlossen – wartet auf Freigabe.** Noch kein Produktivcode.
+- Phase 0 (Plan) freigegeben, **Phase 1 (Fundament) abgeschlossen**. Nächste Phase: 2 – Stammdaten (UC-01/02).
 - Vollständige Aufgabenstellung: siehe `docs/input/` bzw. Erst-Prompt; Phasenplan in `docs/backlog.md` und `docs/ARCHITECTURE.md` §12.
 
 ## Wichtige Dokumente
@@ -29,7 +29,18 @@ Kommerzielles Produkt (Closed Source) von msg for automotive: digitaler PPAP/PPF
 - REST unter `/api/v1`, OpenAPI generiert (springdoc) → Frontend-Client mit orval.
 - Java 25, Spring Boot 4.x (Jackson 3!), Maven 3.10 Wrapper. Frontend: React 19, TS, Vite, TanStack, Tailwind v4, shadcn/ui, zod v4.
 
-## Kommandos (ab Phase 1)
-- `make up` – komplette Umgebung inkl. Seed; `make up PROFILE=tier2` mit Tier-2
-- `make demo` – Demo-Zustand zurücksetzen
-- `make test` – Backend + Frontend Tests
+## Kommandos
+- `make up` (OEM + Tier-1) / `make up PROFILE=tier2`; `make up SKIP_BUILD=1` ohne Neubau
+- `make test` – `./mvnw verify` + Frontend lint/typecheck/test/api:check
+- `make smoke` – EDC-Ende-zu-Ende (Katalog, Negotiation, EDR, Data Plane) gegen laufende Umgebung
+- `make demo` – App-Datenbanken zurücksetzen; `make clean` – alles inkl. Volumes löschen
+- Backend allein: `JAVA_HOME=<jdk25> ./mvnw -B verify` (regeneriert `api/openapi.json` → danach `cd frontend && npm run api:generate`)
+- Frontend: `cd frontend && npm run dev|lint|typecheck|test|build`
+
+## Wichtige Implementierungsdetails
+- API-Vertrag: Backend exportiert `api/openapi.json` im Test `OpenApiExportTest`; Frontend-Client wird daraus mit orval generiert (`src/api/generated`, eingecheckt). CI prüft beide Richtungen auf Drift.
+- Docker: `Dockerfile` kopiert nur das fertige Jar (Frontend wird per maven-resources-plugin aus `frontend/dist` nach `classpath:/static` gebündelt) → Image-Build braucht kein Netz.
+- Keycloak: Issuer für Browser `http://localhost:8180/realms/<p>`, Backend holt JWKS intern (`PPAP_OIDC_JWK_SET_URI`). Realms nur über `infra/keycloak/generate-realms.py` ändern.
+- EDC 0.13: Participant-ID = DID `did:web:wallet-stub:<BPNL>`, DSP-Endpoint `http://<p>-edc-cp:8084/api/v1/dsp/2025-1`, Management API `http://<p>-edc-cp:8081/management/v3/...` (Header `X-Api-Key`). Policies im Namespace CX 2025/9 (siehe `infra/scripts/edc-smoke.py`).
+- Container haben ggf. kein Internet: keine Package-Installation in Bootstrap-Jobs.
+- Versionsabweichungen: TypeScript 6.0 (nicht 7), ESLint 9, Flyway 13.12.2 explizit gepinnt.

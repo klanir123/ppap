@@ -3,7 +3,9 @@
 Stand: Phase 0. Priorität: **M** = Must (Prototyp/Demo), **S** = Should (MVP), **C** = Could (später).
 Storypunkte sind grobe Schätzungen (Fibonacci) zur Planung, nicht verbindlich.
 
-## Epic E0 – Fundament (Phase 1)
+## Epic E0 – Fundament (Phase 1) ✅ abgeschlossen 18.11.2026
+
+Offen aus E0 (verschoben): E0-10 Korrelations-ID über EDC-Transfers hinweg → Phase 4 (im Backend vorhanden, Weitergabe an EDC folgt mit dem Austausch).
 
 | ID | Story | Prio | SP |
 |---|---|---|---|

@@ -252,17 +252,22 @@ flowchart TB
 - Getrennte Docker-Netze je Teilnehmer (`net-oem`, `net-tier1`, …) + gemeinsames `net-dataspace` nur für EDC-DSP/Data-Plane-Public und Core Services → Backends können sich **netzwerkseitig nicht** direkt erreichen (Q1 technisch erzwungen).
 - `make up` → Compose + Bootstrap-Job (Vault-Secrets, Wallet-Seeds, Keycloak-Realms, Seed-Daten); `make demo` → Reset der App-DBs + Seed, EDC-Ressourcen werden per Reconciliation neu angelegt.
 
-### RAM-Abschätzung (wird in Phase 1 gemessen)
+### Speicherbedarf (gemessen Phase 1, Leerlauf, `make stats`)
 
-| Komponente | Anzahl (ohne/mit Tier-2) | je Instanz | Summe (ohne / mit) |
-|---|---|---|---|
-| EDC Control Plane | 2 / 3 | ~0,8 GB | 1,6 / 2,4 GB |
-| EDC Data Plane | 2 / 3 | ~0,5 GB | 1,0 / 1,5 GB |
-| Connector-Backend | 2 / 3 | ~0,6 GB | 1,2 / 1,8 GB |
-| DTR | 1 / 2 | ~0,6 GB | 0,6 / 1,2 GB |
-| OpenBao | 2 / 3 | ~0,1 GB | 0,2 / 0,3 GB |
-| Postgres, Keycloak, SeaweedFS, Wallet-Stub | je 1 | – | ~2,5 GB |
-| **Summe** | | | **~7 GB / ~10 GB** (+ Docker-Overhead, Browser, IDE) → passt auf 32 GB |
+| Komponente | je Instanz | Limit (compose) |
+|---|---|---|
+| EDC Control Plane | ~260 MiB | 1 GiB |
+| EDC Data Plane | ~235 MiB | 768 MiB |
+| Connector-Backend | ~320 MiB | 768 MiB |
+| DTR | ~390 MiB | 768 MiB |
+| OpenBao | ~23 MiB | 256 MiB |
+| Keycloak | ~620 MiB | 1 GiB |
+| Wallet-Stub | ~305 MiB | 768 MiB |
+| Postgres | ~235 MiB | 768 MiB |
+| SeaweedFS | ~72 MiB | 512 MiB |
+| **Summe Vollausbau (mit Tier-2, 18 Container)** | **4,4 GiB** | ≈ 13 GiB |
+
+Hinweis: Container haben im Compose-Setup keinen Internetzugriff nötig; Bootstrap-Jobs nutzen vorhandene Images (Wallet-Stub-Image enthält curl/openssl).
 
 ## 8. Querschnittliche Konzepte
 
@@ -289,8 +294,8 @@ Siehe §1 und Prompt §13; messbare Kriterien sind als Akzeptanzkriterien in den
 
 | # | Risiko | Wirkung | Maßnahme |
 |---|---|---|---|
-| R1 | Wallet-Stub 0.1.0 ↔ EDC 0.13 (DID als Participant-ID, umbenannte Keys) inkompatibel | Durchstich verzögert | **Spike Tag 1–3 Phase 1**; Fallback EDC 0.12.3 |
-| R2 | Kein offizielles Compose-Setup; Konfiguration aus Helm-Values abzuleiten | Aufwand Phase 1 | Umbrella 26.06 als Vorlage; Bootstrap skriptgesteuert und getestet |
+| R1 | ~~Wallet-Stub 0.1.0 ↔ EDC 0.13 inkompatibel~~ | – | **erledigt**: Spike in Phase 1 erfolgreich |
+| R2 | ~~Kein offizielles Compose-Setup~~ | – | **erledigt**: `infra/compose.yaml` aus Chart 0.13.0 abgeleitet, Smoke-Test in CI (nightly) |
 | R3 | Herkunft (Consumer-BPN) am Notification-Endpunkt nicht direkt verfügbar | Spoofing-Risiko innerhalb berechtigter Partner | Policy-Gruppe + JWS + Spike Phase 4 |
 | R4 | Expert-Group-Modell weicht stark ab | Umbau Austauschformat | Mapping-Schicht (ADR-0003), frühe Einbringung unserer Modelle |
 | R5 | OpenBao nicht vollständig kompatibel zu EDC-Vault-Extension | Startprobleme | Fallback `hashicorp/vault` (dev) |
