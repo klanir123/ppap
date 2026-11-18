@@ -1,0 +1,15 @@
+{
+  "elements": [
+    { "code": "FX-01", "nameDe": "Deckblatt", "nameEn": "Cover sheet", "evidenceType": "DOCUMENT", "sortOrder": 10,
+      "referenceVda": "VDA 2 (fixture)", "id": "ignored-unknown-field" },
+    { "code": "FX-02", "nameDe": "Maßbericht", "nameEn": "Dimensional report", "evidenceType": "DOCUMENT_AND_VALUES",
+      "sortOrder": 20, "valueSchema": { "type": "array", "items": { "type": "object", "properties": { "cpk": { "type": "number" } } } } }
+  ],
+  "levels": [
+    { "code": "FX-L2", "nameDe": "Stufe 2", "nameEn": "Level 2", "scheme": "VDA", "sortOrder": 20,
+      "requirements": { "FX-01": "REQUIRED", "FX-02": "ON_REQUEST" } }
+  ],
+  "reasons": [
+    { "code": "FX-NEW", "nameDe": "Neuteil", "nameEn": "New part", "sortOrder": 10 }
+  ]
+}

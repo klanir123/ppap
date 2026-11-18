@@ -42,6 +42,11 @@
     <aws-sdk.version>2.59.3</aws-sdk.version>
     <!-- Overrides Boot 4.1.2's managed 12.4.0 (docs/versions.md); verified with the integration tests. -->
     <flyway.version>13.12.2</flyway.version>
+    <commons-csv.version>1.14.1</commons-csv.version>
+    <poi.version>6.0.0</poi.version>
+    <json-schema-validator.version>3.0.9</json-schema-validator.version>
+    <!-- convergence: POI 6.0.0 needs commons-io 2.22, commons-csv/compress bring 2.20 -->
+    <commons-io.version>2.22.0</commons-io.version>
 
     <!-- Build plugins -->
     <spotless-maven-plugin.version>3.11.0</spotless-maven-plugin.version>
@@ -87,6 +92,26 @@
         <groupId>com.tngtech.archunit</groupId>
         <artifactId>archunit</artifactId>
         <version>${archunit.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>commons-io</groupId>
+        <artifactId>commons-io</artifactId>
+        <version>${commons-io.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.commons</groupId>
+        <artifactId>commons-csv</artifactId>
+        <version>${commons-csv.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.poi</groupId>
+        <artifactId>poi-ooxml</artifactId>
+        <version>${poi.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.networknt</groupId>
+        <artifactId>json-schema-validator</artifactId>
+        <version>${json-schema-validator.version}</version>
       </dependency>
     </dependencies>
   </dependencyManagement>
@@ -196,7 +221,32 @@
             </goals>
             <phase>verify</phase>
           </execution>
-          <!-- TODO(phase-2): add jacoco:check with >= 80 % line coverage for domain/application (ARCHITECTURE §8). -->
+          <execution>
+            <!-- Quality gate (ARCHITECTURE §8): >= 80 % line coverage of domain and application code. -->
+            <id>jacoco-check</id>
+            <goals>
+              <goal>check</goal>
+            </goals>
+            <phase>verify</phase>
+            <configuration>
+              <includes>
+                <include>com/msg/ppap/*/domain/**</include>
+                <include>com/msg/ppap/*/application/**</include>
+              </includes>
+              <rules>
+                <rule>
+                  <element>BUNDLE</element>
+                  <limits>
+                    <limit>
+                      <counter>LINE</counter>
+                      <value>COVEREDRATIO</value>
+                      <minimum>0.80</minimum>
+                    </limit>
+                  </limits>
+                </rule>
+              </rules>
+            </configuration>
+          </execution>
         </executions>
       </plugin>
     </plugins>

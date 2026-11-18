@@ -1,4 +1,4 @@
-package com.msg.ppap.identity.domain;
+package com.msg.ppap.platform.domain;
 
 import java.util.Objects;
 import java.util.regex.Pattern;

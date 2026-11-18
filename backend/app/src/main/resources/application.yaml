@@ -4,6 +4,8 @@
 spring:
   application:
     name: ppap-connector
+  config:
+    import: classpath:masterdata-import-synonyms.yaml
   threads:
     virtual:
       enabled: true
@@ -67,6 +69,7 @@ springdoc:
   swagger-ui:
     path: /swagger-ui.html
   paths-to-match: /api/**
+  default-produces-media-type: application/json
   writer-with-order-by-keys: true
   writer-with-default-pretty-printer: true
 
@@ -93,6 +96,10 @@ ppap:
     api-key: ${PPAP_EDC_API_KEY:}
     dsp-url: ${PPAP_EDC_DSP_URL:http://localhost:8084/api/v1/dsp}
     participant-id: ${PPAP_EDC_PARTICIPANT_ID:${ppap.tenant.bpnl}}
+  seed:
+    enabled: ${PPAP_SEED_ENABLED:false}
+    path: ${PPAP_SEED_PATH:}
+    common-path: ${PPAP_SEED_COMMON_PATH:}
   storage:
     endpoint: ${PPAP_S3_ENDPOINT:http://localhost:8333}
     region: ${PPAP_S3_REGION:us-east-1}

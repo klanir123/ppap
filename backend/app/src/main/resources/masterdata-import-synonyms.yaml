@@ -1,0 +1,32 @@
+# Column header synonyms for the master data import (UC-01 A1). Headers are compared case-insensitively
+# without spaces and special characters; field names themselves always match. Configuration, not code:
+# override via an additional config file or environment if customers use other headers.
+ppap:
+  masterdata:
+    import:
+      synonyms:
+        partNumber: [Sachnummer, Teilenummer, Teilnummer, Artikelnummer, Materialnummer, Lieferantensachnummer, Eigene Sachnummer, Part Number, Part No, PartNo, Item Number, Material Number]
+        nameDe: [Bezeichnung, Benennung, Bezeichnung DE, Benennung DE, Name DE, Teilebezeichnung, Description DE]
+        nameEn: [Bezeichnung EN, Benennung EN, Name EN, Englische Bezeichnung, Description, Description EN, Part Name]
+        drawingNumber: [Zeichnungsnummer, Zeichnungs-Nr, Zeichnung, Drawing, Drawing Number, Drawing No]
+        drawingRevision: [Zeichnungsindex, Änderungsstand, Aenderungsstand, Index, Revision, Drawing Revision, Rev]
+        material: [Werkstoff, Material]
+        catenaXId: [Catena-X-ID, CX-ID, Catena X ID, Global Asset ID, globalAssetId]
+        bpnl: [BPN, BPNL, BPN-L, Business Partner Number, Geschäftspartnernummer]
+        name: [Name, Firma, Firmenname, Unternehmen, Company, Company Name, Standortname, Werk, Site Name, Plant]
+        roles: [Rolle, Rollen, Role, Partnerrolle]
+        dspEndpoint: [DSP, DSP-Endpoint, DSP Endpunkt, Connector-URL, EDC-URL, Connector URL, Protocol URL]
+        did: [DID, Decentralized Identifier]
+        contactEmail: [E-Mail, Email, Kontakt, Kontakt-E-Mail, Funktionspostfach, Contact, Contact Email]
+        bpns: [BPNS, BPN-S, Standort-BPN, Site BPN]
+        ownerBpnl: [Eigentümer, Eigentuemer, Inhaber, Owner, Owner BPNL, Partner BPNL, Firma BPNL]
+        street: [Straße, Strasse, Street, Adresse, Address]
+        postalCode: [PLZ, Postleitzahl, Postal Code, ZIP, ZIP Code]
+        city: [Ort, Stadt, City]
+        country: [Land, Ländercode, Laendercode, Country, Country Code]
+        partnerBpnl: [Partner, Partner-BPNL, Partner BPN, Kunde BPNL, Lieferant BPNL, Partner BPNL]
+        partnerRole: [Partnerrolle, Rolle des Partners, Partner Role, Rolle]
+        exchangeMode: [Austauschmodus, Modus, Exchange Mode, Mode]
+        partnerPartNumber: [Partnersachnummer, Partner-Sachnummer, Kundensachnummer, Lieferanten-Sachnummer, Fremdsachnummer, Partner Part Number, Customer Part Number, Supplier Part Number]
+        ownSiteBpns: [Eigenes Werk, Eigener Standort, Own Site, Own Site BPNS, Lieferwerk]
+        partnerSiteBpns: [Partnerwerk, Partnerstandort, Partner Site, Partner Site BPNS, Abnahmewerk]

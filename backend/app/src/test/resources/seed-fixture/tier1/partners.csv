@@ -1,0 +1,3 @@
+bpnl;name;roles;dspEndpoint;did;contactEmail
+BPNLFIXTURE00001;Fixture OEM AG;CUSTOMER;http://oem-edc-cp:8084/api/v1/dsp/2025-1;did:web:wallet-stub:BPNLFIXTURE00001;qs@oem.example
+BPNLFIXTURE00002;Fixture Tier-2 GmbH;SUPPLIER;;;
