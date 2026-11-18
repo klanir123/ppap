@@ -1,0 +1,23 @@
+{
+  "save": "Save",
+  "create": "Create",
+  "cancel": "Cancel",
+  "saving": "Saving …",
+  "required": "Required",
+  "optional": "optional",
+  "discardTitle": "Discard unsaved changes?",
+  "discardDescription": "Your input will be lost.",
+  "discard": "Discard",
+  "keepEditing": "Keep editing",
+  "errorSummary": "The record could not be saved.",
+  "versionConflictTitle": "Changed in the meantime",
+  "versionConflictDescription": "The record has been changed by someone else in the meantime. Reload the current state and repeat your change.",
+  "reload": "Reload",
+  "json": {
+    "format": "Format",
+    "valid": "Valid JSON",
+    "invalid": "Invalid JSON: {{message}}"
+  },
+  "selectPlaceholder": "Please select",
+  "none": "None"
+}

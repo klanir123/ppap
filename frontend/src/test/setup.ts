@@ -29,3 +29,9 @@ class ResizeObserverStub {
 }
 globalThis.ResizeObserver ??= ResizeObserverStub as unknown as typeof ResizeObserver
 window.scrollTo = (() => {}) as typeof window.scrollTo
+
+// Radix Select / DropdownMenu rely on pointer capture + scrollIntoView (not in jsdom)
+Element.prototype.hasPointerCapture ??= () => false
+Element.prototype.setPointerCapture ??= () => {}
+Element.prototype.releasePointerCapture ??= () => {}
+Element.prototype.scrollIntoView ??= () => {}

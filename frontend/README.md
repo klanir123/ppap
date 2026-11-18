@@ -62,6 +62,17 @@ src/
 - **i18n:** keine sichtbaren Texte im Code; DE Standard (bzw. `defaultLocale` aus der Config), EN umschaltbar, Auswahl in `localStorage` (`ppap.language`). Theme in `localStorage` (`ppap.theme`).
 - **Schrift:** Inter (selbst gehostet via `@fontsource-variable/inter`, kein CDN).
 
+## Stammdaten (Phase 2)
+
+- **DataTable** (`src/components/data-table/`): TanStack Table 8, Server-Modus (`page` = `Page<T>` der API) oder Client-Modus (`rows`, z. B. Katalog). Listenzustand (`q`, `active`, `page`, `size`, `sort=feld,asc`) liegt in den Router-Search-Params (`listSearchSchema`), Spaltenauswahl pro Tabelle in `localStorage`. Sticky Header, Skeleton-Zeilen, Leer-/Keine-Treffer-Zustand, Zeilenaktionen.
+- **Formulare** (`src/components/forms/`): `FormSheet` (Drawer, react-hook-form + zod 4, Dirty-Guard, `VERSION_CONFLICT`/412 mit „Neu laden“) und Feldkomponenten. Zod-Meldungen sind Fehlercodes; Server-`errors[]` werden per `field` auf Felder gemappt, Texte über `errors:codes.<CODE>` (DE/EN). Formatregeln in `src/lib/validation.ts` (= Vertrag).
+- **Import** (`features/masterdata/import/`): `ImportWizard` (Datei ≤ 10 MB → Zuordnung + Validierungsbericht → Ausführen/Fehlerbericht), generisch über Callbacks (`importApi(entity)`).
+- **Katalog-Matrix** (`features/masterdata/catalog/LevelMatrix.tsx`): Elemente × Stufen, Roving-Tabindex mit Pfeiltasten, Tasten 1/2/3, Speichern je Stufe (`PUT /catalog/levels/{id}` ersetzt die Matrix).
+- **Datenzugriff** (`features/masterdata/api/`): dünner Wrapper (`createResource`) über die generierten orval-Funktionen; Query-Keys = generierte Keys, `If-Match: "<version>"` aus `version` (orval `headers: true`), Invalidierung per URL-Präfix inkl. Audit. Import über `previewImport`/`executeImport`/`importErrorReport` (Multipart: `file` + Textteil `mapping` als JSON).
+- **Änderungsverlauf**: `AuditTrail` (`GET /audit-events?objectType=PART|PARTNER|SITE|RELATION|PART_MAPPING&objectId=`) in den Drawern bzw. der Beziehungs-Detailseite.
+- Schreibrechte: `masterdata:write` (MASTERDATA_MANAGER), Partner zusätzlich `partners:write` (CONNECTOR_ADMIN); ohne Recht read-only.
+- TanStack Table bewusst **8.21** (stabile API); 9.x hat eine neue API und wird separat evaluiert.
+
 ## Design-Tokens
 
 Alle Farben sind CSS-Variablen in `src/index.css` (`:root` = hell, `.dark` = dunkel) und über `@theme inline` als Tailwind-Farben verfügbar.

@@ -14,5 +14,6 @@
   "cockpit": "Connector-Cockpit",
   "dataspace": "Datenraum (Demo)",
   "system": "Systemstatus",
-  "home": "Start"
+  "home": "Start",
+  "detail": "Details"
 }

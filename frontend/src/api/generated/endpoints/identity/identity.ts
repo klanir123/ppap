@@ -18,7 +18,7 @@ import type {
   UseQueryResult,
 } from '@tanstack/react-query'
 
-import type { ConfigResponse, MeResponse } from '../../model'
+import type { ConfigResponse, MeResponse, ProblemDetail } from '../../model'
 
 import { apiFetch } from '../../../fetcher'
 import type { ErrorType } from '../../../fetcher'
@@ -153,7 +153,10 @@ export const getGetMeQueryKey = () => {
   return [`/api/v1/me`] as const
 }
 
-export const getGetMeQueryOptions = <TData = Awaited<ReturnType<typeof getMe>>, TError = ErrorType<unknown>>(options?: {
+export const getGetMeQueryOptions = <
+  TData = Awaited<ReturnType<typeof getMe>>,
+  TError = ErrorType<ProblemDetail>,
+>(options?: {
   query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getMe>>, TError, TData>>
   request?: SecondParameter<typeof apiFetch>
 }) => {
@@ -169,10 +172,10 @@ export const getGetMeQueryOptions = <TData = Awaited<ReturnType<typeof getMe>>, 
 }
 
 export type GetMeQueryResult = NonNullable<Awaited<ReturnType<typeof getMe>>>
-export type GetMeQueryError = ErrorType<unknown>
+export type GetMeQueryError = ErrorType<ProblemDetail>
 
 /** @summary The authenticated user and tenant */
-export function useGetMe<TData = Awaited<ReturnType<typeof getMe>>, TError = ErrorType<unknown>>(
+export function useGetMe<TData = Awaited<ReturnType<typeof getMe>>, TError = ErrorType<ProblemDetail>>(
   options: {
     query: Partial<UseQueryOptions<Awaited<ReturnType<typeof getMe>>, TError, TData>> &
       Pick<
@@ -184,7 +187,7 @@ export function useGetMe<TData = Awaited<ReturnType<typeof getMe>>, TError = Err
   queryClient?: QueryClient,
 ): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /** @summary The authenticated user and tenant */
-export function useGetMe<TData = Awaited<ReturnType<typeof getMe>>, TError = ErrorType<unknown>>(
+export function useGetMe<TData = Awaited<ReturnType<typeof getMe>>, TError = ErrorType<ProblemDetail>>(
   options?: {
     query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getMe>>, TError, TData>> &
       Pick<
@@ -196,7 +199,7 @@ export function useGetMe<TData = Awaited<ReturnType<typeof getMe>>, TError = Err
   queryClient?: QueryClient,
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /** @summary The authenticated user and tenant */
-export function useGetMe<TData = Awaited<ReturnType<typeof getMe>>, TError = ErrorType<unknown>>(
+export function useGetMe<TData = Awaited<ReturnType<typeof getMe>>, TError = ErrorType<ProblemDetail>>(
   options?: {
     query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getMe>>, TError, TData>>
     request?: SecondParameter<typeof apiFetch>
@@ -204,7 +207,7 @@ export function useGetMe<TData = Awaited<ReturnType<typeof getMe>>, TError = Err
   queryClient?: QueryClient,
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /** @summary The authenticated user and tenant */
-export function useGetMe<TData = Awaited<ReturnType<typeof getMe>>, TError = ErrorType<unknown>>(
+export function useGetMe<TData = Awaited<ReturnType<typeof getMe>>, TError = ErrorType<ProblemDetail>>(
   options?: {
     query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getMe>>, TError, TData>>
     request?: SecondParameter<typeof apiFetch>

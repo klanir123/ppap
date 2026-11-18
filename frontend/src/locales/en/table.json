@@ -1,0 +1,29 @@
+{
+  "search": "Search",
+  "clearSearch": "Clear search",
+  "activeFilter": {
+    "label": "Status filter",
+    "true": "Active",
+    "false": "Inactive",
+    "all": "All"
+  },
+  "columns": "Columns",
+  "toggleColumns": "Visible columns",
+  "actions": "Actions",
+  "rowActions": "Actions for {{name}}",
+  "sortAscending": "sorted ascending",
+  "sortDescending": "sorted descending",
+  "sortBy": "Sort by {{column}}",
+  "rowsPerPage": "Rows per page",
+  "range": "{{from}}–{{to}} of {{total}}",
+  "pageOf": "Page {{page}} of {{pages}}",
+  "firstPage": "First page",
+  "previousPage": "Previous page",
+  "nextPage": "Next page",
+  "lastPage": "Last page",
+  "noResults": "No results",
+  "noResultsDescription": "Adjust your search or filters.",
+  "resetFilters": "Reset filters",
+  "loading": "Loading data",
+  "error": "Data could not be loaded."
+}

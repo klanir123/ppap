@@ -1,10 +1,20 @@
 /** RFC 9457 problem details as returned by the backend. */
+export interface ProblemFieldError {
+  field?: string
+  code?: string
+  message?: string
+}
+
 export interface ProblemDetail {
   type?: string
   title?: string
   status?: number
   detail?: string
   instance?: string
+  /** Stable machine-readable error code (e.g. VALIDATION_FAILED, DUPLICATE_KEY). */
+  code?: string
+  /** Field-level validation errors. */
+  errors?: ProblemFieldError[]
   [extension: string]: unknown
 }
 

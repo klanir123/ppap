@@ -14,5 +14,6 @@
   "cockpit": "Connector cockpit",
   "dataspace": "Data space (demo)",
   "system": "System status",
-  "home": "Home"
+  "home": "Home",
+  "detail": "Details"
 }

@@ -35,4 +35,15 @@ describe('permissions', () => {
     expect(hasPermission(['ROOT'], 'dashboard:view')).toBe(false)
     expect(isRole('ROOT')).toBe(false)
   })
+
+  it('master data: only master data managers write; partners also connector admins', () => {
+    expect(hasPermission(['MASTERDATA_MANAGER'], 'masterdata:write')).toBe(true)
+    expect(hasPermission(['CONNECTOR_ADMIN'], 'masterdata:write')).toBe(false)
+    expect(hasPermission(['CUSTOMER_QUALITY_ENGINEER'], 'masterdata:write')).toBe(false)
+    expect(hasPermission(['CONNECTOR_ADMIN'], 'partners:write')).toBe(true)
+    expect(hasPermission(['MASTERDATA_MANAGER'], 'partners:write')).toBe(true)
+    expect(hasPermission(['SUPPLIER_QUALITY_MANAGER'], 'partners:write')).toBe(false)
+    // every human role may read master data
+    expect(hasPermission(['SUPPLIER_QUALITY_MANAGER'], 'masterdata:view')).toBe(true)
+  })
 })

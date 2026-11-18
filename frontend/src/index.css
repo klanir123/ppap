@@ -163,6 +163,40 @@
   --status-unknown-fg: var(--status-draft-fg);
   --status-unknown-border: var(--status-draft-border);
   --status-unknown-solid: var(--status-draft-solid);
+
+  /* --- Aliases (validation, catalogue requirement, active flag) --------- */
+  --status-ok-bg: var(--status-approved-bg);
+  --status-ok-fg: var(--status-approved-fg);
+  --status-ok-border: var(--status-approved-border);
+  --status-ok-solid: var(--status-approved-solid);
+  --status-warning-bg: var(--status-conditionally-approved-bg);
+  --status-warning-fg: var(--status-conditionally-approved-fg);
+  --status-warning-border: var(--status-conditionally-approved-border);
+  --status-warning-solid: var(--status-conditionally-approved-solid);
+  --status-error-bg: var(--status-rejected-bg);
+  --status-error-fg: var(--status-rejected-fg);
+  --status-error-border: var(--status-rejected-border);
+  --status-error-solid: var(--status-rejected-solid);
+  --status-required-bg: var(--status-in-progress-bg);
+  --status-required-fg: var(--status-in-progress-fg);
+  --status-required-border: var(--status-in-progress-border);
+  --status-required-solid: var(--status-in-progress-solid);
+  --status-on-request-bg: var(--status-conditionally-approved-bg);
+  --status-on-request-fg: var(--status-conditionally-approved-fg);
+  --status-on-request-border: var(--status-conditionally-approved-border);
+  --status-on-request-solid: var(--status-conditionally-approved-solid);
+  --status-not-required-bg: var(--status-draft-bg);
+  --status-not-required-fg: var(--status-draft-fg);
+  --status-not-required-border: var(--status-draft-border);
+  --status-not-required-solid: var(--status-draft-solid);
+  --status-active-bg: var(--status-approved-bg);
+  --status-active-fg: var(--status-approved-fg);
+  --status-active-border: var(--status-approved-border);
+  --status-active-solid: var(--status-approved-solid);
+  --status-inactive-bg: var(--status-cancelled-bg);
+  --status-inactive-fg: var(--status-cancelled-fg);
+  --status-inactive-border: var(--status-cancelled-border);
+  --status-inactive-solid: var(--status-cancelled-solid);
 }
 
 /* ------------------------------------------------------------------------- */

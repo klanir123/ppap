@@ -18,7 +18,7 @@ import type {
   UseQueryResult,
 } from '@tanstack/react-query'
 
-import type { SystemStatusResponse } from '../../model'
+import type { ProblemDetail, SystemStatusResponse } from '../../model'
 
 import { apiFetch } from '../../../fetcher'
 import type { ErrorType } from '../../../fetcher'
@@ -60,7 +60,7 @@ export const getGetSystemStatusQueryKey = () => {
 
 export const getGetSystemStatusQueryOptions = <
   TData = Awaited<ReturnType<typeof getSystemStatus>>,
-  TError = ErrorType<unknown>,
+  TError = ErrorType<ProblemDetail>,
 >(options?: {
   query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getSystemStatus>>, TError, TData>>
   request?: SecondParameter<typeof apiFetch>
@@ -80,10 +80,13 @@ export const getGetSystemStatusQueryOptions = <
 }
 
 export type GetSystemStatusQueryResult = NonNullable<Awaited<ReturnType<typeof getSystemStatus>>>
-export type GetSystemStatusQueryError = ErrorType<unknown>
+export type GetSystemStatusQueryError = ErrorType<ProblemDetail>
 
 /** @summary Status of database, EDC, object storage and DTR */
-export function useGetSystemStatus<TData = Awaited<ReturnType<typeof getSystemStatus>>, TError = ErrorType<unknown>>(
+export function useGetSystemStatus<
+  TData = Awaited<ReturnType<typeof getSystemStatus>>,
+  TError = ErrorType<ProblemDetail>,
+>(
   options: {
     query: Partial<UseQueryOptions<Awaited<ReturnType<typeof getSystemStatus>>, TError, TData>> &
       Pick<
@@ -99,7 +102,10 @@ export function useGetSystemStatus<TData = Awaited<ReturnType<typeof getSystemSt
   queryClient?: QueryClient,
 ): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /** @summary Status of database, EDC, object storage and DTR */
-export function useGetSystemStatus<TData = Awaited<ReturnType<typeof getSystemStatus>>, TError = ErrorType<unknown>>(
+export function useGetSystemStatus<
+  TData = Awaited<ReturnType<typeof getSystemStatus>>,
+  TError = ErrorType<ProblemDetail>,
+>(
   options?: {
     query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getSystemStatus>>, TError, TData>> &
       Pick<
@@ -115,7 +121,10 @@ export function useGetSystemStatus<TData = Awaited<ReturnType<typeof getSystemSt
   queryClient?: QueryClient,
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /** @summary Status of database, EDC, object storage and DTR */
-export function useGetSystemStatus<TData = Awaited<ReturnType<typeof getSystemStatus>>, TError = ErrorType<unknown>>(
+export function useGetSystemStatus<
+  TData = Awaited<ReturnType<typeof getSystemStatus>>,
+  TError = ErrorType<ProblemDetail>,
+>(
   options?: {
     query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getSystemStatus>>, TError, TData>>
     request?: SecondParameter<typeof apiFetch>
@@ -123,7 +132,10 @@ export function useGetSystemStatus<TData = Awaited<ReturnType<typeof getSystemSt
   queryClient?: QueryClient,
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /** @summary Status of database, EDC, object storage and DTR */
-export function useGetSystemStatus<TData = Awaited<ReturnType<typeof getSystemStatus>>, TError = ErrorType<unknown>>(
+export function useGetSystemStatus<
+  TData = Awaited<ReturnType<typeof getSystemStatus>>,
+  TError = ErrorType<ProblemDetail>,
+>(
   options?: {
     query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getSystemStatus>>, TError, TData>>
     request?: SecondParameter<typeof apiFetch>

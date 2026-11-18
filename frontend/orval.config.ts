@@ -18,10 +18,13 @@ export default defineConfig({
       client: 'react-query',
       httpClient: 'fetch',
       clean: true,
+      // header parameters (If-Match) become function arguments
+      headers: true,
       override: {
         mutator: { path: 'src/api/fetcher.ts', name: 'apiFetch' },
         fetch: { includeHttpResponseReturnType: false },
-        query: { useQuery: true, useSuspenseQuery: false, signal: true },
+        // queries for GET, mutations for POST/PUT/DELETE
+        query: { useSuspenseQuery: false, signal: true },
       },
     },
     hooks: { afterAllFilesWrite: 'prettier --write' },

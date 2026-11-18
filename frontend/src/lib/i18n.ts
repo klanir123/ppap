@@ -6,6 +6,10 @@ import deAuth from '@/locales/de/auth.json'
 import deCommon from '@/locales/de/common.json'
 import deDashboard from '@/locales/de/dashboard.json'
 import deErrors from '@/locales/de/errors.json'
+import deImport from '@/locales/de/import.json'
+import deForms from '@/locales/de/forms.json'
+import deTable from '@/locales/de/table.json'
+import deMasterdata from '@/locales/de/masterdata.json'
 import deNav from '@/locales/de/nav.json'
 import dePages from '@/locales/de/pages.json'
 import deStatus from '@/locales/de/status.json'
@@ -14,6 +18,10 @@ import enAuth from '@/locales/en/auth.json'
 import enCommon from '@/locales/en/common.json'
 import enDashboard from '@/locales/en/dashboard.json'
 import enErrors from '@/locales/en/errors.json'
+import enImport from '@/locales/en/import.json'
+import enForms from '@/locales/en/forms.json'
+import enTable from '@/locales/en/table.json'
+import enMasterdata from '@/locales/en/masterdata.json'
 import enNav from '@/locales/en/nav.json'
 import enPages from '@/locales/en/pages.json'
 import enStatus from '@/locales/en/status.json'
@@ -33,6 +41,10 @@ export const resources = {
     system: deSystem,
     pages: dePages,
     errors: deErrors,
+    import: deImport,
+    forms: deForms,
+    table: deTable,
+    masterdata: deMasterdata,
   },
   en: {
     common: enCommon,
@@ -43,6 +55,10 @@ export const resources = {
     system: enSystem,
     pages: enPages,
     errors: enErrors,
+    import: enImport,
+    forms: enForms,
+    table: enTable,
+    masterdata: enMasterdata,
   },
 } as const
 

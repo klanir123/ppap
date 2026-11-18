@@ -1,0 +1,80 @@
+{
+  "title": "Import {{entity}}",
+  "description": "CSV (UTF-8, ; or ,) or Excel (XLSX) with column headers in the first row. Existing records are updated via the business key.",
+  "steps": {
+    "upload": "File",
+    "preview": "Mapping & validation",
+    "result": "Result"
+  },
+  "stepLabel": "Step {{current}} of {{total}}: {{name}}",
+  "drop": {
+    "title": "Drag a file here or browse",
+    "hint": "CSV or XLSX, max. 10 MB / 10,000 rows",
+    "browse": "Choose file",
+    "selected": "Selected: {{name}} ({{size}})"
+  },
+  "errors": {
+    "tooLarge": "The file is larger than 10 MB.",
+    "unsupported": "Only CSV and XLSX files are supported.",
+    "previewFailed": "The file could not be validated."
+  },
+  "analyze": "Validate file",
+  "analyzing": "Validating file …",
+  "mapping": {
+    "title": "Column mapping",
+    "description": "Assign a target field to each column of the file. Required fields are marked with *.",
+    "column": "Column in file",
+    "field": "Target field",
+    "ignore": "Do not import",
+    "selectFor": "Target field for column {{column}}",
+    "missingRequired": "Unmapped required fields: {{fields}}",
+    "allRequired": "All required fields are mapped.",
+    "changed": "Mapping changed – please validate again.",
+    "revalidate": "Validate again with mapping",
+    "fileInfo": "{{file}} · sheet {{sheet}} · delimiter {{delimiter}}"
+  },
+  "report": {
+    "title": "Validation report",
+    "row": "Row",
+    "status": "Status",
+    "action": "Action",
+    "values": "Values",
+    "messages": "Messages",
+    "filterAll": "All",
+    "filterErrors": "Errors",
+    "filterWarnings": "Warnings",
+    "truncated": "Preview shows {{shown}} of {{total}} rows; the summary counts all.",
+    "noRows": "No rows for this filter."
+  },
+  "summary": {
+    "total": "{{count}} rows",
+    "ok": "{{count}} OK",
+    "warnings": "{{count}} warnings",
+    "errors": "{{count}} errors",
+    "create": "{{count}} new",
+    "update": "{{count}} updated",
+    "unchanged": "{{count}} unchanged",
+    "failed": "{{count}} failed"
+  },
+  "skipErrors": "Skip erroneous rows and import valid rows",
+  "skipErrorsRequired": "The file contains errors. Without skipping, nothing is imported.",
+  "execute": "Run import",
+  "executing": "Importing …",
+  "result": {
+    "title": "Import completed",
+    "titleFailed": "Import not performed",
+    "descriptionFailed": "The file contains errors; nothing was imported.",
+    "failures": "Failed rows"
+  },
+  "downloadReport": "Download error report (CSV)",
+  "downloadFailed": "The error report could not be created.",
+  "back": "Back",
+  "next": "Next",
+  "close": "Close",
+  "newImport": "Import another file",
+  "action": {
+    "CREATE": "Create",
+    "UPDATE": "Update",
+    "UNCHANGED": "Unchanged"
+  }
+}

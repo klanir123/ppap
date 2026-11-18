@@ -1,0 +1,29 @@
+{
+  "search": "Suchen",
+  "clearSearch": "Suche zurücksetzen",
+  "activeFilter": {
+    "label": "Status-Filter",
+    "true": "Aktive",
+    "false": "Inaktive",
+    "all": "Alle"
+  },
+  "columns": "Spalten",
+  "toggleColumns": "Sichtbare Spalten",
+  "actions": "Aktionen",
+  "rowActions": "Aktionen für {{name}}",
+  "sortAscending": "aufsteigend sortiert",
+  "sortDescending": "absteigend sortiert",
+  "sortBy": "Nach {{column}} sortieren",
+  "rowsPerPage": "Zeilen pro Seite",
+  "range": "{{from}}–{{to}} von {{total}}",
+  "pageOf": "Seite {{page}} von {{pages}}",
+  "firstPage": "Erste Seite",
+  "previousPage": "Vorherige Seite",
+  "nextPage": "Nächste Seite",
+  "lastPage": "Letzte Seite",
+  "noResults": "Keine Treffer",
+  "noResultsDescription": "Passen Sie Suche oder Filter an.",
+  "resetFilters": "Filter zurücksetzen",
+  "loading": "Daten werden geladen",
+  "error": "Daten konnten nicht geladen werden."
+}

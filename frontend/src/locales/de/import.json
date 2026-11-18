@@ -1,0 +1,80 @@
+{
+  "title": "{{entity}} importieren",
+  "description": "CSV (UTF-8, ; oder ,) oder Excel (XLSX), erste Zeile mit Spaltenköpfen. Vorhandene Datensätze werden über den fachlichen Schlüssel aktualisiert.",
+  "steps": {
+    "upload": "Datei",
+    "preview": "Zuordnung & Prüfung",
+    "result": "Ergebnis"
+  },
+  "stepLabel": "Schritt {{current}} von {{total}}: {{name}}",
+  "drop": {
+    "title": "Datei hierher ziehen oder auswählen",
+    "hint": "CSV oder XLSX, max. 10 MB / 10.000 Zeilen",
+    "browse": "Datei auswählen",
+    "selected": "Ausgewählt: {{name}} ({{size}})"
+  },
+  "errors": {
+    "tooLarge": "Die Datei ist größer als 10 MB.",
+    "unsupported": "Nur CSV- und XLSX-Dateien werden unterstützt.",
+    "previewFailed": "Die Datei konnte nicht geprüft werden."
+  },
+  "analyze": "Datei prüfen",
+  "analyzing": "Datei wird geprüft …",
+  "mapping": {
+    "title": "Spaltenzuordnung",
+    "description": "Ordnen Sie jeder Spalte der Datei ein Zielfeld zu. Pflichtfelder sind mit * markiert.",
+    "column": "Spalte in der Datei",
+    "field": "Zielfeld",
+    "ignore": "Nicht importieren",
+    "selectFor": "Zielfeld für Spalte {{column}}",
+    "missingRequired": "Nicht zugeordnete Pflichtfelder: {{fields}}",
+    "allRequired": "Alle Pflichtfelder sind zugeordnet.",
+    "changed": "Zuordnung geändert – bitte erneut prüfen.",
+    "revalidate": "Mit Zuordnung erneut prüfen",
+    "fileInfo": "{{file}} · Blatt {{sheet}} · Trennzeichen {{delimiter}}"
+  },
+  "report": {
+    "title": "Validierungsbericht",
+    "row": "Zeile",
+    "status": "Status",
+    "action": "Aktion",
+    "values": "Werte",
+    "messages": "Meldungen",
+    "filterAll": "Alle",
+    "filterErrors": "Fehler",
+    "filterWarnings": "Warnungen",
+    "truncated": "Vorschau zeigt {{shown}} von {{total}} Zeilen; die Zusammenfassung zählt alle.",
+    "noRows": "Keine Zeilen für diesen Filter."
+  },
+  "summary": {
+    "total": "{{count}} Zeilen",
+    "ok": "{{count}} OK",
+    "warnings": "{{count}} Warnungen",
+    "errors": "{{count}} Fehler",
+    "create": "{{count}} neu",
+    "update": "{{count}} aktualisiert",
+    "unchanged": "{{count}} unverändert",
+    "failed": "{{count}} fehlgeschlagen"
+  },
+  "skipErrors": "Fehlerhafte Zeilen überspringen und gültige Zeilen importieren",
+  "skipErrorsRequired": "Die Datei enthält Fehler. Ohne Überspringen wird nichts importiert.",
+  "execute": "Import ausführen",
+  "executing": "Import läuft …",
+  "result": {
+    "title": "Import abgeschlossen",
+    "titleFailed": "Import nicht durchgeführt",
+    "descriptionFailed": "Die Datei enthält Fehler; es wurde nichts importiert.",
+    "failures": "Fehlgeschlagene Zeilen"
+  },
+  "downloadReport": "Fehlerbericht herunterladen (CSV)",
+  "downloadFailed": "Fehlerbericht konnte nicht erstellt werden.",
+  "back": "Zurück",
+  "next": "Weiter",
+  "close": "Schließen",
+  "newImport": "Weitere Datei importieren",
+  "action": {
+    "CREATE": "Neu",
+    "UPDATE": "Aktualisieren",
+    "UNCHANGED": "Unverändert"
+  }
+}

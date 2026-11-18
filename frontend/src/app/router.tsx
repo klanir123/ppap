@@ -6,11 +6,19 @@ import {
   redirect,
   type RouterHistory,
 } from '@tanstack/react-router'
-import { Boxes, Cable, FileCheck2, GitFork, ListChecks, MapPin, Package, Users, type LucideIcon } from 'lucide-react'
+import { Boxes, Cable, FileCheck2 } from 'lucide-react'
 
+import { listSearchSchema } from '@/components/data-table'
 import { AppShell } from '@/features/shell/AppShell'
 import { RequirePermission } from '@/features/auth/RequirePermission'
 import { DashboardPage } from '@/features/dashboard/DashboardPage'
+import { catalogSearchSchema } from '@/features/masterdata/catalog/catalog-search'
+import { CatalogPage } from '@/features/masterdata/catalog/CatalogPage'
+import { PartnersPage } from '@/features/masterdata/partners/PartnersPage'
+import { PartsPage } from '@/features/masterdata/parts/PartsPage'
+import { RelationDetailPage } from '@/features/masterdata/relations/RelationDetailPage'
+import { RelationsPage } from '@/features/masterdata/relations/RelationsPage'
+import { SitesPage } from '@/features/masterdata/sites/SitesPage'
 import { NotFoundPage } from '@/features/errors/NotFoundPage'
 import { ComingSoonPage } from '@/features/placeholder/ComingSoonPage'
 import { SystemStatusPage } from '@/features/system/SystemStatusPage'
@@ -24,7 +32,7 @@ export interface RouterContext {
 declare module '@tanstack/react-router' {
   interface StaticDataRouteOption {
     /** Breadcrumb label (key in the `nav` namespace). */
-    crumb?: NavLabelKey
+    crumb?: NavLabelKey | 'detail'
   }
 }
 
@@ -65,28 +73,69 @@ const masterdataIndexRoute = createRoute({
   },
 })
 
-function masterdataPage<const TPath extends string>(
+/** Master data routes: list state lives in the URL (`?q=&active=&page=&size=&sort=`). */
+function masterdataListRoute<const TPath extends string>(
   path: TPath,
-  crumb: 'parts' | 'partners' | 'sites' | 'relationships' | 'elementCatalog',
-  icon: LucideIcon,
+  crumb: 'parts' | 'partners' | 'sites',
+  Page: () => React.ReactNode,
 ) {
   return createRoute({
     getParentRoute: () => masterdataRoute,
     path,
     staticData: { crumb },
+    validateSearch: listSearchSchema,
     component: () => (
       <RequirePermission permission="masterdata:view">
-        <ComingSoonPage titleKey={crumb} descriptionKey={`${crumb}.description`} icon={icon} phase={2} />
+        <Page />
       </RequirePermission>
     ),
   })
 }
 
-const partsRoute = masterdataPage('parts', 'parts', Package)
-const partnersRoute = masterdataPage('partners', 'partners', Users)
-const sitesRoute = masterdataPage('sites', 'sites', MapPin)
-const relationshipsRoute = masterdataPage('relationships', 'relationships', GitFork)
-const elementCatalogRoute = masterdataPage('element-catalog', 'elementCatalog', ListChecks)
+const partsRoute = masterdataListRoute('parts', 'parts', PartsPage)
+const partnersRoute = masterdataListRoute('partners', 'partners', PartnersPage)
+const sitesRoute = masterdataListRoute('sites', 'sites', SitesPage)
+
+const relationshipsRoute = createRoute({
+  getParentRoute: () => masterdataRoute,
+  path: 'relationships',
+  staticData: { crumb: 'relationships' },
+})
+
+const relationshipsIndexRoute = createRoute({
+  getParentRoute: () => relationshipsRoute,
+  path: '/',
+  validateSearch: listSearchSchema,
+  component: () => (
+    <RequirePermission permission="masterdata:view">
+      <RelationsPage />
+    </RequirePermission>
+  ),
+})
+
+const relationDetailRoute = createRoute({
+  getParentRoute: () => relationshipsRoute,
+  path: '$relationId',
+  staticData: { crumb: 'detail' },
+  validateSearch: listSearchSchema,
+  component: () => (
+    <RequirePermission permission="masterdata:view">
+      <RelationDetailPage />
+    </RequirePermission>
+  ),
+})
+
+const elementCatalogRoute = createRoute({
+  getParentRoute: () => masterdataRoute,
+  path: 'element-catalog',
+  staticData: { crumb: 'elementCatalog' },
+  validateSearch: catalogSearchSchema,
+  component: () => (
+    <RequirePermission permission="masterdata:view">
+      <CatalogPage />
+    </RequirePermission>
+  ),
+})
 
 const cockpitRoute = createRoute({
   getParentRoute: () => rootRoute,
@@ -129,7 +178,7 @@ export const routeTree = rootRoute.addChildren([
     partsRoute,
     partnersRoute,
     sitesRoute,
-    relationshipsRoute,
+    relationshipsRoute.addChildren([relationshipsIndexRoute, relationDetailRoute]),
     elementCatalogRoute,
   ]),
   cockpitRoute,
