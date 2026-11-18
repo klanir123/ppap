@@ -1,0 +1,235 @@
+# msg CX PPAP Connector – local dataspace (docker compose)
+#
+# Participants: OEM and Tier-1 (default), Tier-2 (profile "tier2").
+# Each participant has its own EDC (control + data plane), its own secret store (OpenBao) and its own
+# databases. Participant networks are isolated; only EDC protocol/public endpoints and the shared
+# identity services are attached to the "dataspace" network (see docs/ARCHITECTURE.md §7).
+#
+# Versions: docs/versions.md, docs/tractusx-versions.md. All values overridable via .env.
+
+name: ppap
+
+x-edc-common: &edc-common
+  EDC_IAM_DID_WEB_USE_HTTPS: "false"
+  EDC_IAM_STS_OAUTH_TOKEN_URL: http://wallet-stub/oauth/token
+  EDC_IAM_STS_OAUTH_CLIENT_SECRET_ALIAS: client-secret
+  TX_EDC_IAM_STS_DIV_URL: http://wallet-stub/api/sts
+  EDC_VAULT_HASHICORP_TOKEN: ${VAULT_ROOT_TOKEN:-root}
+  EDC_VAULT_HASHICORP_API_SECRET_PATH: /v1/secret
+  EDC_VAULT_HASHICORP_HEALTH_CHECK_STANDBY_OK: "true"
+  EDC_DATASOURCE_DEFAULT_USER: edc
+  EDC_DATASOURCE_DEFAULT_PASSWORD: ${EDC_DB_PASSWORD:-edc-local}
+
+x-edc-controlplane: &edc-controlplane
+  <<: *edc-common
+  WEB_HTTP_PORT: "8080"
+  WEB_HTTP_PATH: /api
+  WEB_HTTP_MANAGEMENT_PORT: "8081"
+  WEB_HTTP_MANAGEMENT_PATH: /management
+  WEB_HTTP_MANAGEMENT_AUTH_TYPE: tokenbased
+  WEB_HTTP_MANAGEMENT_AUTH_KEY: ${EDC_MANAGEMENT_API_KEY:-local-management-key}
+  WEB_HTTP_CONTROL_PORT: "8083"
+  WEB_HTTP_CONTROL_PATH: /control
+  WEB_HTTP_PROTOCOL_PORT: "8084"
+  WEB_HTTP_PROTOCOL_PATH: /api/v1/dsp
+  EDC_IAM_TRUSTED-ISSUER_0-ISSUER_ID: did:web:wallet-stub:${OPERATOR_BPNL:-BPNL00000OPERATR}
+  TX_EDC_IAM_DCP_BDRS_SERVER_URL: http://wallet-stub/api/v1/directory
+  TX_EDC_IAM_DCP_CREDENTIALSERVICE_URL: http://wallet-stub/api
+  TX_EDC_DID_SERVICE_SELF_REGISTRATION_ENABLED: "false"
+  EDC_POLICY_VALIDATION_ENABLED: "true"
+
+x-edc-dataplane: &edc-dataplane
+  <<: *edc-common
+  WEB_HTTP_PORT: "8080"
+  WEB_HTTP_PATH: /api
+  WEB_HTTP_PUBLIC_PORT: "8081"
+  WEB_HTTP_PUBLIC_PATH: /api/public
+  WEB_HTTP_CONTROL_PORT: "8084"
+  WEB_HTTP_CONTROL_PATH: /api/control
+  EDC_TRANSFER_PROXY_TOKEN_SIGNER_PRIVATEKEY_ALIAS: tokenSignerPrivateKey
+  EDC_TRANSFER_PROXY_TOKEN_VERIFIER_PUBLICKEY_ALIAS: tokenSignerPublicKey
+
+x-edc-cp-service: &edc-cp-service
+  image: tractusx/edc-controlplane-postgresql-hashicorp-vault:${EDC_VERSION:-0.13.0}
+  restart: unless-stopped
+  mem_limit: 1g
+  healthcheck:
+    test: ["CMD-SHELL", "wget -q -O /dev/null http://localhost:8080/api/check/liveness || curl -sf http://localhost:8080/api/check/liveness"]
+    interval: 10s
+    timeout: 5s
+    retries: 30
+    start_period: 30s
+
+x-edc-dp-service: &edc-dp-service
+  image: tractusx/edc-dataplane-hashicorp-vault:${EDC_VERSION:-0.13.0}
+  restart: unless-stopped
+  mem_limit: 768m
+
+x-vault-service: &vault-service
+  image: openbao/openbao:${OPENBAO_VERSION:-2.7.2}
+  restart: unless-stopped
+  mem_limit: 256m
+  command: ["server", "-dev", "-dev-listen-address=0.0.0.0:8200", "-dev-root-token-id=${VAULT_ROOT_TOKEN:-root}"]
+  cap_add: [IPC_LOCK]
+  healthcheck:
+    test: ["CMD-SHELL", "wget -q -O /dev/null http://127.0.0.1:8200/v1/sys/health"]
+    interval: 5s
+    retries: 20
+
+x-vault-seed: &vault-seed
+  # reuses the wallet-stub image because it already ships curl + openssl (no package install needed)
+  image: tractusx/ssi-dim-wallet-stub:${WALLET_STUB_VERSION:-0.1.0}
+  restart: "no"
+  user: "0"
+  entrypoint: ["/bin/sh", "/bootstrap/seed-vault.sh"]
+  volumes:
+    - ./bootstrap:/bootstrap:ro
+
+services:
+  # ------------------------------------------------------------------ shared
+  postgres:
+    image: postgres:${POSTGRES_VERSION:-18.7}
+    restart: unless-stopped
+    mem_limit: 768m
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres-local}
+      # db:user:password – one EDC database per participant
+      POSTGRES_MULTIPLE_DATABASES: >-
+        oem_edc:edc_oem:${EDC_DB_PASSWORD:-edc-local},tier1_edc:edc_tier1:${EDC_DB_PASSWORD:-edc-local},tier2_edc:edc_tier2:${EDC_DB_PASSWORD:-edc-local}
+    volumes:
+      - pg-data:/var/lib/postgresql
+      - ./postgres/init-databases.sh:/docker-entrypoint-initdb.d/10-init-databases.sh:ro
+    ports: ["${POSTGRES_HOST_PORT:-5432}:5432"]
+    networks: [net-oem, net-tier1, net-tier2]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      retries: 20
+
+  # Simulated Catena-X identity services: STS, DCP credential service, did:web documents, BPN directory.
+  # Must listen on port 80 – did:web resolution (EDC_IAM_DID_WEB_USE_HTTPS=false) uses the default port.
+  wallet-stub:
+    image: tractusx/ssi-dim-wallet-stub:${WALLET_STUB_VERSION:-0.1.0}
+    restart: unless-stopped
+    mem_limit: 768m
+    environment:
+      APPLICATION_PORT: "80"
+      STUB_ENV: local
+      DID_HOST: wallet-stub
+      STUB_URL: http://wallet-stub
+      BASE_WALLET_BPN: ${OPERATOR_BPNL:-BPNL00000OPERATR}
+      SEED_WALLETS_BPN: ${OEM_BPNL:-BPNL00000000OEM1},${TIER1_BPNL:-BPNL000000TIER01},${TIER2_BPNL:-BPNL000000TIER02}
+      TOKEN_EXPIRY_TIME: "60"
+      APP_LOG_LEVEL: INFO
+    ports: ["${WALLET_STUB_HOST_PORT:-8090}:80"]
+    networks: [dataspace]
+
+  # ------------------------------------------------------------------ OEM
+  oem-vault:
+    <<: *vault-service
+    networks: [net-oem]
+  oem-vault-seed:
+    <<: *vault-seed
+    environment: { VAULT_ADDR: "http://oem-vault:8200", VAULT_TOKEN: "${VAULT_ROOT_TOKEN:-root}", STS_CLIENT_SECRET: "${STS_CLIENT_SECRET:-not-validated-by-stub}" }
+    depends_on: { oem-vault: { condition: service_healthy } }
+    networks: [net-oem]
+  oem-edc-cp:
+    <<: *edc-cp-service
+    environment:
+      <<: *edc-controlplane
+      EDC_RUNTIME_ID: oem-edc-cp
+      EDC_PARTICIPANT_ID: did:web:wallet-stub:${OEM_BPNL:-BPNL00000000OEM1}
+      EDC_IAM_ISSUER_ID: did:web:wallet-stub:${OEM_BPNL:-BPNL00000000OEM1}
+      EDC_PARTICIPANT_CONTEXT_ID: 6b0c3f4e-0e57-4d55-9a0a-000000000001
+      TRACTUSX_EDC_PARTICIPANT_BPN: ${OEM_BPNL:-BPNL00000000OEM1}
+      EDC_IAM_STS_OAUTH_CLIENT_ID: ${OEM_BPNL:-BPNL00000000OEM1}
+      EDC_CONTROL_ENDPOINT: http://oem-edc-cp:8083/control
+      EDC_DSP_CALLBACK_ADDRESS: http://oem-edc-cp:8084/api/v1/dsp
+      EDC_DATASOURCE_DEFAULT_URL: jdbc:postgresql://postgres:5432/oem_edc
+      EDC_DATASOURCE_DEFAULT_USER: edc_oem
+      EDC_VAULT_HASHICORP_URL: http://oem-vault:8200
+    depends_on:
+      postgres: { condition: service_healthy }
+      oem-vault-seed: { condition: service_completed_successfully }
+      wallet-stub: { condition: service_started }
+    ports: ["${OEM_EDC_MGMT_HOST_PORT:-8191}:8081"]
+    networks: [net-oem, dataspace]
+  oem-edc-dp:
+    <<: *edc-dp-service
+    environment:
+      <<: *edc-dataplane
+      EDC_RUNTIME_ID: oem-edc-dp
+      EDC_PARTICIPANT_ID: did:web:wallet-stub:${OEM_BPNL:-BPNL00000000OEM1}
+      EDC_IAM_ISSUER_ID: did:web:wallet-stub:${OEM_BPNL:-BPNL00000000OEM1}
+      EDC_PARTICIPANT_CONTEXT_ID: 6b0c3f4e-0e57-4d55-9a0a-000000000001
+      EDC_IAM_STS_OAUTH_CLIENT_ID: ${OEM_BPNL:-BPNL00000000OEM1}
+      EDC_CONTROL_ENDPOINT: http://oem-edc-dp:8084/api/control
+      EDC_DPF_SELECTOR_URL: http://oem-edc-cp:8083/control/v1/dataplanes
+      EDC_DATAPLANE_API_PUBLIC_BASEURL: http://oem-edc-dp:8081/api/public
+      TX_EDC_DATAPLANE_TOKEN_REFRESH_ENDPOINT: http://oem-edc-dp:8081/api/public/token
+      EDC_DATASOURCE_DEFAULT_URL: jdbc:postgresql://postgres:5432/oem_edc
+      EDC_DATASOURCE_DEFAULT_USER: edc_oem
+      EDC_VAULT_HASHICORP_URL: http://oem-vault:8200
+    depends_on:
+      oem-edc-cp: { condition: service_healthy }
+    networks: [net-oem, dataspace]
+
+  # ------------------------------------------------------------------ Tier-1
+  tier1-vault:
+    <<: *vault-service
+    networks: [net-tier1]
+  tier1-vault-seed:
+    <<: *vault-seed
+    environment: { VAULT_ADDR: "http://tier1-vault:8200", VAULT_TOKEN: "${VAULT_ROOT_TOKEN:-root}", STS_CLIENT_SECRET: "${STS_CLIENT_SECRET:-not-validated-by-stub}" }
+    depends_on: { tier1-vault: { condition: service_healthy } }
+    networks: [net-tier1]
+  tier1-edc-cp:
+    <<: *edc-cp-service
+    environment:
+      <<: *edc-controlplane
+      EDC_RUNTIME_ID: tier1-edc-cp
+      EDC_PARTICIPANT_ID: did:web:wallet-stub:${TIER1_BPNL:-BPNL000000TIER01}
+      EDC_IAM_ISSUER_ID: did:web:wallet-stub:${TIER1_BPNL:-BPNL000000TIER01}
+      EDC_PARTICIPANT_CONTEXT_ID: 6b0c3f4e-0e57-4d55-9a0a-000000000002
+      TRACTUSX_EDC_PARTICIPANT_BPN: ${TIER1_BPNL:-BPNL000000TIER01}
+      EDC_IAM_STS_OAUTH_CLIENT_ID: ${TIER1_BPNL:-BPNL000000TIER01}
+      EDC_CONTROL_ENDPOINT: http://tier1-edc-cp:8083/control
+      EDC_DSP_CALLBACK_ADDRESS: http://tier1-edc-cp:8084/api/v1/dsp
+      EDC_DATASOURCE_DEFAULT_URL: jdbc:postgresql://postgres:5432/tier1_edc
+      EDC_DATASOURCE_DEFAULT_USER: edc_tier1
+      EDC_VAULT_HASHICORP_URL: http://tier1-vault:8200
+    depends_on:
+      postgres: { condition: service_healthy }
+      tier1-vault-seed: { condition: service_completed_successfully }
+      wallet-stub: { condition: service_started }
+    ports: ["${TIER1_EDC_MGMT_HOST_PORT:-8291}:8081"]
+    networks: [net-tier1, dataspace]
+  tier1-edc-dp:
+    <<: *edc-dp-service
+    environment:
+      <<: *edc-dataplane
+      EDC_RUNTIME_ID: tier1-edc-dp
+      EDC_PARTICIPANT_ID: did:web:wallet-stub:${TIER1_BPNL:-BPNL000000TIER01}
+      EDC_IAM_ISSUER_ID: did:web:wallet-stub:${TIER1_BPNL:-BPNL000000TIER01}
+      EDC_PARTICIPANT_CONTEXT_ID: 6b0c3f4e-0e57-4d55-9a0a-000000000002
+      EDC_IAM_STS_OAUTH_CLIENT_ID: ${TIER1_BPNL:-BPNL000000TIER01}
+      EDC_CONTROL_ENDPOINT: http://tier1-edc-dp:8084/api/control
+      EDC_DPF_SELECTOR_URL: http://tier1-edc-cp:8083/control/v1/dataplanes
+      EDC_DATAPLANE_API_PUBLIC_BASEURL: http://tier1-edc-dp:8081/api/public
+      TX_EDC_DATAPLANE_TOKEN_REFRESH_ENDPOINT: http://tier1-edc-dp:8081/api/public/token
+      EDC_DATASOURCE_DEFAULT_URL: jdbc:postgresql://postgres:5432/tier1_edc
+      EDC_DATASOURCE_DEFAULT_USER: edc_tier1
+      EDC_VAULT_HASHICORP_URL: http://tier1-vault:8200
+    depends_on:
+      tier1-edc-cp: { condition: service_healthy }
+    networks: [net-tier1, dataspace]
+
+networks:
+  dataspace: {}
+  net-oem: {}
+  net-tier1: {}
+  net-tier2: {}
+
+volumes:
+  pg-data: {}
