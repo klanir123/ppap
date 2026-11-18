@@ -63,6 +63,13 @@ jobs:
         run: npm run api:check
       - run: npm run build
 
+  seed:
+    name: Seed data consistency
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - run: python3 seed/check_seed.py
+
   security:
     name: Dependency & license scan
     runs-on: ubuntu-latest

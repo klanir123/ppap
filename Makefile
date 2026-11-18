@@ -15,7 +15,7 @@ IMAGE        ?= ppap-connector:local
 APPS         := oem-app tier1-app $(if $(filter tier2,$(PROFILE)),tier2-app,)
 SKIP_BUILD   ?=
 
-.PHONY: help up down clean restart ps logs build build-frontend build-backend image test test-backend test-frontend smoke demo realms stats wait
+.PHONY: help up down clean restart ps logs build build-frontend build-backend image test test-backend test-frontend smoke demo realms stats wait seed-check
 
 help: ## show this help
 	@grep -hE '^[a-z-]+:.*## ' $(MAKEFILE_LIST) | awk 'BEGIN{FS=":.*## "}{printf "  \033[36m%-16s\033[0m %s\n",$$1,$$2}'
@@ -66,7 +66,7 @@ build-backend:
 image:
 	docker build -t $(IMAGE) .
 
-test: test-backend test-frontend ## run all tests
+test: seed-check test-backend test-frontend ## run all tests
 
 test-backend:
 	$(MVN) verify
@@ -86,6 +86,9 @@ demo: ## reset application databases to the demo state (EDC/Keycloak untouched)
 	$(COMPOSE) up -d $(APPS)
 	@$(MAKE) --no-print-directory wait PROFILE=$(PROFILE)
 	@echo "demo state restored (seed data: phase 2)"
+
+seed-check: ## verify seed data (generators up to date, mirrored mappings, integrity)
+	python3 seed/check_seed.py
 
 realms: ## regenerate Keycloak realm imports
 	python3 infra/keycloak/generate-realms.py
