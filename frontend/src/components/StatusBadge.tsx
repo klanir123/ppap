@@ -1,45 +1,19 @@
-import {
-  Ban,
-  CircleCheck,
-  CircleDashed,
-  CircleDot,
-  CircleHelp,
-  CircleX,
-  Clock,
-  Eye,
-  FileEdit,
-  Send,
-  ShieldAlert,
-  type LucideIcon,
-} from 'lucide-react'
+import { CircleHelp, type LucideIcon } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
+import { STATUS_ICONS, type StatusKind } from '@/components/status-icons'
+
+import type { ApprovalStatus, HealthStatus, RequirementLevel, ValidationStatus } from '@/lib/status'
+import { statusStyle, statusToken } from '@/lib/status-style'
 import { cn } from '@/lib/utils'
-import type { ApprovalStatus, HealthStatus } from '@/lib/status'
 
-type StatusToken = ApprovalStatus | 'up' | 'down' | 'unknown'
-
-const APPROVAL_ICONS: Record<ApprovalStatus, LucideIcon> = {
-  draft: FileEdit,
-  requested: Clock,
-  'in-progress': CircleDashed,
-  submitted: Send,
-  'in-review': Eye,
-  approved: CircleCheck,
-  'conditionally-approved': ShieldAlert,
-  rejected: CircleX,
-  cancelled: Ban,
-}
-
-const HEALTH_ICONS: Record<HealthStatus, LucideIcon> = {
-  UP: CircleCheck,
-  DOWN: CircleX,
-  UNKNOWN: CircleHelp,
-}
-
-export type StatusBadgeProps =
-  | { kind: 'approval'; status: ApprovalStatus; className?: string; size?: 'sm' | 'md' }
-  | { kind: 'health'; status: HealthStatus; className?: string; size?: 'sm' | 'md' }
+export type StatusBadgeProps = { className?: string; size?: 'sm' | 'md'; kind: StatusKind } & (
+  | { kind: 'approval'; status: ApprovalStatus }
+  | { kind: 'health'; status: HealthStatus }
+  | { kind: 'validation'; status: ValidationStatus }
+  | { kind: 'requirement'; status: RequirementLevel }
+  | { kind: 'active'; status: boolean }
+)
 
 /**
  * Consistent status pill: colour token + icon + text (never colour alone, WCAG 1.4.1).
@@ -48,32 +22,18 @@ export type StatusBadgeProps =
 export function StatusBadge(props: StatusBadgeProps) {
   const { t } = useTranslation('status')
   const size = props.size ?? 'md'
-
-  let token: StatusToken
-  let label: string
-  let Icon: LucideIcon
-  if (props.kind === 'approval') {
-    token = props.status
-    label = t(`approval.${props.status}`)
-    Icon = APPROVAL_ICONS[props.status] ?? CircleDot
-  } else {
-    token = props.status.toLowerCase() as StatusToken
-    label = t(`health.${props.status}`)
-    Icon = HEALTH_ICONS[props.status] ?? CircleHelp
-  }
+  const key = String(props.status)
+  const icons = STATUS_ICONS[props.kind] as Record<string, LucideIcon>
+  const Icon = icons[key] ?? CircleHelp
+  const label = t(`${props.kind}.${key}` as 'health.UP')
+  const token = statusToken(props.kind, props.status)
 
   return (
     <span
       role="status"
       aria-label={t('badgeLabel', { label })}
       data-status={token}
-      style={
-        {
-          '--sb-bg': `var(--status-${token}-bg)`,
-          '--sb-fg': `var(--status-${token}-fg)`,
-          '--sb-border': `var(--status-${token}-border)`,
-        } as React.CSSProperties
-      }
+      style={statusStyle(token)}
       className={cn(
         'inline-flex shrink-0 items-center gap-1.5 rounded-full border font-medium whitespace-nowrap',
         'border-(--sb-border) bg-(--sb-bg) text-(--sb-fg)',

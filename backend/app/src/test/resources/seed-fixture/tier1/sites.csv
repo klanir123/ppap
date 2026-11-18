@@ -1,0 +1,3 @@
+bpns;name;ownerBpnl;street;postalCode;city;country
+BPNSFIXTURE00001;Werk Fixture;BPNL00000003AYRE;Hauptstr. 1;80331;München;DE
+BPNSFIXTURE00002;OEM Werk;BPNLFIXTURE00001;;;;DE

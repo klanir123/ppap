@@ -15,5 +15,19 @@
     "DOWN": "Gestört",
     "UNKNOWN": "Unbekannt"
   },
-  "badgeLabel": "Status: {{label}}"
+  "badgeLabel": "Status: {{label}}",
+  "validation": {
+    "OK": "OK",
+    "WARNING": "Warnung",
+    "ERROR": "Fehler"
+  },
+  "requirement": {
+    "REQUIRED": "Gefordert",
+    "ON_REQUEST": "Auf Anforderung",
+    "NOT_REQUIRED": "Nicht gefordert"
+  },
+  "active": {
+    "true": "Aktiv",
+    "false": "Inaktiv"
+  }
 }

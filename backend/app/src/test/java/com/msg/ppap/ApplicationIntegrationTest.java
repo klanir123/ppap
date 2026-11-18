@@ -76,7 +76,7 @@ class ApplicationIntegrationTest extends AbstractIntegrationTest {
                 .andExpect(status().isNotFound())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON))
                 .andExpect(jsonPath("$.status").value(404))
-                .andExpect(jsonPath("$.code").value("error.http.404"))
+                .andExpect(jsonPath("$.code").value("NOT_FOUND"))
                 .andExpect(jsonPath("$.correlationId").isNotEmpty());
     }
 
@@ -124,12 +124,14 @@ class ApplicationIntegrationTest extends AbstractIntegrationTest {
     @Test
     void flywayMigrationsAreApplied() {
         assertThat(flyway.info().applied()).isNotEmpty();
-        assertThat(flyway.info().current().getVersion().getVersion()).isEqualTo("1");
+        assertThat(flyway.info().pending()).isEmpty();
         assertThat(jdbc.queryForObject(
                         "select count(*) from information_schema.tables where table_name in"
-                                + " ('event_publication', 'event_publication_archive', 'audit_event')",
+                                + " ('event_publication', 'event_publication_archive', 'audit_event', 'md_part',"
+                                + " 'md_partner', 'md_site', 'md_relation', 'md_part_mapping', 'md_catalog_element',"
+                                + " 'md_submission_level', 'md_submission_reason')",
                         Integer.class))
-                .isEqualTo(3);
+                .isEqualTo(11);
     }
 
     /** Simulates a Keycloak access token, mapped with the production role converter. */

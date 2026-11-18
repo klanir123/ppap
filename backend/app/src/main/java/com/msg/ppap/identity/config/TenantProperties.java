@@ -1,6 +1,6 @@
 package com.msg.ppap.identity.config;
 
-import com.msg.ppap.identity.domain.Bpnl;
+import com.msg.ppap.platform.domain.Bpnl;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import org.jspecify.annotations.Nullable;

@@ -1,4 +1,4 @@
-package com.msg.ppap.identity.domain;
+package com.msg.ppap.platform.domain;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;

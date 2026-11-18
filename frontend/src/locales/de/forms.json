@@ -1,0 +1,23 @@
+{
+  "save": "Speichern",
+  "create": "Anlegen",
+  "cancel": "Abbrechen",
+  "saving": "Wird gespeichert …",
+  "required": "Pflichtfeld",
+  "optional": "optional",
+  "discardTitle": "Ungespeicherte Änderungen verwerfen?",
+  "discardDescription": "Ihre Eingaben gehen verloren.",
+  "discard": "Verwerfen",
+  "keepEditing": "Weiter bearbeiten",
+  "errorSummary": "Der Datensatz konnte nicht gespeichert werden.",
+  "versionConflictTitle": "Zwischenzeitlich geändert",
+  "versionConflictDescription": "Der Datensatz wurde inzwischen von jemand anderem geändert. Laden Sie den aktuellen Stand neu und wiederholen Sie Ihre Änderung.",
+  "reload": "Neu laden",
+  "json": {
+    "format": "Formatieren",
+    "valid": "Gültiges JSON",
+    "invalid": "Ungültiges JSON: {{message}}"
+  },
+  "selectPlaceholder": "Bitte wählen",
+  "none": "Keine Angabe"
+}

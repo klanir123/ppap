@@ -15,5 +15,19 @@
     "DOWN": "Down",
     "UNKNOWN": "Unknown"
   },
-  "badgeLabel": "Status: {{label}}"
+  "badgeLabel": "Status: {{label}}",
+  "validation": {
+    "OK": "OK",
+    "WARNING": "Warning",
+    "ERROR": "Error"
+  },
+  "requirement": {
+    "REQUIRED": "Required",
+    "ON_REQUEST": "On request",
+    "NOT_REQUIRED": "Not required"
+  },
+  "active": {
+    "true": "Active",
+    "false": "Inactive"
+  }
 }

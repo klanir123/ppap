@@ -26,3 +26,10 @@ export function aggregateHealth(statuses: readonly string[]): HealthStatus {
   if (statuses.some((s) => s !== 'UP')) return 'UNKNOWN'
   return 'UP'
 }
+
+export const VALIDATION_STATUSES = ['OK', 'WARNING', 'ERROR'] as const
+export type ValidationStatus = (typeof VALIDATION_STATUSES)[number]
+
+/** Catalogue matrix cell value; a missing element code means NOT_REQUIRED. */
+export const REQUIREMENT_LEVELS = ['REQUIRED', 'ON_REQUEST', 'NOT_REQUIRED'] as const
+export type RequirementLevel = (typeof REQUIREMENT_LEVELS)[number]
