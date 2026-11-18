@@ -1,0 +1,54 @@
+@startuml use-cases
+left to right direction
+skinparam packageStyle rectangle
+skinparam actorStyle awesome
+
+actor "Qualitätsingenieur\nKunde (QI-K)" as QIK
+actor "Qualitätsverantw.\nLieferant (QV-L)" as QVL
+actor "Stammdatenpfleger\n(SDP)" as SDP
+actor "Connector-Admin\n(CA)" as CA
+actor "ERP/QM-System\n(SYS)" as SYS <<technical>>
+actor "Partner-Connector\n(via EDC)" as PC <<system>>
+
+rectangle "msg CX PPAP Connector (Mandant)" {
+  usecase "UC-01 Stammdaten verwalten" as UC01
+  usecase "UC-02 Elementkatalog pflegen" as UC02
+  usecase "UC-03 PPF-Vorlage anfordern" as UC03
+  usecase "UC-04 Anforderung empfangen" as UC04
+  usecase "UC-05 PPF-Paket erstellen" as UC05
+  usecase "UC-06 Paket einreichen\nund bereitstellen" as UC06
+  usecase "UC-07 Prüfen und entscheiden" as UC07
+  usecase "UC-08 Entscheidung zurückmelden" as UC08
+  usecase "UC-09 Kaskadierte Freigabe" as UC09
+  usecase "UC-10 Connector-Cockpit" as UC10
+  usecase "UC-11 Transparenz und Audit" as UC11
+  usecase "UC-12 Nutzung messen" as UC12
+}
+
+SDP --> UC01
+SDP --> UC02
+SYS --> UC01
+SYS --> UC03
+SYS --> UC05
+SYS --> UC06
+SYS --> UC07
+QIK --> UC03
+QIK --> UC07
+QIK --> UC09
+QIK --> UC11
+QVL --> UC05
+QVL --> UC06
+QVL --> UC09
+QVL --> UC11
+CA --> UC10
+CA --> UC12
+
+UC03 ..> PC : <<sendet>>
+PC ..> UC04 : <<liefert>>
+UC06 ..> PC : <<stellt bereit>>
+UC07 ..> UC08 : <<include>>
+UC08 ..> PC : <<sendet>>
+UC09 ..> UC03 : <<include>>
+UC09 ..> UC07 : <<include>>
+UC05 ..> UC09 : <<extend>>\nUnterlieferanten-Referenz
+@enduml

@@ -1,0 +1,9 @@
+target/
+node_modules/
+dist/
+.env
+*.local
+.idea/
+.vscode/
+docs/input/*
+!docs/input/README.md
