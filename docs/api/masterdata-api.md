@@ -103,6 +103,16 @@ Lookup für UC-04: `GET /part-mappings/resolve?partnerBpnl=…&partnerRole=CUSTO
 `GET /catalog/export` → `{ "elements": [...], "levels": [...], "reasons": [...] }` (gleiches Format wie `seed/common/catalog.json`).
 `POST /catalog/import` (JSON gleichen Formats) → Upsert über `code`, Ergebnis wie Import-Bericht unten.
 
+## Audit-Trail – `/audit-events`
+
+`GET /audit-events?objectType=PART&objectId=<uuid>&page=0&size=25` (jede angemeldete Rolle) → `Page<AuditEventDto>`:
+```json
+{ "id": "uuid", "occurredAt": "…", "actor": "oem.masterdata | service-account-ppap-integration | system:seed",
+  "action": "CREATED|UPDATED|DEACTIVATED|DELETED|IMPORTED", "objectType": "PART", "objectId": "uuid",
+  "businessKey": "D10-04711-01", "details": { }, "prevHash": "…", "hash": "…" }
+```
+Einträge sind append-only (DB-Trigger) und je Objekt per SHA-256 verkettet (`hash = SHA-256(kanonisches JSON des Eintrags + prevHash)`), sodass nachträgliche Änderungen erkennbar sind (UC-11).
+
 ## Import CSV/XLSX (UC-01 A1)
 
 Zwei Schritte, zustandslos (die Datei wird bei „Ausführen“ erneut gesendet):
