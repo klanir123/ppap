@@ -3,7 +3,7 @@
 Kommerzielles Produkt (Closed Source) von msg for automotive: digitaler PPAP/PPF-Datenaustausch zwischen OEM und Zulieferern über Catena-X (Tractus-X EDC, DSP). Prototyp → MVP, kein Wegwerf-PoC.
 
 ## Projektstatus
-- Phase 0 (Plan) freigegeben, **Phase 1 (Fundament) abgeschlossen**. Nächste Phase: 2 – Stammdaten (UC-01/02).
+- Phase 0–2 abgeschlossen (Plan, Fundament, **Stammdaten UC-01/02**). Nächste Phase: 3 – Freigabevorgang lokal (UC-03/05/07).
 - Vollständige Aufgabenstellung: siehe `docs/input/` bzw. Erst-Prompt; Phasenplan in `docs/backlog.md` und `docs/ARCHITECTURE.md` §12.
 
 ## Wichtige Dokumente
@@ -43,4 +43,8 @@ Kommerzielles Produkt (Closed Source) von msg for automotive: digitaler PPAP/PPF
 - Keycloak: Issuer für Browser `http://localhost:8180/realms/<p>`, Backend holt JWKS intern (`PPAP_OIDC_JWK_SET_URI`). Realms nur über `infra/keycloak/generate-realms.py` ändern.
 - EDC 0.13: Participant-ID = DID `did:web:wallet-stub:<BPNL>`, DSP-Endpoint `http://<p>-edc-cp:8084/api/v1/dsp/2025-1`, Management API `http://<p>-edc-cp:8081/management/v3/...` (Header `X-Api-Key`). Policies im Namespace CX 2025/9 (siehe `infra/scripts/edc-smoke.py`).
 - Container haben ggf. kein Internet: keine Package-Installation in Bootstrap-Jobs.
-- Versionsabweichungen: TypeScript 6.0 (nicht 7), ESLint 9, Flyway 13.12.2 explizit gepinnt.
+- Versionsabweichungen: TypeScript 6.0 (nicht 7), ESLint 9, Flyway 13.12.2 explizit gepinnt, @tanstack/react-table 8.21 (9.x neue API).
+- Stammdaten: Vertrag `docs/api/masterdata-api.md`; Tabellen `md_*` mit `tenant_id`; Shared Kernel `platform.domain` (Bpnl, Bpns, Validation, fachliche Exceptions → Fehlercodes). REST, Import und Seed nutzen dieselben Application-Services.
+- Seed: `seed/generate_*.py` erzeugen die Dateien (nicht von Hand editieren), `make seed-check` prüft Spiegelgleichheit/Integrität. Laden beim App-Start (`PPAP_SEED_ENABLED`).
+- Audit: synchroner Listener nach Commit (eigene Transaktion), Hash-Kette je (tenant, objectType, objectId), append-only per Trigger.
+- Frontend-Datenzugriff: generierter orval-Client + dünner Wrapper `features/masterdata/api/` (If-Match/ETag). Fehler über `code` → i18n (`lib/problem-errors.ts`).

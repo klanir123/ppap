@@ -2,7 +2,7 @@
 #
 #   make up                 build + start OEM and Tier-1 (incl. EDCs, Keycloak, storage)
 #   make up PROFILE=tier2   additionally start Tier-2
-#   make demo               reset application data (seed data follows in phase 2)
+#   make demo               reset application data and reload seed data
 #   make test               backend + frontend tests;  make smoke  EDC end-to-end check
 
 SHELL        := /bin/bash
@@ -85,7 +85,7 @@ demo: ## reset application databases to the demo state (EDC/Keycloak untouched)
 	done
 	$(COMPOSE) up -d $(APPS)
 	@$(MAKE) --no-print-directory wait PROFILE=$(PROFILE)
-	@echo "demo state restored (seed data: phase 2)"
+	@echo "demo state restored (seed data reloaded)"
 
 seed-check: ## verify seed data (generators up to date, mirrored mappings, integrity)
 	python3 seed/check_seed.py

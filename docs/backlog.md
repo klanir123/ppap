@@ -21,7 +21,9 @@ Offen aus E0 (verschoben): E0-10 Korrelations-ID über EDC-Transfers hinweg → 
 | E0-10 | Strukturierte JSON-Logs, Korrelations-ID (`traceparent`/`X-Correlation-Id`) über Backend → EDC-Calls → Notifications | S | 3 |
 | E0-11 | ~~Analyse Customs-Demonstrator~~ – erledigt in Phase 0, siehe `docs/analysis/customs-demonstrator.md` | – | 0 |
 
-## Epic E1 – Stammdaten (Phase 2, UC-01/02)
+## Epic E1 – Stammdaten (Phase 2, UC-01/02) ✅ abgeschlossen 18.11.2026
+
+E1-07 (Katalog-Export/-Import) ebenfalls umgesetzt. Zusätzlich: Audit-Modul mit Hash-Kette (Teil von E2-09) und Audit-Panel in der UI.
 
 | ID | Story | Prio | SP |
 |---|---|---|---|

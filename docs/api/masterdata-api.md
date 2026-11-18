@@ -13,9 +13,23 @@ Stand: Phase 2. Verbindliche Quelle ist die generierte OpenAPI-Spezifikation `ap
 | Versionierung | Jede Ressource hat `version` (Long). Antworten liefern `ETag: "<version>"`. `PUT`/`DELETE` akzeptieren `If-Match`; bei Abweichung `412 Precondition Failed`. Ohne `If-Match` → last-write-wins (für Integrationen). |
 | Listen | `GET ...?q=<Volltext>&active=true|false&page=0&size=25&sort=field,asc` → `Page<T>` `{ content, page, size, totalElements, totalPages }`. `size` max. 200. |
 | Löschen | `DELETE` = **Deaktivieren** (`active=false`), physisch nur, wenn nie referenziert. Antwort `204`. |
-| Fehler | RFC 9457 Problem Details mit `code` (z. B. `VALIDATION_FAILED`, `DUPLICATE_KEY`, `NOT_FOUND`, `VERSION_CONFLICT`, `REFERENCED`) und bei Validierung `errors: [{ field, code, message }]`. Meldungen sind englisch; das UI übersetzt über `code`. |
+| Fehler | RFC 9457 Problem Details mit `code`, `correlationId` und bei Validierung `errors: [{ field, code, message }]`. Meldungen sind englisch; das UI übersetzt über `code` (Liste siehe unten). |
 | Audit | Jede schreibende Operation erzeugt einen Audit-Eintrag (append-only, Hash-Kette). |
 | Zeit | ISO 8601 UTC (`createdAt`, `updatedAt`). |
+
+### Fehlercodes
+
+| HTTP | `code` | Bedeutung |
+|---|---|---|
+| 400 | `VALIDATION_FAILED` | Feldvalidierung fehlgeschlagen (`errors[]` mit Feld-Codes wie `REQUIRED`, `INVALID_FORMAT`, `TOO_LONG`) |
+| 400 | `MALFORMED_REQUEST` | Body nicht lesbar oder ungültiger Enum-Wert |
+| 400 | `SELF_REFERENCE` | eigener Mandant als Partner/Beziehung |
+| 401 / 403 | `UNAUTHORIZED` / `FORBIDDEN` | nicht angemeldet / Rolle fehlt |
+| 404 | `NOT_FOUND` | Ressource existiert nicht (im eigenen Mandanten) |
+| 409 | `DUPLICATE_KEY` | fachlicher Schlüssel existiert bereits |
+| 409 | `REFERENCED` | physisches Löschen nicht möglich, Objekt wird referenziert |
+| 412 | `VERSION_CONFLICT` | `If-Match` passt nicht zur aktuellen Version |
+| 413 / 422 | `FILE_TOO_LARGE`, `TOO_MANY_ROWS`, `UNSUPPORTED_FILE_TYPE`, `EMPTY_FILE`, `UNREADABLE_FILE`, `IMPORT_FAILED` | Import-Fehler |
 
 ### Validierungsregeln (gemeinsam für UI, API, Import)
 
@@ -31,6 +45,8 @@ Stand: Phase 2. Verbindliche Quelle ist die generierte OpenAPI-Spezifikation `ap
 | Pflichtfelder | siehe Ressourcen (✱) |
 
 ## Ressourcen
+
+Hinweis: Fachliche Schlüssel mit `/` (z. B. Sachnummern) werden in Upsert-Pfaden URL-kodiert (`%2F`) übergeben.
 
 ### Teile – `/parts`
 Eigene Teile des Mandanten (für den OEM = Kundensachnummern, für Lieferanten = eigene Sachnummern).

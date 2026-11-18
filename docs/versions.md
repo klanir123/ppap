@@ -19,6 +19,7 @@ Geprüft am **2026-11-18** gegen offizielle Quellen (Maven Central, npm-Registry
 | Nimbus JOSE+JWT | 10.10 | JWS-Signatur Entscheidungen/Einreichungen |
 | Apache POI | 6.0.0 | neue Major-Version |
 | MapStruct | 1.6.3 | |
+| Apache Commons CSV | 1.14.1 | CSV-Import |
 | Resilience4j | 2.4.0 | Modul `resilience4j-spring-boot4` |
 | AWS SDK v2 (S3) | 2.59.3 | einziger Storage-Client (S3-API) |
 | networknt json-schema-validator | 3.0.9 | 3.x mit API-Änderungen |
@@ -46,6 +47,7 @@ Wichtige Breaking Changes: Spring Boot 4 = Spring Framework 7, Jakarta EE 11, **
 | vite / @vitejs/plugin-react | 8.3.8 / 6.3.0 | |
 | @tanstack/react-query | 5.108.0 | |
 | @tanstack/react-router | 1.170.46 | |
+| @tanstack/react-table | 8.21.3 | 9.x mit neuer API – bewusst noch nicht |
 | tailwindcss / @tailwindcss/vite | 4.3.5 | CSS-first-Konfiguration (`@theme`) |
 | shadcn (CLI) | 4.23.0 | |
 | react-hook-form | 7.92.0 | |
