@@ -68,6 +68,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: seed/requirements.txt
+      - run: pip install -r seed/requirements.txt
       - run: python3 seed/check_seed.py
 
   security:

@@ -3,6 +3,7 @@
 #   client-secret          STS client secret (the wallet stub does not validate it)
 #   tokenSignerPrivateKey  EC P-256 private key (PEM) the data plane uses to sign EDR tokens
 #   tokenSignerPublicKey   matching public key (PEM)
+#   ppap-signing-key       EC P-256 private key (PEM, PKCS#8) the connector app uses to sign submissions/decisions (JWS, ADR-0008)
 # Idempotent: existing keys are kept so EDR tokens survive restarts.
 set -eu
 : "${VAULT_ADDR:?}" "${VAULT_TOKEN:?}" "${STS_CLIENT_SECRET:?}"
@@ -21,5 +22,9 @@ if ! exists tokenSignerPrivateKey; then
   openssl ec -in /tmp/key.pem -pubout -out /tmp/pub.pem 2>/dev/null
   put tokenSignerPrivateKey "$(cat /tmp/key.pem)"
   put tokenSignerPublicKey "$(cat /tmp/pub.pem)"
+fi
+if ! exists ppap-signing-key; then
+  openssl ecparam -name prime256v1 -genkey -noout | openssl pkcs8 -topk8 -nocrypt -out /tmp/app-key.pem
+  put ppap-signing-key "$(cat /tmp/app-key.pem)"
 fi
 echo "vault $VAULT_ADDR seeded"

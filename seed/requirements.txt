@@ -1,0 +1,4 @@
+# Python packages for the seed generators and seed/check_seed.py (CI + local)
+reportlab==5.0.1
+openpyxl==3.1.5
+jsonschema==4.26.0

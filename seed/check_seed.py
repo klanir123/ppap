@@ -5,6 +5,10 @@
 2. Part mappings are mirrored on both sides of every EDC-enabled relationship.
 3. Referential integrity (mapped parts, sites, partners, relations exist) and key formats.
 4. Every level matrix only references catalogue element codes.
+5. Approval cases: mirrored across participants (same exchangeId), parts/partners/codes exist, values satisfy
+   the element value schemas, referenced documents exist, SUBMITTED revisions only for LEGACY_IMPORT.
+6. Form templates reference catalogue codes consistently.
+Requires: pip install -r seed/requirements.txt
 """
 import csv
 import json
@@ -29,8 +33,8 @@ def fail(msg):
 
 
 # 1. generators reproduce the committed files
-before = {f: f.read_bytes() for f in ROOT.rglob("*") if f.suffix in (".csv", ".json")}
-for gen in ("generate_catalog.py", "generate_participants.py"):
+before = {f: f.read_bytes() for f in ROOT.rglob("*") if f.suffix in (".csv", ".json", ".pdf", ".xlsx")}
+for gen in ("generate_catalog.py", "generate_participants.py", "generate_documents.py", "generate_forms.py", "generate_cases.py"):
     subprocess.run([sys.executable, str(ROOT / gen)], check=True, capture_output=True)
 for f, content in before.items():
     if f.read_bytes() != content:
@@ -88,8 +92,61 @@ for lvl in catalog["levels"]:
     if set(lvl["requirements"].values()) - {"REQUIRED", "ON_REQUEST", "NOT_REQUIRED"}:
         fail(f"level {lvl['code']} has invalid requirement values")
 
+# 5. approval cases
+import jsonschema  # noqa: E402
+
+elements = {e["code"]: e for e in catalog["elements"]}
+levels, reasons = {lv["code"] for lv in catalog["levels"]}, {r["code"] for r in catalog["reasons"]}
+docs = {f.name for f in (ROOT / "documents").glob("*.pdf")}
+by_exchange = {}
+case_count = 0
+for p, own in PARTICIPANTS.items():
+    parts = {r["partNumber"] for r in rows(p, "parts.csv")}
+    partners = {r["bpnl"] for r in rows(p, "partners.csv")}
+    numbers = set()
+    for c in json.loads((ROOT / p / "approval-cases.json").read_text(encoding="utf-8"))["cases"]:
+        case_count += 1
+        where = f"{p}:{c['caseNumber']}"
+        if c["caseNumber"] in numbers:
+            fail(f"{where}: duplicate case number")
+        numbers.add(c["caseNumber"])
+        if c["partNumber"] not in parts or c["partnerBpnl"] not in partners:
+            fail(f"{where}: unknown part or partner")
+        if c["reasonCode"] not in reasons or c["levelCode"] not in levels:
+            fail(f"{where}: unknown reason/level")
+        for e in c["elements"]:
+            if e["code"] not in elements:
+                fail(f"{where}: unknown element {e['code']}")
+        for sub in c["submissions"]:
+            if sub["status"] == "SUBMITTED" and c["source"] != "LEGACY_IMPORT":
+                fail(f"{where}: SUBMITTED revision only allowed for LEGACY_IMPORT (signatures are never seeded)")
+            for ev in sub["elements"]:
+                schema = elements[ev["code"]]["valueSchema"]
+                if ev.get("values") is not None and schema:
+                    try:
+                        jsonschema.validate(ev["values"], schema)
+                    except jsonschema.ValidationError as ex:
+                        fail(f"{where}/{ev['code']}: value schema violation: {ex.message}")
+                for d in ev.get("documents", []):
+                    if d not in docs:
+                        fail(f"{where}/{ev['code']}: missing document {d}")
+        by_exchange.setdefault(c["exchangeId"], []).append((own, c))
+for xid, sides in by_exchange.items():
+    if len(sides) > 2:
+        fail(f"exchangeId {xid} used more than twice")
+    if len(sides) == 2:
+        (a_own, a), (b_own, b) = sides
+        if {a["ownRole"], b["ownRole"]} != {"CUSTOMER", "SUPPLIER"} or a["partnerBpnl"] != b_own or b["partnerBpnl"] != a_own \
+                or a["partNumber"] != b["partnerPartNumber"] or a["status"] != b["status"]:
+            fail(f"exchangeId {xid}: customer and supplier cases are not mirrored")
+
+# 6. form templates
+for t in json.loads((ROOT / "common" / "form-templates.json").read_text(encoding="utf-8"))["templates"]:
+    if set(t["selfAssessmentValues"].values()) - {"OK", "NOK", "NA"}:
+        fail(f"form template {t['code']}: invalid self-assessment mapping")
+
 if errors:
     print("SEED CHECK FAILED:\n  " + "\n  ".join(errors))
     sys.exit(1)
 print(f"seed check ok: {len(PARTICIPANTS)} participants, {len(codes)} catalogue elements, "
-      f"{sum(len(v) for v in mappings.values())} part mappings")
+      f"{sum(len(v) for v in mappings.values())} part mappings, {case_count} approval cases, {len(docs)} documents")
