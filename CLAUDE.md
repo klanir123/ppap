@@ -3,7 +3,7 @@
 Kommerzielles Produkt (Closed Source) von msg for automotive: digitaler PPAP/PPF-Datenaustausch zwischen OEM und Zulieferern über Catena-X (Tractus-X EDC, DSP). Prototyp → MVP, kein Wegwerf-PoC.
 
 ## Projektstatus
-- Phase 0–4 abgeschlossen (Plan, Fundament, Stammdaten, Freigabevorgang, **Austausch über EDC UC-04/06/08**). Nächste Phase: 5 – Pull über DTR und Dokumente.
+- Phase 0–5 abgeschlossen (Plan, Fundament, Stammdaten, Freigabevorgang, Austausch über EDC, **Pull über DTR + Dokumente**). Nächste Phase: 6 – Kaskade und Transparenz (UC-09…12).
 - Vollständige Aufgabenstellung: siehe `docs/input/` bzw. Erst-Prompt; Phasenplan in `docs/backlog.md` und `docs/ARCHITECTURE.md` §12.
 
 ## Wichtige Dokumente
@@ -57,4 +57,6 @@ Kommerzielles Produkt (Closed Source) von msg for automotive: digitaler PPAP/PPF
 - Austausch (Phase 4, Vertrag `docs/api/exchange-api.md`): Outbox = `BEFORE_COMMIT`-Listener in `exchange` schreibt validierten Umschlag in `ex_message` (gleiche Tabelle für Outbox, Inbox, Austauschprotokoll; Schritte in `ex_message_step`), Worker mit SKIP LOCKED + Lease, Reihenfolge je exchangeId. Provisionierung idempotent beim Start/bei Partneränderungen (Assets `ppap-notification-receive`, `ppap-public-keys`; BPN-Gruppe `ppap-partners`; Policy-IDs mit Inhalts-Hash, da referenzierte Policies in 0.13 nicht änderbar). Shared Secret über Vault-`secretName`. Data Plane reicht `Edc-Bpn` durch → Absenderprüfung. EDR-Wiederverwendung mit `auto_refresh`. Partnerschlüssel per EDC (`ppap-public-keys`).
 - SAMM: `backend/semantics-models` (SAMM 2.2, ESMF 2.16.2) generiert die JSON-Schemas, gegen die `semantics` validiert; `values`/`valueSchema`/`payload` im Austausch als kanonischer JSON-Text.
 - Live-Test des Austauschs: `APP_DECISION_ALLOW_TECHNICAL_CLIENTS=true make up PROFILE=tier2`, dann `./mvnw -pl backend/app -am -Plive verify`. Standard: technische Clients dürfen nicht entscheiden.
-- EDC 0.13: Durch die Data Plane kommt 202 als 200 und 401 als 500 beim Sender an; „Policy referenced“ liefert 400 statt 409.
+- EDC 0.13: Durch die Data Plane kommt 202 als 200 und 401 als 500 beim Sender an; „Policy referenced“ liefert 400 statt 409. Die Data Plane reicht Antwort-Header des Backends **nicht** weiter (JWS bei Pull daher unter `<href>/signature`).
+- Pull (Phase 5, Vertrag `docs/api/pull-api.md`): Twin je Vorgang in der DTR des Lieferanten (`/api/v3`, Tenant über Header `Edc-Bpn`, `lookup/shells` mit base64url-JSON), Registrierung als lokale Outbox-Aufgabe `TWIN_REGISTRATION` vor `PPAP_SUBMISSION_AVAILABLE`. Pull-Job + Poller in `exchange` (nicht `twin`, Modulzyklus). Assets je Partner `ppap-submission-<BPNL>`, `ppap-documents-<BPNL>`, `ppap-dtr` (OAuth2 über Data Plane, Secret im Vault). Interne Endpunkte: Secret → 401, kein `Edc-Bpn` → 403, nicht geteilt/Entwurf → 404. Dokumente in beiden Richtungen per Pull mit SHA-256-Prüfung (`ex_document_transfer`). Modus der Lieferanten-Beziehung bei Einreichung gilt je Revision. DTR-Angebote werden gecacht (positiv 10 min, „keine DTR“ 60 s, `PPAP_PULL_NO_OFFER_CACHE_TTL`); Retries umgehen den Cache; Poller startet erst nach eigener Provisionierung.
+- Live-Specs `make e2e` (01–08) inkl. Moduswechsel (08); lokal schneller mit `APP_PULL_POLL_INTERVAL=15s make up PROFILE=tier2`.

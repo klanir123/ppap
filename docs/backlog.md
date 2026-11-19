@@ -68,7 +68,10 @@ Offen/Backlog: Option „bestehende Teilezuordnung ersetzen“ beim Zuordnen; Pa
 | E3-07 | `ExchangeRecord` + Tab „Datenaustausch“ (live per SSE) | M | 5 |
 | E3-08 | Integrationstest OEM↔Tier-1 über echte EDCs (Testcontainers/Compose) | M | 8 |
 
-## Epic E4 – Pull über DTR (Phase 5)
+## Epic E4 – Pull über DTR (Phase 5) ✅ abgeschlossen 19.11.2026
+
+Zusätzlich: Dokumenttransfer in beide Richtungen (Nachweise, Anhänge), Digital-Twin-Panel, Moduswahl mit Erklärung, Messwerte in ADR-0002, Spec 08 (Moduswechsel).
+Offen/Backlog: bediente Abrufe als Audit-Ereignis statt nur Log; doppelte DTR-Abfrage im Pull-Modus (Poller + Job); blockierte Benachrichtigung bei dauerhaft nicht erreichbarer DTR; Test mit großen Dateien; Ablageort der Signatur bei Pull (`TODO(EG)`).
 
 | ID | Story | Prio | SP |
 |---|---|---|---|
