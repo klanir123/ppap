@@ -88,3 +88,10 @@ Ereignisse: `case.changed { caseId, status }`, `exchange.changed { caseId, messa
 
 ## Konfiguration (Env)
 `PPAP_EDC_MANAGEMENT_URL`, `PPAP_EDC_API_KEY`, `PPAP_EDC_DSP_URL`, `PPAP_EDC_PARTICIPANT_ID` (DID), `PPAP_EDC_CALLBACK_BASE_URL` (`http://<p>-app:8080`), `PPAP_EDC_CALLBACK_SECRET`, `PPAP_EDC_POLICY_USAGE_PURPOSE`, `PPAP_EXCHANGE_WORKER_INTERVAL`, `PPAP_EXCHANGE_MAX_ATTEMPTS`. Partner-DSP-Endpoint und DID kommen aus den Stammdaten (Partner).
+
+## Ergänzungen (Abstimmung Frontend, Phase 4)
+1. Vorgang (Liste + Detail): `lastOutbound: { messageType, status, at } | null` – letzte ausgehende Nachricht für den Zustell-Badge.
+2. `GET /approval-cases?needsClarification=true` filtert; `GET /approval-cases/stats` enthält `needsClarification` (Anzahl).
+3. Nachrichten-DTOs (Vorgang und Admin) enthalten `caseId` und `caseNumber`.
+4. `assign-part` beachtet `If-Match` und liefert die neue Version im `ETag`.
+5. SSE: Ereignisname im Feld `event:` (`case.changed`, `exchange.changed`, `heartbeat`), JSON in `data:`.
