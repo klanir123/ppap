@@ -47,8 +47,12 @@ def comparable(path, data):
 
 
 for f, content in before.items():
-    if comparable(f, f.read_bytes()) != comparable(f, content):
-        fail(f"{f.relative_to(ROOT)} is not up to date with its generator")
+    now, committed = comparable(f, f.read_bytes()), comparable(f, content)
+    if now != committed:
+        detail = ""
+        if isinstance(now, dict):
+            detail = " (differing members: " + ", ".join(sorted(n for n in set(now) | set(committed) if now.get(n) != committed.get(n))) + ")"
+        fail(f"{f.relative_to(ROOT)} is not up to date with its generator{detail}")
         f.write_bytes(content)
 
 # 2./3. per participant integrity
