@@ -3,7 +3,7 @@
 Kommerzielles Produkt (Closed Source) von msg for automotive: digitaler PPAP/PPF-Datenaustausch zwischen OEM und Zulieferern über Catena-X (Tractus-X EDC, DSP). Prototyp → MVP, kein Wegwerf-PoC.
 
 ## Projektstatus
-- Phase 0–3 abgeschlossen (Plan, Fundament, Stammdaten, **Freigabevorgang lokal UC-03/05/07**). Nächste Phase: 4 – EDC-Push (UC-04/06/08).
+- Phase 0–4 abgeschlossen (Plan, Fundament, Stammdaten, Freigabevorgang, **Austausch über EDC UC-04/06/08**). Nächste Phase: 5 – Pull über DTR und Dokumente.
 - Vollständige Aufgabenstellung: siehe `docs/input/` bzw. Erst-Prompt; Phasenplan in `docs/backlog.md` und `docs/ARCHITECTURE.md` §12.
 
 ## Wichtige Dokumente
@@ -54,3 +54,7 @@ Kommerzielles Produkt (Closed Source) von msg for automotive: digitaler PPAP/PPF
 - Dokumente: Typprüfung per Magic Bytes (Tika), inhaltsadressiert `<tenant>/<sha256>` in S3.
 - Seed: `seed/generate_*.py` (catalog, participants, documents, forms, cases) – PDFs/XLSX reproduzierbar (unkomprimiert, `lxml` gepinnt, `seed/requirements.txt`).
 - EDC-Healthcheck in Compose nutzt `/api/check/readiness` (liveness liefert direkt nach Start sporadisch 404).
+- Austausch (Phase 4, Vertrag `docs/api/exchange-api.md`): Outbox = `BEFORE_COMMIT`-Listener in `exchange` schreibt validierten Umschlag in `ex_message` (gleiche Tabelle für Outbox, Inbox, Austauschprotokoll; Schritte in `ex_message_step`), Worker mit SKIP LOCKED + Lease, Reihenfolge je exchangeId. Provisionierung idempotent beim Start/bei Partneränderungen (Assets `ppap-notification-receive`, `ppap-public-keys`; BPN-Gruppe `ppap-partners`; Policy-IDs mit Inhalts-Hash, da referenzierte Policies in 0.13 nicht änderbar). Shared Secret über Vault-`secretName`. Data Plane reicht `Edc-Bpn` durch → Absenderprüfung. EDR-Wiederverwendung mit `auto_refresh`. Partnerschlüssel per EDC (`ppap-public-keys`).
+- SAMM: `backend/semantics-models` (SAMM 2.2, ESMF 2.16.2) generiert die JSON-Schemas, gegen die `semantics` validiert; `values`/`valueSchema`/`payload` im Austausch als kanonischer JSON-Text.
+- Live-Test des Austauschs: `APP_DECISION_ALLOW_TECHNICAL_CLIENTS=true make up PROFILE=tier2`, dann `./mvnw -pl backend/app -am -Plive verify`. Standard: technische Clients dürfen nicht entscheiden.
+- EDC 0.13: Durch die Data Plane kommt 202 als 200 und 401 als 500 beim Sender an; „Policy referenced“ liefert 400 statt 409.

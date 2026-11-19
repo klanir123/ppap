@@ -52,7 +52,10 @@ Offen: Vier-Augen-Freigabe (L-06), Werte-Spalten im Excel-Formblatt, echter Malw
 | E2-08 | Vorgangsliste (Tabelle + Kanban), Vorgangsdetail mit Timeline | M | 8 |
 | E2-09 | Audit-Modul (append-only, Hash-Kette) | M | 3 |
 
-## Epic E3 – EDC Push (Phase 4, UC-04/06/08)
+## Epic E3 – EDC Push (Phase 4, UC-04/06/08) ✅ abgeschlossen 19.11.2026
+
+Zusätzlich: Partnerschlüssel über EDC, Klärungsliste (UC-04 A1), Live-Updates (SSE), erstes Connector-Cockpit (Status, Nachrichten, Retry), Playwright-Specs 06 (Austausch) und 07 (Klärung).
+Offen/Backlog: Option „bestehende Teilezuordnung ersetzen“ beim Zuordnen; Partnername statt `partner:BPNL…` in der Timeline; erneute Signaturprüfung für UNVERIFIED nach späterem Schlüsselabruf; Catena-X-Message-Header als Import statt lokaler Kopie (`TODO(EG)`).
 
 | ID | Story | Prio | SP |
 |---|---|---|---|

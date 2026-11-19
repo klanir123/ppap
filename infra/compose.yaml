@@ -118,6 +118,9 @@ x-app-env: &app-env
   PPAP_VAULT_TOKEN: ${VAULT_ROOT_TOKEN:-root}
   # EDC exchange (docs/api/exchange-api.md)
   PPAP_EDC_POLICY_USAGE_PURPOSE: ${EDC_USAGE_PURPOSE:-cx.quality.base:1}
+  # Decisions/review by technical clients only for automated live tests (UC-07: a person confirms). Enable with
+  # APP_DECISION_ALLOW_TECHNICAL_CLIENTS=true make up ... before running ExchangeLiveTest.
+  PPAP_DECISION_ALLOW_TECHNICAL_CLIENTS: ${APP_DECISION_ALLOW_TECHNICAL_CLIENTS:-false}
 
 x-dtr-service: &dtr-service
   image: tractusx/sldt-digital-twin-registry:${DTR_VERSION:-0.13.0}

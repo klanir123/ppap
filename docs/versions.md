@@ -25,7 +25,7 @@ Geprüft am **2026-11-18** gegen offizielle Quellen (Maven Central, npm-Registry
 | Resilience4j | 2.4.0 | Modul `resilience4j-spring-boot4` |
 | AWS SDK v2 (S3) | 2.59.3 | einziger Storage-Client (S3-API) |
 | networknt json-schema-validator | 3.0.9 | 3.x mit API-Änderungen |
-| Eclipse ESMF SDK | 2.16.2 | `esmf-aspect-model-maven-plugin`, Goal `generateJsonSchema` |
+| Eclipse ESMF SDK | 2.16.2 | im Einsatz: `backend/semantics-models` (SAMM 2.2 → JSON Schema, HTML, Beispiel-Payloads) |
 | Maven | **3.10.1** | Maven 4 noch RC |
 
 Wichtige Breaking Changes: Spring Boot 4 = Spring Framework 7, Jakarta EE 11, **Jackson 3** (`tools.jackson.*`), modularisierte Starter.

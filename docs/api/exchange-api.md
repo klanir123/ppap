@@ -22,7 +22,10 @@ Deklarativ und idempotent (Reconciliation beim Start und bei Änderungen an Bezi
 
 - **Access Policy:** `BusinessPartnerGroup isAnyOf ["ppap-partners"]`; die Gruppe wird über `/v3/business-partner-groups` aus allen aktiven, Catena-X-fähigen Partnern mit Beziehung gepflegt (keine Neuanlage von Contract Definitions bei Partneränderungen).
 - **Usage Policy:** `FrameworkAgreement eq "DataExchangeGovernance:1.0"` + `UsagePurpose isAnyOf [<konfigurierbar, Default "cx.quality.base:1" bis ein eigener Zweck abgestimmt ist>]` (CX-0152; `TODO(EG)`). Policies kommen aus der Konfiguration (`ppap.edc.policy.*`), nicht aus Code-Konstanten; in Phase 6 je Beziehung pflegbar.
+  - *[Korrektur Phase 4, verifiziert]* Die Policy-Validierung von Tractus-X EDC 0.13 akzeptiert individuelle Zwecke (`UsagePurposeIndividualRightOperand`, beliebiger String); `msg.ppap.productApproval:1` wurde lokal Ende-zu-Ende (Angebot, Verhandlung, Transfer) erfolgreich getestet. Default bleibt `cx.quality.base:1` bis zur Abstimmung (`TODO(EG)`).
+  - *[Korrektur Phase 4]* Policy-IDs sind inhaltsadressiert (`ppap-access-partners-<hash8>`, `ppap-usage-<hash8>`), weil referenzierte Policy Definitions im EDC 0.13 nicht geändert werden können (ADR-0001, Umsetzung).
 - **Contract Definitions:** je Asset eine (`ppap-notification-cd`, `ppap-public-keys-cd`).
+- *[Korrektur Phase 4, verifiziert]* Shared Secret: `authKey = X-Ppap-Edc-Secret`, `secretName = ppap-edc-callback-secret` (Vault des Teilnehmers, KV v2, Feld `content`) – von der 0.13-Data-Plane unterstützt, steht nicht im Klartext in der EDC-DB.
 
 ## Nachricht (Umschlag) – `PpapNotification` v0.1
 
@@ -38,6 +41,8 @@ Deklarativ und idempotent (Reconciliation beim Start und bei Änderungen an Bezi
     "signature": "JWS (nur SUBMISSION, DECISION)" } }
 ```
 Schema-Validierung beim Senden **und** Empfangen (Modul `semantics`). `PpapStatusUpdate` = `{ exchangeId, status: IN_PROGRESS|IN_REVIEW, revision, at, by }`.
+*[Korrektur Phase 4, SAMM]* Seit der Generierung der Schemas aus SAMM ist `content.payload` der **RFC-8785-kanonische JSON-Text** der Nutzlast (String, exakt die gehashten/signierten Bytes), optionale Header-Felder werden weggelassen statt `null`; in `PpapSubmission`/`PpapRequest` sind `values` bzw. `valueSchema` JSON-Text (siehe `backend/semantics-models/README.md`).
+*[Ergänzung Phase 4]* `PpapRequestWithdrawn` = `{ exchangeId, reason, withdrawnAt, withdrawnBy }`. Die Umschlag-Serialisierung ist RFC-8785-kanonisch; `expectedResponseBy`/`relatedMessageId` sind `null` oder gesetzt.
 
 ## Ereignis → Nachricht → Wirkung beim Partner
 
@@ -51,10 +56,12 @@ Schema-Validierung beim Senden **und** Empfangen (Modul `semantics`). `PpapStatu
 | Kunde entscheidet (`DecisionMade`) | `PPAP_DECISION` | Lieferant: Entscheidung gespeichert, Signatur geprüft, Status APPROVED / CONDITIONALLY_APPROVED / REJECTED |
 
 Remote-Übergänge laufen über die Zustandsmaschine (eigene Aktionen `RECEIVE_*`, Akteur `partner:<BPNL>`), unzulässige → Inbox `REJECTED_INVALID_STATE`.
+*[Ergänzung Phase 4]* Aktionen: `RECEIVE_REQUEST`, `RECEIVE_WITHDRAWAL` (Lieferant, REQUESTED/IN_PROGRESS → CANCELLED), `RECEIVE_STATUS_UPDATE` (Kunde: REQUESTED/REJECTED/COND. → IN_PROGRESS; Lieferant: SUBMITTED → IN_REVIEW), `RECEIVE_SUBMISSION`, `RECEIVE_DECISION`. Doppelte und überholte Status-Updates (z. B. Einreichung kam zuerst) bleiben ohne Wirkung (`PROCESSED`, `applied=false`). Ausgehende Nachrichten werden je `exchangeId` in Reihenfolge zugestellt. Neue Aktion `ASSIGN_PART` (Klärungsliste); `START_WORK` ist bei offener Klärung gesperrt (`422 CLARIFICATION_PENDING`). Inbox-Ablehnungscodes (`errorCode`): `INVALID`, `REJECTED_UNKNOWN_PARTNER`, `REJECTED_SENDER_MISMATCH`, `REJECTED_WRONG_RECIPIENT`, `REJECTED_PAYLOAD_HASH_MISMATCH`, `REJECTED_SIGNATURE_INVALID`, `REJECTED_INVALID_STATE`, `PROCESSING_FAILED`.
 
 **Partnerschlüssel:** Ist der `kid` einer Signatur unbekannt, holt der Empfänger das JWKS des Absenders über EDC (Asset `ppap-public-keys`, gleicher Ablauf wie oben, `GET`) und speichert es (`partner_key`: bpnl, kid, jwk, fetchedAt). Erst wenn auch danach unbekannt → `UNVERIFIED`.
 
 **Herkunftsprüfung:** Der Absender (`header.senderBpn`) muss eine aktive Beziehung haben. Reicht die Data Plane die Identität des Konsumenten durch (z. B. Header `Edc-Bpn` – im Tractus-X-EDC-0.13-Quellcode zu verifizieren), muss sie mit `senderBpn` übereinstimmen (`REJECTED_SENDER_MISMATCH`); andernfalls dokumentieren und auf Policy (BPN-Gruppe) + Signatur stützen.
+*[Korrektur Phase 4, verifiziert]* Die 0.13-Provider-Data-Plane setzt `Edc-Bpn` (Konsumenten-BPNL des Agreements) und `Edc-Contract-Agreement-Id`; die Prüfung ist aktiv (ADR-0002).
 
 ## REST
 
@@ -84,6 +91,7 @@ Ereignisse: `case.changed { caseId, status }`, `exchange.changed { caseId, messa
 
 ### Intern (nur über die eigene Data Plane)
 - `POST /internal/edc/notifications` – Header mit Shared Secret (`PPAP_EDC_CALLBACK_SECRET`), sonst `401`; Body = `PpapNotification`; Antworten `202` (angenommen), `200` (Duplikat), `400` (Schema), `401`.
+  *[Korrektur Phase 4, beobachtet]* Über die 0.13-Data-Plane kommt `202` beim Sender als `200` an, ein `401` als `500`; der Sender wertet 2xx als zugestellt, `400/422` als endgültig abgelehnt, alles andere als wiederholbar.
 - `GET /internal/edc/jwks` – öffentliches JWKS (gleich `/.well-known/jwks.json`), ebenfalls Shared Secret.
 
 ## Konfiguration (Env)

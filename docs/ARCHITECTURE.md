@@ -249,7 +249,7 @@ flowchart TB
 ```
 
 - Gleiches App-Image für alle Teilnehmer, Konfiguration per Env (`PPAP_TENANT_BPNL`, `PPAP_EDC_MANAGEMENT_URL`, `PPAP_OIDC_ISSUER`, …); UI unter `http://localhost:808x`.
-- Getrennte Docker-Netze je Teilnehmer (`net-oem`, `net-tier1`, …) + gemeinsames `net-dataspace` nur für EDC-DSP/Data-Plane-Public und Core Services → Backends können sich **netzwerkseitig nicht** direkt erreichen (Q1 technisch erzwungen).
+- Getrennte Docker-Netze je Teilnehmer (`net-oem`, `net-tier1`, …) + gemeinsames Netz `dataspace` für EDC-DSP/Data-Plane-Public und Core Services. **Seit Phase 4** hängen die Backends zusätzlich an `dataspace`, weil sie als Konsument die öffentliche Data Plane des Partners aufrufen (wie im echten Betrieb). Damit wäre ein Backend netzwerkseitig für andere erreichbar; abgesichert ist es durch das Shared Secret an `/internal/edc/**` (nur die eigene Data Plane kennt es, im Vault hinterlegt) und durch Tokens des eigenen Realms an `/api/**`. Der Tractus-X-Consumer-Proxy (strikte Trennung) wird nicht genutzt, da laut EDC nur temporär vorhanden (siehe `docs/api/exchange-api.md`, ASSUMPTIONS A-37).
 - `make up` → Compose + Bootstrap-Job (Vault-Secrets, Wallet-Seeds, Keycloak-Realms, Seed-Daten); `make demo` → Reset der App-DBs + Seed, EDC-Ressourcen werden per Reconciliation neu angelegt.
 
 ### Speicherbedarf (gemessen Phase 1, Leerlauf, `make stats`)

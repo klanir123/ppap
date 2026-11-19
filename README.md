@@ -2,7 +2,7 @@
 
 Digitaler, strukturierter PPAP/PPF-Datenaustausch zwischen OEMs und Zulieferern über Catena-X (Eclipse Tractus-X EDC, Dataspace Protocol) – Connector mit REST-API für die Systemintegration und vollständiger Oberfläche für kleine Zulieferer.
 
-> **Status: Phase 3 (Freigabevorgang lokal) abgeschlossen.** Lokaler Datenraum mit echten EDCs; Stammdaten mit Import und Audit; Freigabevorgänge mit Anforderungs-Assistent, PPF-Paket (Formulare aus JSON-Schema, Nachweise mit SHA-256, Excel-Formblatt), unveränderlichen signierten Revisionen (JWS), Prüfansicht und digital bestätigter Entscheidung, Dashboard-Kennzahlen; Demo-Vorgänge je Teilnehmer. Nächste Phase: Austausch über EDC (UC-04/06/08).
+> **Status: Phase 4 (Austausch über EDC) abgeschlossen.** Anforderung, Statusmeldungen, signierte Einreichung und Entscheidung laufen über echte Tractus-X-EDCs zwischen OEM, Tier-1 und Tier-2 (Outbox/Inbox, Partnerschlüssel über EDC, Klärungsliste, Live-Updates, Tab „Datenaustausch“ mit jedem EDC-Schritt, erstes Connector-Cockpit). Bisher: Lokaler Datenraum mit echten EDCs; Stammdaten mit Import und Audit; Freigabevorgänge mit Anforderungs-Assistent, PPF-Paket (Formulare aus JSON-Schema, Nachweise mit SHA-256, Excel-Formblatt), unveränderlichen signierten Revisionen (JWS), Prüfansicht und digital bestätigter Entscheidung, Dashboard-Kennzahlen; Demo-Vorgänge je Teilnehmer. Nächste Phase: Austausch über EDC (UC-04/06/08).
 
 ## Schnellstart
 
@@ -59,6 +59,8 @@ docs/               Architektur, ADRs, Use Cases, Backlog, Versionen
 | [docs/use-cases/](docs/use-cases/README.md) | UC-01 … UC-12 inkl. Diagramm und Akzeptanzkriterien |
 | [docs/domain-model.md](docs/domain-model.md) | Datenmodell, Zustandsmaschine, Nachrichtentypen |
 | [docs/api/masterdata-api.md](docs/api/masterdata-api.md) | API-Vertrag Stammdaten inkl. Import und Fehlercodes (auch für ERP/QM-Integration) |
+| [docs/api/exchange-api.md](docs/api/exchange-api.md) | Vertrag Datenaustausch über EDC: Nachrichten, Assets/Policies, Outbox/Inbox, Klärungsliste, SSE |
+| [backend/semantics-models/README.md](backend/semantics-models/README.md) | Vorläufige SAMM-Aspektmodelle (Beitrag für die Expert Group) |
 | [docs/api/approval-api.md](docs/api/approval-api.md) | API-Vertrag Freigabevorgang: Zustandsmaschine, Einreichung, Entscheidung, Signatur, Dokumente, Excel-Formblatt |
 | [seed/README.md](seed/README.md) | Seed-Daten |
 | [docs/backlog.md](docs/backlog.md) | Priorisiertes Backlog (Epics/Stories) |
