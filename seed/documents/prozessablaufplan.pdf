@@ -57,10 +57,38 @@ endobj
 endobj
 10 0 obj
 <<
-/Filter [ /ASCII85Decode /FlateDecode ] /Length 681
+/Length 1345
 >>
 stream
-Gat=(bAQ$!']&?qG=a;>bknZ)@NlM".6-RHc."I#%1L_j<T<=k4^\=7'e6ZRZ"N3hq`McHim$IE>6<TVd-WPq*7>]Y8L1)68CA8^S13iU0MROl5jD^WTe'@Z_L^qWEJ,DV36r*$8e^U%@pk6?MAt?^K_D?LmII:J58J]0>;(C!"R.R159I\g%iS"Y9#@-0bQ8CH_U2O>eA7&9CW[6+<AaF*Q[-[8U%"b+BW0Z!BDh-G=8K.ADRg3j\]S5G*r[6A=dSa)Y*eBN+j;M@UN.iCSD=6pcHEWA?>kKt5.mCbKNR@n`S=[kYREK@9YQ2M6S"\&>Zr>I<j2]Q/5__&\%)Z9p4\c>CL^J;VQbe*=a([)QHJ7_O1GZi-rX_bfO"S4m6;s3\4c[^;*PrRIsl\_-=9Z<EipR%9:46I/E&d"Y!TNFrFV)MmSAkBJM,1/=Zt^[;#04!Oe9Si)l$Ht:&U_<h-rLF-ko\1o/c$X*8;-*`"WHNN)80f*SPlu/)2#:Ks;a\,u.pjg%$u<%c\D%`pYsqiR9&H`[Cb5CXKYs;;Hpk5#_R*=9rXc-13ur_F*S*G2YCCd_"GakdTL*7Li1SHFO0cPR+_$PG%BPE"/lP6+9ub9+"$n_`G"20//f,5<%oA1:Emd`[!F5*0*N97Gi3,%EIuqF%eulVB:Tq>(6Q1E]i(~>endstream
+1 0 0 1 0 0 cm  BT /F1 12 Tf 14.4 TL ET
+.121569 .160784 .215686 rg
+BT /F2 16 Tf 19.2 TL ET
+BT 1 0 0 1 56.69291 779.5276 Tm (Prozessablaufplan) Tj T* ET
+BT /F1 10 Tf 12 TL ET
+.294118 .333333 .388235 rg
+BT 1 0 0 1 56.69291 759.685 Tm (Wareneingang ) Tj /F3 10 Tf 12 TL (\256) Tj /F1 10 Tf 12 TL ( Trocknen ) Tj /F3 10 Tf 12 TL (\256) Tj /F1 10 Tf 12 TL ( Spritzgie\337en ) Tj /F3 10 Tf 12 TL (\256) Tj /F1 10 Tf 12 TL ( Pr\374fen ) Tj /F3 10 Tf 12 TL (\256) Tj /F1 10 Tf 12 TL ( Verpacken ) Tj /F3 10 Tf 12 TL (\256) Tj /F1 10 Tf 12 TL ( Versand) Tj T* ET
+.819608 .835294 .858824 RG
+n 56.69291 748.3465 m 538.5827 748.3465 l S
+BT /F4 8 Tf 9.6 TL ET
+.72549 .109804 .109804 rg
+BT 1 0 0 1 56.69291 34.01575 Tm (FIKTIVES BEISPIELDOKUMENT \226 nur f\374r Demonstrationszwecke / fictional sample) Tj T* ET
+q
+.85 .1 .1 rg
+/gRLs0 gs
+BT /F2 60 Tf 72 TL ET
+.819152 .573576 -0.573576 .819152 297.6378 420.9449 cm
+BT 1 0 0 1 -126.66 0 Tm (MUSTER) Tj T* ET
+Q
+0 0 0 rg
+BT /F1 10 Tf 12 TL ET
+BT 1 0 0 1 56.69291 714.3307 Tm (10 Wareneingang Granulat) Tj T* ET
+BT 1 0 0 1 56.69291 697.3228 Tm (20 Trocknen) Tj T* ET
+BT 1 0 0 1 56.69291 680.315 Tm (30 Spritzgie\337en) Tj T* ET
+BT 1 0 0 1 56.69291 663.3071 Tm (40 Ma\337- und Sichtpr\374fung) Tj T* ET
+BT 1 0 0 1 56.69291 646.2992 Tm (50 Verpacken) Tj T* ET
+BT 1 0 0 1 56.69291 629.2913 Tm (60 Versand) Tj T* ET
+ 
+endstream
 endobj
 xref
 0 11
@@ -86,5 +114,5 @@ trailer
 /Size 11
 >>
 startxref
-1972
+2597
 %%EOF

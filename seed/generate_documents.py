@@ -59,7 +59,7 @@ def table(c, x, y, headers, rows, widths):
 
 
 def doc(name, title, subtitle, body, size=A4):
-    c = canvas.Canvas(str(OUT / name), pagesize=size, invariant=1)
+    c = canvas.Canvas(str(OUT / name), pagesize=size, invariant=1, pageCompression=0)  # uncompressed: identical across zlib versions
     frame(c, title, subtitle, size)
     body(c, size)
     c.showPage()

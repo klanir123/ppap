@@ -95,13 +95,13 @@ def save_deterministic(wb, path):
     wb.save(raw)
     src = zipfile.ZipFile(io.BytesIO(raw.getvalue()))
     out = io.BytesIO()
-    with zipfile.ZipFile(out, "w", zipfile.ZIP_DEFLATED) as dst:
+    with zipfile.ZipFile(out, "w", zipfile.ZIP_STORED) as dst:  # stored: byte-identical across zlib versions
         for info in sorted(src.infolist(), key=lambda i: i.filename):
             data = src.read(info.filename)
             if info.filename == "docProps/core.xml":  # replace volatile created/modified timestamps
                 data = re.sub(rb"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?Z", b"2026-01-01T00:00:00Z", data)
             zi = zipfile.ZipInfo(info.filename, date_time=(2026, 1, 1, 0, 0, 0))
-            zi.compress_type = zipfile.ZIP_DEFLATED
+            zi.compress_type = zipfile.ZIP_STORED
             dst.writestr(zi, data)
     path.write_bytes(out.getvalue())
     print(f"  {path.relative_to(ROOT.parent)}")
