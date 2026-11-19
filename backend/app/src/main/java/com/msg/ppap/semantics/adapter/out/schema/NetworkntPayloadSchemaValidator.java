@@ -36,6 +36,7 @@ class NetworkntPayloadSchemaValidator implements PayloadSchemaValidator {
     static final Map<String, String> SCHEMA_FILES = Map.of(
             ExchangeModels.PPAP_REQUEST, GENERATED_SCHEMAS + "PpapRequest.schema.json",
             ExchangeModels.PPAP_SUBMISSION, GENERATED_SCHEMAS + "PpapSubmission.schema.json",
+            ExchangeModels.PPAP_SUBMISSION_AVAILABLE, GENERATED_SCHEMAS + "PpapSubmissionAvailable.schema.json",
             ExchangeModels.PPAP_DECISION, GENERATED_SCHEMAS + "PpapDecision.schema.json",
             ExchangeModels.PPAP_STATUS_UPDATE, GENERATED_SCHEMAS + "PpapStatusUpdate.schema.json",
             ExchangeModels.PPAP_REQUEST_WITHDRAWN, GENERATED_SCHEMAS + "PpapRequestWithdrawn.schema.json",

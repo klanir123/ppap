@@ -109,6 +109,20 @@ ppap:
   exchange:
     worker-interval: ${PPAP_EXCHANGE_WORKER_INTERVAL:2s}
     max-attempts: ${PPAP_EXCHANGE_MAX_ATTEMPTS:20}
+  # Phase 5: own Digital Twin Registry (backend client + offer via EDC), docs/api/pull-api.md
+  dtr:
+    url: ${PPAP_DTR_URL:}
+    public-url: ${PPAP_DTR_PUBLIC_URL:}
+    token-url: ${PPAP_DTR_TOKEN_URL:}
+    client-id: ${PPAP_DTR_CLIENT_ID:ppap-backend-dtr}
+    client-secret: ${PPAP_DTR_CLIENT_SECRET:}
+    edc-client-id: ${PPAP_DTR_EDC_CLIENT_ID:ppap-edc-dtr}
+    edc-client-secret: ${PPAP_DTR_EDC_CLIENT_SECRET:}
+    dataplane-public-url: ${PPAP_EDC_DATAPLANE_PUBLIC_URL:}
+    dsp-url: ${ppap.edc.dsp-url}
+  pull:
+    poll-interval: ${PPAP_PULL_POLL_INTERVAL:60s}
+    no-offer-cache-ttl: ${PPAP_PULL_NO_OFFER_CACHE_TTL:60s}
   seed:
     enabled: ${PPAP_SEED_ENABLED:false}
     path: ${PPAP_SEED_PATH:}

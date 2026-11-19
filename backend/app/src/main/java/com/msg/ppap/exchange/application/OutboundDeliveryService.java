@@ -1,5 +1,6 @@
 package com.msg.ppap.exchange.application;
 
+import com.msg.ppap.exchange.api.OutboxTaskHandler;
 import com.msg.ppap.exchange.application.port.out.DataPlaneResponse;
 import com.msg.ppap.exchange.application.port.out.DataspaceConnector;
 import com.msg.ppap.exchange.application.port.out.DataspaceException;
@@ -9,9 +10,11 @@ import com.msg.ppap.exchange.application.port.out.PartnerEndpoint;
 import com.msg.ppap.exchange.config.ExchangeProperties;
 import com.msg.ppap.exchange.domain.ExchangeRecord;
 import com.msg.ppap.exchange.domain.MessageStatus;
+import com.msg.ppap.exchange.domain.RecordTypes;
 import com.msg.ppap.exchange.domain.RetryPolicy;
 import com.msg.ppap.exchange.domain.StepName;
 import com.msg.ppap.exchange.domain.StepStatus;
+import com.msg.ppap.exchange.domain.StepTarget;
 import com.msg.ppap.platform.web.CorrelationIdFilter;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
@@ -45,6 +48,7 @@ public class OutboundDeliveryService {
     private final ExchangeProperties properties;
     private final RetryPolicy retryPolicy;
     private final Executor executor;
+    private final List<OutboxTaskHandler> taskHandlers;
     private final AtomicBoolean running = new AtomicBoolean();
     private final AtomicBoolean again = new AtomicBoolean();
 
@@ -53,7 +57,9 @@ public class OutboundDeliveryService {
             DataspaceConnector connector,
             PartnerDirectory partners,
             ExchangeProperties properties,
-            @Qualifier("applicationTaskExecutor") Executor executor) {
+            @Qualifier("applicationTaskExecutor") Executor executor,
+            List<OutboxTaskHandler> taskHandlers) {
+        this.taskHandlers = List.copyOf(taskHandlers);
         this.context = context;
         this.connector = connector;
         this.partners = partners;
@@ -105,6 +111,14 @@ public class OutboundDeliveryService {
         MDC.put(CorrelationIdFilter.MDC_KEY, r.correlationId());
         int attempt = r.attempts();
         context.live().exchangeChanged(r.caseId(), r.messageId(), MessageStatus.IN_PROGRESS.name());
+        if (RecordTypes.isLocal(r.messageType())) {
+            try {
+                executeTask(r, attempt);
+            } finally {
+                restoreMdc(previous);
+            }
+            return;
+        }
         try {
             PartnerEndpoint partner = partners.endpoint(r.partnerBpnl(), StepName.CATALOG);
             EndpointDataReference edr = connector.obtainEndpoint(
@@ -119,7 +133,7 @@ public class OutboundDeliveryService {
                             step,
                             status,
                             duration,
-                            details));
+                            StepTarget.NOTIFICATION.apply(details, null)));
             long start = System.nanoTime();
             DataPlaneResponse response = connector.call(
                     edr,
@@ -161,11 +175,52 @@ public class OutboundDeliveryService {
             LOG.warn("Delivery of {} failed unexpectedly", r.messageId(), ex);
             retryOrFail(r, "DELIVERY_ERROR", ex.toString());
         } finally {
-            if (previous == null) {
-                MDC.remove(CorrelationIdFilter.MDC_KEY);
+            restoreMdc(previous);
+        }
+    }
+
+    /** Local outbox task (phase 5, e.g. TWIN_REGISTRATION), executed in order with the partner messages. */
+    private void executeTask(ExchangeRecord r, int attempt) {
+        Optional<OutboxTaskHandler> handler = taskHandlers.stream()
+                .filter(h -> h.taskType().equals(r.messageType()))
+                .findFirst();
+        if (handler.isEmpty()) {
+            retryOrFail(r, "TASK_HANDLER_MISSING", "No handler for " + r.messageType());
+            return;
+        }
+        try {
+            handler.get()
+                    .execute(
+                            new OutboxTaskHandler.OutboxTask(
+                                    r.id(), r.caseId(), r.exchangeId(), r.partnerBpnl(), attempt),
+                            (step, ok, durationMs, details) -> context.step(
+                                    r.id(),
+                                    r.caseId(),
+                                    r.messageId(),
+                                    MessageStatus.IN_PROGRESS,
+                                    attempt,
+                                    StepName.valueOf(step),
+                                    ok ? StepStatus.OK : StepStatus.FAILED,
+                                    Duration.ofMillis(durationMs),
+                                    details));
+            complete(r);
+        } catch (OutboxTaskHandler.TaskFailure ex) {
+            if (ex.retryable()) {
+                retryOrFail(r, r.messageType() + "_FAILED", ex.getMessage());
             } else {
-                MDC.put(CorrelationIdFilter.MDC_KEY, previous);
+                fail(r, r.messageType() + "_FAILED", ex.getMessage());
             }
+        } catch (RuntimeException ex) {
+            LOG.warn("Task {} {} failed unexpectedly", r.messageType(), r.messageId(), ex);
+            retryOrFail(r, r.messageType() + "_FAILED", ex.toString());
+        }
+    }
+
+    private static void restoreMdc(String previous) {
+        if (previous == null) {
+            MDC.remove(CorrelationIdFilter.MDC_KEY);
+        } else {
+            MDC.put(CorrelationIdFilter.MDC_KEY, previous);
         }
     }
 
@@ -179,12 +234,20 @@ public class OutboundDeliveryService {
                 StepName.DELIVERY,
                 status,
                 duration,
-                d);
+                StepTarget.NOTIFICATION.apply(d, null));
     }
 
     private void step(ExchangeRecord r, int attempt, StepName name, StepStatus status, Map<String, Object> d) {
         context.step(
-                r.id(), r.caseId(), r.messageId(), MessageStatus.IN_PROGRESS, attempt, name, status, Duration.ZERO, d);
+                r.id(),
+                r.caseId(),
+                r.messageId(),
+                MessageStatus.IN_PROGRESS,
+                attempt,
+                name,
+                status,
+                Duration.ZERO,
+                StepTarget.NOTIFICATION.apply(d, null));
     }
 
     private void complete(ExchangeRecord r) {

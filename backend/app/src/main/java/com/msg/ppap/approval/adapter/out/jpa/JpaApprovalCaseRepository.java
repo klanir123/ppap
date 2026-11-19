@@ -16,6 +16,7 @@ import com.msg.ppap.approval.domain.CatalogRef;
 import com.msg.ppap.approval.domain.Clarification;
 import com.msg.ppap.approval.domain.Decision;
 import com.msg.ppap.approval.domain.DecisionResult;
+import com.msg.ppap.approval.domain.ExchangeMode;
 import com.msg.ppap.approval.domain.PartRef;
 import com.msg.ppap.approval.domain.PartnerRef;
 import com.msg.ppap.approval.domain.Seal;
@@ -284,6 +285,57 @@ class JpaApprovalCaseRepository implements ApprovalCaseRepository {
         return Boolean.TRUE.equals(exists);
     }
 
+    @Override
+    public Optional<UUID> findSharedDocument(String sha256, String partnerBpnl) {
+        List<UUID> ids = jdbc.queryForList(
+                """
+                select cast(d ->> 'documentId' as uuid)
+                  from ap_submission s
+                  join ap_case c on c.id = s.case_id
+                 cross join lateral jsonb_array_elements(s.elements) e
+                 cross join lateral jsonb_array_elements(coalesce(e -> 'documents', '[]'::jsonb)) d
+                 where c.tenant_id = :tenant and c.partner_bpnl = :partner and c.own_role = 'SUPPLIER'
+                   and c.source = 'EXCHANGE' and s.status = 'SUBMITTED'
+                   and d ->> 'sha256' = :sha and d ->> 'documentId' is not null
+                union all
+                select cast(d ->> 'documentId' as uuid)
+                  from ap_case c
+                 cross join lateral jsonb_array_elements(c.request_attachments) d
+                 where c.tenant_id = :tenant and c.partner_bpnl = :partner and c.own_role = 'CUSTOMER'
+                   and c.source = 'LOCAL' and c.requested_at is not null
+                   and d ->> 'sha256' = :sha and d ->> 'documentId' is not null
+                 limit 1
+                """,
+                new MapSqlParameterSource()
+                        .addValue("tenant", tenant.tenantId())
+                        .addValue("partner", partnerBpnl)
+                        .addValue("sha", sha256),
+                UUID.class);
+        return ids.stream().findFirst();
+    }
+
+    @Override
+    public List<CaseKey> findCustomerCases(java.util.Collection<String> statuses) {
+        if (statuses.isEmpty()) {
+            return List.of();
+        }
+        return jdbc.query(
+                """
+                select id, case_number, exchange_id, partner_bpnl, current_revision from ap_case
+                 where tenant_id = :tenant and own_role = 'CUSTOMER' and source = 'LOCAL' and status in (:statuses)
+                 order by updated_at
+                """,
+                new MapSqlParameterSource()
+                        .addValue("tenant", tenant.tenantId())
+                        .addValue("statuses", statuses),
+                (rs, i) -> new CaseKey(
+                        rs.getObject("id", UUID.class),
+                        rs.getString("case_number"),
+                        rs.getObject("exchange_id", UUID.class),
+                        rs.getString("partner_bpnl"),
+                        (Integer) rs.getObject("current_revision")));
+    }
+
     // ---------------------------------------------------------------------------------------------------------
 
     private static void apply(ApCaseEntity e, ApprovalCase c) {
@@ -340,6 +392,7 @@ class JpaApprovalCaseRepository implements ApprovalCaseRepository {
             row.signatureJws = seal.signature().jws();
             row.signatureStatus = seal.signature().status().name();
         }
+        row.exchangeMode = s.exchangeMode() == null ? null : s.exchangeMode().name();
         row.updatedAt = now;
     }
 
@@ -415,7 +468,8 @@ class JpaApprovalCaseRepository implements ApprovalCaseRepository {
                     s.submittedAt,
                     s.submittedBy,
                     seal,
-                    decisionsByRevision.get(s.revision)));
+                    decisionsByRevision.get(s.revision),
+                    s.exchangeMode == null ? null : ExchangeMode.valueOf(s.exchangeMode)));
         }
         List<TimelineEntry> entries = timeline.findByTenantIdAndCaseIdOrderBySeq(t, e.id).stream()
                 .map(r -> new TimelineEntry(

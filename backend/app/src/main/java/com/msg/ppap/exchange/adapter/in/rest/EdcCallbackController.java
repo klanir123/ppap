@@ -3,12 +3,9 @@ package com.msg.ppap.exchange.adapter.in.rest;
 import com.msg.ppap.exchange.application.ExchangeAssets;
 import com.msg.ppap.exchange.application.InboxService;
 import com.msg.ppap.exchange.application.InboxService.Receipt;
-import com.msg.ppap.exchange.config.EdcProperties;
 import com.msg.ppap.identity.PublicKeys;
 import io.swagger.v3.oas.annotations.Hidden;
 import jakarta.servlet.http.HttpServletRequest;
-import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import org.springframework.http.HttpStatus;
@@ -28,22 +25,17 @@ import org.springframework.web.bind.annotation.RestController;
 @Hidden
 public class EdcCallbackController {
 
-    private static final org.slf4j.Logger LOG = org.slf4j.LoggerFactory.getLogger(EdcCallbackController.class);
-
-    /** Consumer BPN of the contract agreement, added by the Tractus-X provider data plane. */
-    static final String EDC_BPN_HEADER = "Edc-Bpn";
-
-    /** Contract agreement id, added by the Tractus-X provider data plane. */
-    static final String EDC_AGREEMENT_HEADER = "Edc-Contract-Agreement-Id";
+    static final String EDC_BPN_HEADER = CallbackAuthentication.EDC_BPN_HEADER;
+    static final String EDC_AGREEMENT_HEADER = CallbackAuthentication.EDC_AGREEMENT_HEADER;
 
     private final InboxService inbox;
     private final PublicKeys publicKeys;
-    private final EdcProperties properties;
+    private final CallbackAuthentication authentication;
 
-    public EdcCallbackController(InboxService inbox, PublicKeys publicKeys, EdcProperties properties) {
+    EdcCallbackController(InboxService inbox, PublicKeys publicKeys, CallbackAuthentication authentication) {
         this.inbox = inbox;
         this.publicKeys = publicKeys;
-        this.properties = properties;
+        this.authentication = authentication;
     }
 
     @PostMapping(path = ExchangeAssets.NOTIFICATIONS_PATH, produces = MediaType.APPLICATION_JSON_VALUE)
@@ -85,24 +77,6 @@ public class EdcCallbackController {
     }
 
     private boolean authorized(HttpServletRequest request) {
-        if (!properties.callbackSecretConfigured()) {
-            return false;
-        }
-        String provided = request.getHeader(properties.callbackSecretHeader());
-        boolean ok = provided != null
-                && MessageDigest.isEqual(
-                        provided.getBytes(StandardCharsets.UTF_8),
-                        properties.callbackSecret().getBytes(StandardCharsets.UTF_8));
-        if (!ok) {
-            // header names only – never log secret values
-            LOG.warn(
-                    "Rejected {} {}: {} header {} (headers: {})",
-                    request.getMethod(),
-                    request.getRequestURI(),
-                    properties.callbackSecretHeader(),
-                    provided == null ? "missing" : "does not match",
-                    java.util.Collections.list(request.getHeaderNames()));
-        }
-        return ok;
+        return authentication.authorized(request);
     }
 }

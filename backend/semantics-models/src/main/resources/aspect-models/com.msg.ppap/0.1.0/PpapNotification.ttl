@@ -87,7 +87,7 @@
 
 :MessageType a samm-c:Enumeration ;
    samm:dataType xsd:string ;
-   samm-c:values ( "PPAP_REQUEST" "PPAP_REQUEST_WITHDRAWN" "PPAP_STATUS_UPDATE" "PPAP_SUBMISSION" "PPAP_DECISION" ) .
+   samm-c:values ( "PPAP_REQUEST" "PPAP_REQUEST_WITHDRAWN" "PPAP_STATUS_UPDATE" "PPAP_SUBMISSION" "PPAP_SUBMISSION_AVAILABLE" "PPAP_DECISION" ) .
 
 :correlationId a samm:Property ;
    samm:description "Correlation id for logging and tracing across participants."@en ;

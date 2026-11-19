@@ -99,7 +99,51 @@ public class OutboxService {
                 messageId,
                 message.caseId(),
                 message.partnerBpnl());
-        UUID caseId = message.caseId();
+        afterCommit(message.caseId(), messageId);
+        return id;
+    }
+
+    /**
+     * Enqueues a local outbox task (phase 5, e.g. {@code TWIN_REGISTRATION}) that the worker executes in order with
+     * the partner messages of the exchange id; must run inside the transaction of the change.
+     *
+     * @param envelope task description (JSON)
+     * @return id of the outbox entry
+     */
+    @Transactional(propagation = Propagation.MANDATORY)
+    public UUID enqueueTask(
+            String taskType, UUID caseId, String caseNumber, UUID exchangeId, String partnerBpnl, String envelope) {
+        Instant now = context.now();
+        UUID messageId = UUID.randomUUID();
+        UUID id = Ids.newId();
+        String partnerName = masterdata
+                .findPartner(partnerBpnl)
+                .map(MasterdataQueries.PartnerInfo::name)
+                .orElse(null);
+        context.store()
+                .insertOutbound(
+                        new NewMessage(
+                                id,
+                                messageId,
+                                Direction.OUTBOUND,
+                                taskType,
+                                partnerBpnl,
+                                partnerName,
+                                caseId,
+                                caseNumber,
+                                exchangeId,
+                                null,
+                                ExchangeContext.correlationId(),
+                                envelope,
+                                null,
+                                now),
+                        now);
+        LOG.info("Outbox: task {} for case {} queued", taskType, caseId);
+        afterCommit(caseId, messageId);
+        return id;
+    }
+
+    private void afterCommit(UUID caseId, UUID messageId) {
         TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
             @Override
             public void afterCommit() {
@@ -107,6 +151,5 @@ public class OutboxService {
                 delivery.nudge();
             }
         });
-        return id;
     }
 }

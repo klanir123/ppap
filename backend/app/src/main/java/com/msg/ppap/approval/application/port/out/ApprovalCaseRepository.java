@@ -40,4 +40,16 @@ public interface ApprovalCaseRepository {
 
     /** Whether a case requests the element (code in the request snapshot). */
     boolean existsByElement(String code);
+
+    /**
+     * Local document with the given SHA-256 shared with the partner: evidence of a submitted revision of a
+     * dataspace-linked supplier case, or an attachment of a sent request of an own customer case.
+     */
+    java.util.Optional<UUID> findSharedDocument(String sha256, String partnerBpnl);
+
+    /** Customer cases (source LOCAL) in the given statuses: id, case number, exchange id, partner, last revision. */
+    java.util.List<CaseKey> findCustomerCases(java.util.Collection<String> statuses);
+
+    /** Short key of a case. */
+    record CaseKey(UUID id, String caseNumber, UUID exchangeId, String partnerBpnl, Integer currentRevision) {}
 }

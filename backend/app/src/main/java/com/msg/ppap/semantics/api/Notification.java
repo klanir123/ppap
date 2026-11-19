@@ -102,6 +102,8 @@ public record Notification(
         PPAP_REQUEST_WITHDRAWN(ExchangeModels.PPAP_REQUEST_WITHDRAWN, false),
         PPAP_STATUS_UPDATE(ExchangeModels.PPAP_STATUS_UPDATE, false),
         PPAP_SUBMISSION(ExchangeModels.PPAP_SUBMISSION, true),
+        /** Phase 5: submitted revision available for pull via the supplier's DTR (unsigned, carries the hash). */
+        PPAP_SUBMISSION_AVAILABLE(ExchangeModels.PPAP_SUBMISSION_AVAILABLE, false),
         PPAP_DECISION(ExchangeModels.PPAP_DECISION, true);
 
         private final String modelUrn;

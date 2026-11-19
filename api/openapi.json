@@ -823,6 +823,91 @@
         "tags" : [ "approval-cases" ]
       }
     },
+    "/api/v1/approval-cases/{id}/documents/{sha256}/fetch" : {
+      "post" : {
+        "operationId" : "fetchApprovalCaseDocument",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "sha256",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/DocumentTransferDto"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "400" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Invalid request (code VALIDATION_FAILED with errors, MALFORMED_REQUEST, …)"
+          },
+          "401" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Not authenticated"
+          },
+          "403" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Missing role (code FORBIDDEN)"
+          },
+          "404" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Not found (code NOT_FOUND)"
+          },
+          "422" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Business rule violated (e.g. INCOMPLETE_SUBMISSION, REJECTION_REASON_REQUIRED, PARTNER_NOT_EXCHANGE_READY)"
+          }
+        },
+        "summary" : "Fetch a partner document of the case (again) via EDC; no effect if fetched or pending",
+        "tags" : [ "approval-cases" ]
+      }
+    },
     "/api/v1/approval-cases/{id}/exchange" : {
       "get" : {
         "operationId" : "getApprovalCaseExchange",
@@ -4712,6 +4797,17 @@
             "type" : "string"
           }
         }, {
+          "description" : "Message/record types, comma-separated or repeated (e.g. PPAP_SUBMISSION,PULL_SUBMISSION,PULL_DOCUMENT,TWIN_REGISTRATION)",
+          "in" : "query",
+          "name" : "messageType",
+          "required" : false,
+          "schema" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string"
+            }
+          }
+        }, {
           "in" : "query",
           "name" : "page",
           "required" : false,
@@ -7944,6 +8040,74 @@
         "summary" : "Status of database, EDC, object storage and DTR",
         "tags" : [ "System" ]
       }
+    },
+    "/api/v1/twins/{exchangeId}" : {
+      "get" : {
+        "operationId" : "getTwin",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "exchangeId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/TwinDto"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "400" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Invalid request (code VALIDATION_FAILED with errors, MALFORMED_REQUEST, …)"
+          },
+          "401" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Not authenticated"
+          },
+          "403" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Missing role (code FORBIDDEN)"
+          },
+          "404" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Not found (code NOT_FOUND)"
+          }
+        },
+        "summary" : "Digital twin (AAS shell descriptor) registered for a case",
+        "tags" : [ "twins" ]
+      }
     }
   },
   "components" : {
@@ -8824,10 +8988,14 @@
           "fileName" : {
             "type" : "string"
           },
+          "hashVerified" : {
+            "type" : "boolean",
+            "description" : "Whether the local content matches sha256 (own uploads and verified transfers)"
+          },
           "id" : {
             "type" : [ "string", "null" ],
             "format" : "uuid",
-            "description" : "Document id; null for documents of received payloads until they are pulled (phase 5)"
+            "description" : "Local document id; null for partner documents until they are fetched and verified"
           },
           "mediaType" : {
             "type" : "string"
@@ -8839,6 +9007,15 @@
             "type" : "integer",
             "format" : "int64"
           },
+          "transferError" : {
+            "type" : "string",
+            "description" : "Error code of a FAILED transfer (e.g. DOCUMENT_HASH_MISMATCH), otherwise null"
+          },
+          "transferStatus" : {
+            "type" : "string",
+            "description" : "LOCAL = own document; partner documents: PENDING, FETCHED, FAILED, NOT_AVAILABLE",
+            "enum" : [ "LOCAL", "PENDING", "FETCHED", "FAILED", "NOT_AVAILABLE" ]
+          },
           "uploadedAt" : {
             "type" : "string",
             "format" : "date-time"
@@ -8847,7 +9024,7 @@
             "type" : "string"
           }
         },
-        "required" : [ "fileName", "id", "mediaType", "sha256", "size" ]
+        "required" : [ "fileName", "hashVerified", "id", "mediaType", "sha256", "size", "transferStatus" ]
       },
       "DocumentReferenceRequest" : {
         "type" : "object",
@@ -8858,6 +9035,40 @@
           }
         },
         "required" : [ "documentId" ]
+      },
+      "DocumentTransferDto" : {
+        "type" : "object",
+        "properties" : {
+          "documentId" : {
+            "type" : [ "string", "null" ],
+            "format" : "uuid"
+          },
+          "fileName" : {
+            "type" : "string"
+          },
+          "hashVerified" : {
+            "type" : "boolean"
+          },
+          "lastError" : {
+            "type" : "string"
+          },
+          "sha256" : {
+            "type" : "string"
+          },
+          "transferError" : {
+            "type" : "string",
+            "description" : "Error code of a FAILED transfer, otherwise null"
+          },
+          "transferStatus" : {
+            "type" : "string",
+            "enum" : [ "PENDING", "FETCHED", "FAILED", "NOT_AVAILABLE" ]
+          },
+          "updatedAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          }
+        },
+        "required" : [ "fileName", "hashVerified", "sha256", "transferStatus" ]
       },
       "ElementEvidenceDto" : {
         "type" : "object",
@@ -9122,10 +9333,19 @@
           },
           "step" : {
             "type" : "string",
-            "enum" : [ "CATALOG", "NEGOTIATION", "TRANSFER", "EDR", "DELIVERY", "RECEIPT", "VALIDATION", "PROCESSING", "KEY_FETCH" ]
+            "enum" : [ "CATALOG", "NEGOTIATION", "TRANSFER", "EDR", "DELIVERY", "RECEIPT", "VALIDATION", "PROCESSING", "KEY_FETCH", "DTR_LOOKUP", "SHELL_DESCRIPTOR", "SUBMODEL_FETCH", "HASH_CHECK", "SIGNATURE_CHECK", "DOCUMENT_FETCH", "TWIN_REGISTRATION" ]
+          },
+          "target" : {
+            "type" : "string",
+            "description" : "What the step works on; repeated EDC steps of a pull belong to different targets",
+            "enum" : [ "NOTIFICATION", "PUBLIC_KEYS", "DTR", "SUBMODEL", "DOCUMENT" ]
+          },
+          "targetRef" : {
+            "type" : "string",
+            "description" : "Reference within the target, e.g. sha256 of a document or the submodel id"
           }
         },
-        "required" : [ "at", "attempt", "details", "durationMs", "status", "step" ]
+        "required" : [ "at", "attempt", "details", "durationMs", "status", "step", "target" ]
       },
       "FieldError" : {
         "type" : "object",
@@ -10469,6 +10689,11 @@
               "$ref" : "#/components/schemas/ElementEvidenceDto"
             }
           },
+          "exchangeMode" : {
+            "type" : "string",
+            "description" : "Effective exchange mode of the revision (supplier: how it was provided, customer: how it was received); null for drafts and local cases",
+            "enum" : [ "PUSH", "PUSH_NOTIFY_PULL_PAYLOAD", "PULL" ]
+          },
           "payloadHash" : {
             "type" : "string",
             "description" : "sha256:<hex> of the canonical payload (SUBMITTED only)"
@@ -10672,6 +10897,11 @@
             "type" : "string",
             "enum" : [ "APPROVED", "CONDITIONALLY_APPROVED", "REJECTED" ]
           },
+          "exchangeMode" : {
+            "type" : "string",
+            "description" : "Effective exchange mode of the revision (supplier: how it was provided, customer: how it was received); null for drafts and local cases",
+            "enum" : [ "PUSH", "PUSH_NOTIFY_PULL_PAYLOAD", "PULL" ]
+          },
           "payloadHash" : {
             "type" : "string"
           },
@@ -10759,6 +10989,33 @@
           }
         },
         "required" : [ "action", "actor", "at", "to" ]
+      },
+      "TwinDto" : {
+        "type" : "object",
+        "properties" : {
+          "caseId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "exchangeId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "registeredAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "shell" : {
+            "type" : "object",
+            "additionalProperties" : { },
+            "description" : "AAS 3.0 ShellDescriptor exactly as registered in the DTR (incl. specificAssetIds and submodelDescriptors)"
+          },
+          "updatedAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          }
+        },
+        "required" : [ "caseId", "exchangeId", "registeredAt", "shell", "updatedAt" ]
       },
       "UpdateApprovalCaseRequest" : {
         "type" : "object",

@@ -62,6 +62,9 @@ class ApSubmissionEntity {
     @Column(name = "signature_status")
     String signatureStatus;
 
+    @Column(name = "exchange_mode")
+    String exchangeMode;
+
     @Column(name = "updated_at", nullable = false)
     Instant updatedAt;
 

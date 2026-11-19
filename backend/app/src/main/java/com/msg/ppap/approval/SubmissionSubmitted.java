@@ -5,7 +5,8 @@ import java.util.Map;
 import java.util.UUID;
 
 /**
- * Published when the supplier submits a revision (IN_PROGRESS → SUBMITTED). Phase 4: the exchange module transfers the stored canonical {@code PpapSubmission} with its JWS.
+ * Published when the supplier submits a revision (IN_PROGRESS → SUBMITTED). The exchange module provides the stored
+ * canonical {@code PpapSubmission} with its JWS according to the exchange mode (push, notify + pull, pull).
  *
  * @param tenantId tenant BPNL
  * @param occurredAt time of the action
@@ -20,6 +21,8 @@ import java.util.UUID;
  * @param toStatus status after
  * @param revision submitted revision
  * @param payloadHash {@code sha256:<hex>} of the canonical payload
+ * @param exchangeMode effective exchange mode ({@code PUSH}, {@code PUSH_NOTIFY_PULL_PAYLOAD}, {@code PULL}) of a
+ *     dataspace-linked supplier case, {@code null} otherwise (phase 5)
  */
 public record SubmissionSubmitted(
         String tenantId,
@@ -34,7 +37,8 @@ public record SubmissionSubmitted(
         String fromStatus,
         String toStatus,
         Integer revision,
-        String payloadHash)
+        String payloadHash,
+        String exchangeMode)
         implements ApprovalEvent {
 
     @Override
@@ -47,6 +51,7 @@ public record SubmissionSubmitted(
         var details = baseDetails();
         ApprovalEvent.put(details, "revision", revision);
         ApprovalEvent.put(details, "payloadHash", payloadHash);
+        ApprovalEvent.put(details, "exchangeMode", exchangeMode);
         return details;
     }
 }

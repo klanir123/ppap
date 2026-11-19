@@ -1,5 +1,6 @@
 package com.msg.ppap.approval.adapter.in.rest;
 
+import com.msg.ppap.approval.DocumentTransferStatus;
 import com.msg.ppap.approval.application.CaseView;
 import com.msg.ppap.approval.application.ExcelPreview;
 import com.msg.ppap.approval.application.SubmissionView;
@@ -111,7 +112,7 @@ final class ApprovalDtos {
                                                 e.snapshot().evidenceType(),
                                                 e.snapshot().valueSchema())))
                                 .toList(),
-                        documents(c.request().attachments())),
+                        documents(c.request().attachments(), view.transfers())),
                 c.submissions().stream().map(ApprovalDtos::submissionSummary).toList(),
                 last.map(ApprovalDtos::decision).orElse(null),
                 findings(c.reviewFindings()),
@@ -140,7 +141,8 @@ final class ApprovalDtos {
                 seal == null ? null : seal.payloadHash(),
                 seal == null ? null : signature(seal),
                 s.decision().map(Decision::result).orElse(null),
-                s.basedOnRevision());
+                s.basedOnRevision(),
+                s.exchangeMode());
     }
 
     static SubmissionDto submission(SubmissionView view) {
@@ -173,7 +175,7 @@ final class ApprovalDtos {
                                     e.selfAssessment(),
                                     e.values(),
                                     e.comment(),
-                                    documents(e.documents()),
+                                    documents(e.documents(), view.transfers()),
                                     issues.isEmpty(),
                                     issues,
                                     finding == null
@@ -185,7 +187,8 @@ final class ApprovalDtos {
                 seal == null ? null : seal.payloadHash(),
                 seal == null ? null : signature(seal),
                 s.decision().map(ApprovalDtos::decision).orElse(null),
-                s.basedOnRevision());
+                s.basedOnRevision(),
+                s.exchangeMode());
     }
 
     static CompletenessDto completeness(Completeness c) {
@@ -223,17 +226,49 @@ final class ApprovalDtos {
         return new SignatureDto(s.alg(), s.kid(), s.jws(), s.status());
     }
 
-    static List<DocumentRefDto> documents(List<DocumentRef> refs) {
+    /**
+     * Document references with their transfer state: own documents are {@code LOCAL}; partner documents carry the
+     * state of their transfer (id set once fetched and verified) or {@code NOT_AVAILABLE} without transfer.
+     */
+    static List<DocumentRefDto> documents(
+            List<DocumentRef> refs, Map<String, DocumentTransferStatus.Transfer> transfers) {
         return refs.stream()
-                .map(d -> new DocumentRefDto(
-                        d.documentId(),
-                        d.fileName(),
-                        d.mediaType(),
-                        d.size(),
-                        d.sha256(),
-                        d.uploadedAt(),
-                        d.uploadedBy()))
+                .map(d -> {
+                    if (d.documentId() != null) {
+                        return dto(d, d.documentId(), DocumentRefDto.TransferStatus.LOCAL, true, null);
+                    }
+                    DocumentTransferStatus.Transfer t = transfers.get(d.sha256());
+                    if (t == null) {
+                        return dto(d, null, DocumentRefDto.TransferStatus.NOT_AVAILABLE, false, null);
+                    }
+                    var status = DocumentRefDto.TransferStatus.valueOf(t.status());
+                    return dto(
+                            d,
+                            t.documentId(),
+                            status,
+                            t.hashVerified(),
+                            status == DocumentRefDto.TransferStatus.FAILED ? t.errorCode() : null);
+                })
                 .toList();
+    }
+
+    private static DocumentRefDto dto(
+            DocumentRef d,
+            java.util.UUID id,
+            DocumentRefDto.TransferStatus status,
+            boolean hashVerified,
+            String transferError) {
+        return new DocumentRefDto(
+                id,
+                d.fileName(),
+                d.mediaType(),
+                d.size(),
+                d.sha256(),
+                d.uploadedAt(),
+                d.uploadedBy(),
+                status,
+                hashVerified,
+                transferError);
     }
 
     static CatalogRefDto ref(CatalogRef ref) {

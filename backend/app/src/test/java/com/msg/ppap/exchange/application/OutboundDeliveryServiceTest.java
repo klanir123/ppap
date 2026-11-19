@@ -3,6 +3,7 @@ package com.msg.ppap.exchange.application;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.mock;
@@ -66,7 +67,7 @@ class OutboundDeliveryServiceTest {
                 Duration.ofMinutes(10),
                 Duration.ofSeconds(25));
         service = new OutboundDeliveryService(
-                context, connector, new PartnerDirectory(masterdata), properties, Runnable::run);
+                context, connector, new PartnerDirectory(masterdata), properties, Runnable::run, java.util.List.of());
         when(masterdata.findPartner(PARTNER))
                 .thenReturn(Optional.of(new PartnerInfo(
                         PARTNER,
@@ -76,7 +77,7 @@ class OutboundDeliveryServiceTest {
                         true,
                         "http://tier1-edc-cp:8084/api/v1/dsp/2025-1",
                         "did:web:wallet-stub:" + PARTNER)));
-        when(connector.obtainEndpoint(any(), any(), any())).thenReturn(edr);
+        when(connector.obtainEndpoint(any(), anyString(), any())).thenReturn(edr);
     }
 
     StoredMessage claimed(int attempts) {
@@ -163,7 +164,7 @@ class OutboundDeliveryServiceTest {
     @Test
     void givesUpAfterMaxAttempts() {
         StoredMessage m = claimed(3);
-        when(connector.obtainEndpoint(any(), any(), any()))
+        when(connector.obtainEndpoint(any(), anyString(), any()))
                 .thenThrow(new DataspaceException(StepName.CATALOG, "not offered"));
         service.deliverDue();
         verify(store)

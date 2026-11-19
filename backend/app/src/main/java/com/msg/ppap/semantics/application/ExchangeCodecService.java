@@ -10,6 +10,7 @@ import com.msg.ppap.semantics.api.PayloadHash;
 import com.msg.ppap.semantics.api.PayloadValidationException;
 import com.msg.ppap.semantics.api.RequestMessage;
 import com.msg.ppap.semantics.api.StatusUpdateMessage;
+import com.msg.ppap.semantics.api.SubmissionAvailableMessage;
 import com.msg.ppap.semantics.api.SubmissionMessage;
 import com.msg.ppap.semantics.api.WithdrawalMessage;
 import com.msg.ppap.semantics.application.port.out.PayloadSchemaValidator;
@@ -66,6 +67,16 @@ public class ExchangeCodecService implements ExchangeCodec {
     @Override
     public EncodedPayload encodeWithdrawal(WithdrawalMessage message) {
         return encode(ExchangeModels.PPAP_REQUEST_WITHDRAWN, mapper.toPayload(message));
+    }
+
+    @Override
+    public EncodedPayload encodeSubmissionAvailable(SubmissionAvailableMessage message) {
+        return encode(ExchangeModels.PPAP_SUBMISSION_AVAILABLE, mapper.toPayload(message));
+    }
+
+    @Override
+    public Decoded<SubmissionAvailableMessage> decodeSubmissionAvailable(byte[] payload) {
+        return decode(ExchangeModels.PPAP_SUBMISSION_AVAILABLE, payload, mapper::toSubmissionAvailable);
     }
 
     @Override

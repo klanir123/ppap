@@ -1,0 +1,106 @@
+{
+  "description": [],
+  "displayName": [],
+  "globalAssetId": "urn:uuid:0963e641-70f5-4542-83e8-de75ebcfce9f",
+  "idShort": "ppap-PPF-2026-00018",
+  "id": "urn:uuid:0963e641-70f5-4542-83e8-de75ebcfce9f",
+  "specificAssetIds": [
+    {
+      "supplementalSemanticIds": [],
+      "name": "ppapExchangeId",
+      "value": "0963e641-70f5-4542-83e8-de75ebcfce9f",
+      "externalSubjectId": {
+        "type": "ExternalReference",
+        "keys": [
+          {
+            "type": "GlobalReference",
+            "value": "BPNL00000000OEM1"
+          }
+        ]
+      }
+    },
+    {
+      "supplementalSemanticIds": [],
+      "name": "manufacturerPartId",
+      "value": "T1-310000-01",
+      "externalSubjectId": {
+        "type": "ExternalReference",
+        "keys": [
+          {
+            "type": "GlobalReference",
+            "value": "BPNL00000000OEM1"
+          }
+        ]
+      }
+    },
+    {
+      "supplementalSemanticIds": [],
+      "name": "manufacturerId",
+      "value": "BPNL000000TIER01",
+      "externalSubjectId": {
+        "type": "ExternalReference",
+        "keys": [
+          {
+            "type": "GlobalReference",
+            "value": "BPNL00000000OEM1"
+          }
+        ]
+      }
+    },
+    {
+      "supplementalSemanticIds": [],
+      "name": "customerPartId",
+      "value": "D10-04711-01",
+      "externalSubjectId": {
+        "type": "ExternalReference",
+        "keys": [
+          {
+            "type": "GlobalReference",
+            "value": "BPNL00000000OEM1"
+          }
+        ]
+      }
+    }
+  ],
+  "submodelDescriptors": [
+    {
+      "endpoints": [
+        {
+          "interface": "SUBMODEL-3.0",
+          "protocolInformation": {
+            "href": "http://tier1-edc-dp:8081/api/public/0963e641-70f5-4542-83e8-de75ebcfce9f/1",
+            "endpointProtocol": "HTTP",
+            "endpointProtocolVersion": [
+              "1.1"
+            ],
+            "subprotocol": "DSP",
+            "subprotocolBody": "id=ppap-submission-BPNL00000000OEM1;dspEndpoint=http://tier1-edc-cp:8084/api/v1/dsp/2025-1",
+            "subprotocolBodyEncoding": "plain",
+            "securityAttributes": [
+              {
+                "type": "NONE",
+                "key": "NONE",
+                "value": "NONE"
+              }
+            ]
+          }
+        }
+      ],
+      "idShort": "PpapSubmission-1",
+      "id": "urn:uuid:4ff868d0-156e-3bb1-8160-0f50dfdd969a",
+      "semanticId": {
+        "type": "ExternalReference",
+        "keys": [
+          {
+            "type": "GlobalReference",
+            "value": "urn:samm:com.msg.ppap:0.1.0#PpapSubmission"
+          }
+        ]
+      },
+      "supplementalSemanticId": [],
+      "description": [],
+      "displayName": []
+    }
+  ],
+  "createdAt": "2026-11-19T13:11:41.032346Z"
+}

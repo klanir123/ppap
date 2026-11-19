@@ -10,6 +10,7 @@ public final class ExchangeModels {
     public static final String PPAP_REQUEST_WITHDRAWN = "urn:samm:com.msg.ppap:0.1.0#PpapRequestWithdrawn";
     public static final String PPAP_STATUS_UPDATE = "urn:samm:com.msg.ppap:0.1.0#PpapStatusUpdate";
     public static final String PPAP_SUBMISSION = "urn:samm:com.msg.ppap:0.1.0#PpapSubmission";
+    public static final String PPAP_SUBMISSION_AVAILABLE = "urn:samm:com.msg.ppap:0.1.0#PpapSubmissionAvailable";
     public static final String PPAP_DECISION = "urn:samm:com.msg.ppap:0.1.0#PpapDecision";
 
     /** Envelope of all messages (header = Catena-X message header 3.0.0). */

@@ -16,12 +16,16 @@ import com.msg.ppap.approval.domain.CaseRole;
 import com.msg.ppap.approval.domain.CaseSource;
 import com.msg.ppap.approval.domain.CaseStatus;
 import com.msg.ppap.approval.domain.Decision;
+import com.msg.ppap.approval.domain.ExchangeMode;
 import com.msg.ppap.approval.domain.Seal;
+import com.msg.ppap.approval.domain.Submission;
+import com.msg.ppap.semantics.api.DigitalTwinIds;
 import com.msg.ppap.semantics.api.EncodedPayload;
 import com.msg.ppap.semantics.api.ExchangeCodec;
 import com.msg.ppap.semantics.api.ExchangeModels;
 import com.msg.ppap.semantics.api.Notification.MessageType;
 import com.msg.ppap.semantics.api.StatusUpdateMessage;
+import com.msg.ppap.semantics.api.SubmissionAvailableMessage;
 import com.msg.ppap.semantics.api.WithdrawalMessage;
 import java.util.Optional;
 import org.springframework.stereotype.Service;
@@ -69,11 +73,7 @@ public class OutboundMessageService implements OutboundMessageUseCase {
             case ApprovalCaseChanged e
             when supplier && CaseAction.NEW_REVISION.name().equals(e.action()) ->
                 statusUpdate(e, StatusUpdateMessage.IN_PROGRESS, e.revision());
-            case SubmissionSubmitted e
-            when supplier -> {
-                Seal seal = context.load(e.caseId()).submission(e.revision()).seal();
-                yield sealed(e, MessageType.PPAP_SUBMISSION, ExchangeModels.PPAP_SUBMISSION, seal);
-            }
+            case SubmissionSubmitted e when supplier -> submission(e);
             case ReviewStarted e when customer -> statusUpdate(e, StatusUpdateMessage.IN_REVIEW, e.revision());
             case DecisionMade e
             when customer -> {
@@ -85,6 +85,32 @@ public class OutboundMessageService implements OutboundMessageUseCase {
                 yield sealed(e, MessageType.PPAP_DECISION, ExchangeModels.PPAP_DECISION, seal);
             }
             default -> Optional.empty();
+        };
+    }
+
+    /**
+     * Submission according to the exchange mode of the revision (docs/api/pull-api.md, „Abläufe je Modus“): PUSH sends
+     * the signed payload, PUSH_NOTIFY_PULL_PAYLOAD only announces it (the customer pulls it via the DTR), PULL sends
+     * nothing (the customer polls).
+     */
+    private Optional<OutboundMessage> submission(SubmissionSubmitted e) {
+        Submission revision = context.load(e.caseId()).submission(e.revision());
+        Seal seal = revision.seal();
+        ExchangeMode mode = revision.exchangeMode() == null ? ExchangeMode.PUSH : revision.exchangeMode();
+        return switch (mode) {
+            case PUSH -> sealed(e, MessageType.PPAP_SUBMISSION, ExchangeModels.PPAP_SUBMISSION, seal);
+            case PUSH_NOTIFY_PULL_PAYLOAD ->
+                message(
+                        e,
+                        MessageType.PPAP_SUBMISSION_AVAILABLE,
+                        codec.encodeSubmissionAvailable(new SubmissionAvailableMessage(
+                                e.exchangeId(),
+                                e.revision(),
+                                seal.payloadHash(),
+                                DigitalTwinIds.shellId(e.exchangeId()),
+                                DigitalTwinIds.submodelId(e.exchangeId(), e.revision()))),
+                        null);
+            case PULL -> Optional.empty();
         };
     }
 

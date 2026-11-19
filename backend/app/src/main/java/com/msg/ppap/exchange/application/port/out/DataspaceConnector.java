@@ -40,6 +40,21 @@ public interface DataspaceConnector {
     CatalogOffer requestCatalog(PartnerEndpoint partner, String assetId);
 
     /**
+     * Offers of the partner's catalog whose asset has the given taxonomy type ({@code dct:type}), e.g. the partner's
+     * Digital Twin Registry ({@code cx-taxo:DigitalTwinRegistry}).
+     *
+     * @return offers (may be empty if the partner offers no such asset to us)
+     * @throws DataspaceException if the catalog request fails
+     */
+    List<CatalogOffer> requestCatalogByType(PartnerEndpoint partner, String dctType);
+
+    /**
+     * Endpoint data reference for an offer found in the partner's catalog: reuses a stored EDR of the offer's asset
+     * or negotiates the given offer (no second catalog request).
+     */
+    EndpointDataReference obtainEndpoint(PartnerEndpoint partner, CatalogOffer offer, StepListener listener);
+
+    /**
      * Endpoint data reference for an asset of the partner: reuses a stored EDR (token refreshed automatically) or
      * negotiates a contract and starts a transfer ({@code POST /v3/edrs}). Each step is reported to the listener.
      *
@@ -58,8 +73,38 @@ public interface DataspaceConnector {
      * @param headers additional headers (e.g. correlation id)
      * @throws DataspaceException on network errors (HTTP error statuses are returned)
      */
+    default DataPlaneResponse call(
+            EndpointDataReference edr, String method, byte[] body, String contentType, Map<String, String> headers) {
+        return call(edr, method, "", body, contentType, headers);
+    }
+
+    /**
+     * Calls the partner's data plane with an EDR and a path/query appended to the EDR endpoint (assets with {@code
+     * proxyPath} / {@code proxyQueryParams}).
+     *
+     * @param pathAndQuery e.g. {@code /lookup/shells?assetIds=…}; empty for the endpoint itself
+     * @throws DataspaceException on network errors (HTTP error statuses are returned)
+     */
     DataPlaneResponse call(
-            EndpointDataReference edr, String method, byte[] body, String contentType, Map<String, String> headers);
+            EndpointDataReference edr,
+            String method,
+            String pathAndQuery,
+            byte[] body,
+            String contentType,
+            Map<String, String> headers);
+
+    /**
+     * Streams a {@code GET} of the partner's data plane (large documents); the caller must close the result.
+     *
+     * @throws DataspaceException on network errors
+     */
+    DataPlaneStream stream(EndpointDataReference edr, String pathAndQuery, Map<String, String> headers);
+
+    /** Ids of all contract definitions of the own connector (reconciliation of per-partner offers). */
+    List<String> listContractDefinitionIds();
+
+    /** Deletes a contract definition and its asset (no effect if absent). */
+    void removeOffer(String contractDefinitionId, String assetId);
 
     /** Latest contract negotiations (monitoring, cockpit). */
     List<Map<String, Object>> listNegotiations(int limit);

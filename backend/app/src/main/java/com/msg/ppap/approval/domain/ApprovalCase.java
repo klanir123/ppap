@@ -398,6 +398,21 @@ public final class ApprovalCase {
      */
     public Submission submit(
             boolean confirmed, ValueValidator validator, SubmissionSealer sealer, Actor actor, Instant now) {
+        return submit(confirmed, validator, sealer, null, actor, now);
+    }
+
+    /**
+     * Submits the draft revision and records the exchange mode with which it is provided to the customer.
+     *
+     * @param exchangeMode effective mode of the relation, {@code null} for cases without dataspace exchange
+     */
+    public Submission submit(
+            boolean confirmed,
+            ValueValidator validator,
+            SubmissionSealer sealer,
+            ExchangeMode exchangeMode,
+            Actor actor,
+            Instant now) {
         check(CaseAction.SUBMIT, actor, CasePolicy.DEFAULT);
         requireConfirmation(confirmed);
         Submission draft = draftSubmission();
@@ -415,6 +430,7 @@ public final class ApprovalCase {
         }
         Seal seal = sealer.seal(this, draft.asSubmitted(now, actor.name()));
         draft.seal(now, actor.name(), seal);
+        draft.exchangeMode(exchangeMode);
         transition(CaseAction.SUBMIT, CaseStatus.SUBMITTED, actor, now, null, draft.revision());
         return draft;
     }
@@ -445,6 +461,20 @@ public final class ApprovalCase {
             Seal seal,
             Actor actor,
             Instant now) {
+        return receiveSubmission(revision, elements, submittedAt, submittedBy, seal, ExchangeMode.PUSH, actor, now);
+    }
+
+    /** Customer receives a submitted revision via the given exchange mode (push or pull). */
+    @SuppressWarnings("java:S107")
+    public boolean receiveSubmission(
+            int revision,
+            List<ElementEvidence> elements,
+            Instant submittedAt,
+            String submittedBy,
+            Seal seal,
+            ExchangeMode exchangeMode,
+            Actor actor,
+            Instant now) {
         Optional<Submission> existing =
                 submissions.stream().filter(s -> s.revision() == revision).findFirst();
         if (existing.isPresent()) {
@@ -464,7 +494,15 @@ public final class ApprovalCase {
         }
         Integer basedOn = revision > 1 ? revision - 1 : null;
         submissions.add(Submission.restore(
-                revision, SubmissionStatus.SUBMITTED, basedOn, elements, submittedAt, submittedBy, seal, null));
+                revision,
+                SubmissionStatus.SUBMITTED,
+                basedOn,
+                elements,
+                submittedAt,
+                submittedBy,
+                seal,
+                null,
+                exchangeMode));
         reviewFindings.clear();
         transition(CaseAction.RECEIVE_SUBMISSION, CaseStatus.SUBMITTED, actor, now, null, revision);
         return true;

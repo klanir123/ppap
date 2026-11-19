@@ -1,0 +1,110 @@
+{
+    "@id": "97677e7c-b86b-4947-a518-c37dfcce31f8",
+    "@type": "Catalog",
+    "dataset": [
+        {
+            "@id": "ppap-dtr",
+            "@type": "Dataset",
+            "hasPolicy": [
+                {
+                    "@id": "cHBhcC1kdHItY2Q=:cHBhcC1kdHI=:MThkOGI5NDktMmYzMS00MzU3LTk5NzgtYWUzMmMzYjk1OTgy",
+                    "@type": "Offer",
+                    "permission": [
+                        {
+                            "action": "use",
+                            "constraint": [
+                                {
+                                    "and": [
+                                        {
+                                            "leftOperand": "FrameworkAgreement",
+                                            "operator": "eq",
+                                            "rightOperand": "DataExchangeGovernance:1.0"
+                                        },
+                                        {
+                                            "leftOperand": "UsagePurpose",
+                                            "operator": "isAnyOf",
+                                            "rightOperand": "cx.quality.base:1"
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ],
+            "distribution": [
+                {
+                    "@type": "Distribution",
+                    "format": "AzureStorage-PUSH",
+                    "accessService": {
+                        "@id": "8daaa7ee-a8bd-414f-9b60-ce301ea7683f",
+                        "@type": "DataService",
+                        "endpointDescription": "dspace:connector",
+                        "endpointURL": "http://tier1-edc-cp:8084/api/v1/dsp/2025-1"
+                    }
+                },
+                {
+                    "@type": "Distribution",
+                    "format": "HttpData-PULL",
+                    "accessService": {
+                        "@id": "0fbde07e-9013-4472-b4ae-8040408690b1",
+                        "@type": "DataService",
+                        "endpointDescription": "dspace:connector",
+                        "endpointURL": "http://tier1-edc-cp:8084/api/v1/dsp/2025-1"
+                    }
+                },
+                {
+                    "@type": "Distribution",
+                    "format": "HttpData-PUSH",
+                    "accessService": {
+                        "@id": "a6c9ee7c-7287-4c56-863f-23139a3d0e88",
+                        "@type": "DataService",
+                        "endpointDescription": "dspace:connector",
+                        "endpointURL": "http://tier1-edc-cp:8084/api/v1/dsp/2025-1"
+                    }
+                },
+                {
+                    "@type": "Distribution",
+                    "format": "AmazonS3-PUSH",
+                    "accessService": {
+                        "@id": "9d04a03e-2657-4aad-acc5-54ed7cd8b684",
+                        "@type": "DataService",
+                        "endpointDescription": "dspace:connector",
+                        "endpointURL": "http://tier1-edc-cp:8084/api/v1/dsp/2025-1"
+                    }
+                },
+                {
+                    "@type": "Distribution",
+                    "format": "ProxyHttpData-PULL",
+                    "accessService": {
+                        "@id": "9a4344e2-8d37-4ad1-ac60-64f50c20fa72",
+                        "@type": "DataService",
+                        "endpointDescription": "dspace:connector",
+                        "endpointURL": "http://tier1-edc-cp:8084/api/v1/dsp/2025-1"
+                    }
+                }
+            ],
+            "dct:type": {
+                "@id": "https://w3id.org/catenax/taxonomy#DigitalTwinRegistry"
+            },
+            "description": "Digital Twin Registry (msg CX PPAP Connector)",
+            "https://w3id.org/catenax/ontology/common#version": "3.0",
+            "id": "ppap-dtr"
+        }
+    ],
+    "service": [
+        {
+            "@id": "82bfafb7-df59-4d31-b6da-9fc4a7952e46",
+            "@type": "DataService",
+            "endpointDescription": "dspace:connector",
+            "endpointURL": "http://tier1-edc-cp:8084/api/v1/dsp/2025-1"
+        }
+    ],
+    "participantId": "did:web:wallet-stub:BPNL000000TIER01",
+    "@context": [
+        "https://w3id.org/tractusx/auth/v1.0.0",
+        "https://w3id.org/catenax/2025/9/policy/context.jsonld",
+        "https://w3id.org/dspace/2025/1/context.jsonld",
+        "https://w3id.org/edc/dspace/v0.0.1"
+    ]
+}

@@ -22,6 +22,7 @@ import com.msg.ppap.approval.domain.DecisionResult;
 import com.msg.ppap.approval.domain.DocumentRef;
 import com.msg.ppap.approval.domain.ElementSnapshot;
 import com.msg.ppap.approval.domain.EvidenceType;
+import com.msg.ppap.approval.domain.ExchangeMode;
 import com.msg.ppap.approval.domain.PartRef;
 import com.msg.ppap.approval.domain.PartnerRef;
 import com.msg.ppap.approval.domain.RequestedElement;
@@ -158,6 +159,7 @@ public class InboundMessageService
                 submission.submittedAt(),
                 submission.submittedBy(),
                 seal,
+                message.exchangeMode() == null ? ExchangeMode.PUSH : ExchangeMode.of(message.exchangeMode()),
                 Actor.partner(message.senderBpnl()),
                 context.now());
         if (applied) {

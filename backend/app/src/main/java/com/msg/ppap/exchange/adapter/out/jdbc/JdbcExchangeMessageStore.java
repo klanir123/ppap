@@ -156,6 +156,38 @@ class JdbcExchangeMessageStore implements ExchangeMessageStore {
     }
 
     @Override
+    public Optional<ExchangeRecord> findInbound(String partnerBpnl, UUID messageId) {
+        List<UUID> ids = jdbc.queryForList(
+                """
+                select id from ex_message
+                 where tenant_id = :tenant and direction = 'INBOUND' and partner_bpnl = :partner and message_id = :mid
+                """, params().addValue("partner", partnerBpnl).addValue("mid", messageId), UUID.class);
+        return ids.isEmpty() ? Optional.empty() : findRecord(ids.getFirst());
+    }
+
+    @Override
+    public List<StoredMessage> claimPulls(int limit, Instant now, Instant leaseUntil) {
+        return jdbc.query(
+                """
+                update ex_message m
+                   set status = 'IN_PROGRESS', locked_until = :lease, attempts = m.attempts + 1, updated_at = :now
+                 where m.id in (
+                     select p.id from ex_message p
+                      where p.tenant_id = :tenant and p.direction = 'INBOUND'
+                        and p.message_type in ('PULL_SUBMISSION', 'PULL_DOCUMENT')
+                        and ((p.status = 'PENDING' and coalesce(p.next_attempt_at, p.created_at) <= :now)
+                             or (p.status = 'IN_PROGRESS' and p.locked_until < :now))
+                      order by p.seq
+                      limit :limit
+                      for update skip locked)
+                returning\s""" + COLUMNS,
+                params().addValue("now", ts(now))
+                        .addValue("lease", ts(leaseUntil))
+                        .addValue("limit", limit),
+                this::stored);
+    }
+
+    @Override
     public void updateStatus(
             UUID id,
             MessageStatus status,
@@ -188,12 +220,16 @@ class JdbcExchangeMessageStore implements ExchangeMessageStore {
     public boolean resetForRetry(UUID id, Instant now) {
         return jdbc.update("""
                         update ex_message
-                           set status = case when direction = 'OUTBOUND' then 'PENDING' else 'RECEIVED' end,
-                               attempts = case when direction = 'OUTBOUND' then 0 else attempts end,
+                           set status = case when direction = 'OUTBOUND' or message_type in ('PULL_SUBMISSION', 'PULL_DOCUMENT')
+                                             then 'PENDING' else 'RECEIVED' end,
+                               attempts = case when direction = 'OUTBOUND' or message_type in ('PULL_SUBMISSION', 'PULL_DOCUMENT')
+                                               then 0 else attempts end,
                                next_attempt_at = :now, locked_until = null, completed_at = null, updated_at = :now
                          where tenant_id = :tenant and id = :id
                            and ((direction = 'OUTBOUND' and status = 'FAILED')
-                                or (direction = 'INBOUND' and status = 'REJECTED' and message_type <> 'UNKNOWN'))
+                                or (direction = 'INBOUND' and status = 'REJECTED' and message_type <> 'UNKNOWN')
+                                or (direction = 'INBOUND' and status = 'FAILED'
+                                    and message_type in ('PULL_SUBMISSION', 'PULL_DOCUMENT')))
                         """, params().addValue("id", id).addValue("now", ts(now))) == 1;
     }
 
@@ -246,8 +282,15 @@ class JdbcExchangeMessageStore implements ExchangeMessageStore {
 
     @Override
     public Page<ExchangeRecord> search(
-            Direction direction, MessageStatus status, String partnerBpnl, Pageable pageable) {
+            Direction direction,
+            MessageStatus status,
+            String partnerBpnl,
+            java.util.Collection<String> messageTypes,
+            Pageable pageable) {
+        List<String> types = messageTypes == null ? List.of() : List.copyOf(messageTypes);
         var params = params().addValue("direction", direction == null ? null : direction.name())
+                .addValue("typesEmpty", types.isEmpty())
+                .addValue("types", types.isEmpty() ? List.of("-") : types)
                 .addValue("status", status == null ? null : status.name())
                 .addValue("partner", partnerBpnl == null || partnerBpnl.isBlank() ? null : partnerBpnl.strip());
         String where = """
@@ -255,6 +298,7 @@ class JdbcExchangeMessageStore implements ExchangeMessageStore {
                   and (cast(:direction as varchar) is null or direction = cast(:direction as varchar))
                   and (cast(:status as varchar) is null or status = cast(:status as varchar))
                   and (cast(:partner as varchar) is null or partner_bpnl = cast(:partner as varchar))
+                  and (:typesEmpty or message_type in (:types))
                 """;
         Long total = jdbc.queryForObject("select count(*) from ex_message " + where, params, Long.class);
         List<ExchangeRecord> content = List.of();

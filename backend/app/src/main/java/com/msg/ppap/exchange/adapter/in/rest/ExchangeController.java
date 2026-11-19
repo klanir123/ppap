@@ -16,7 +16,9 @@ import com.msg.ppap.exchange.domain.MessageStatus;
 import com.msg.ppap.platform.domain.ValidationException;
 import com.msg.ppap.platform.domain.ViolationCodes;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import java.util.List;
 import java.util.UUID;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -49,14 +51,31 @@ public class ExchangeController {
             @RequestParam(required = false) Direction direction,
             @RequestParam(required = false) MessageStatus status,
             @RequestParam(required = false) String partnerBpnl,
+            @Parameter(
+                            description = "Message/record types, comma-separated or repeated (e.g. PPAP_SUBMISSION,"
+                                    + "PULL_SUBMISSION,PULL_DOCUMENT,TWIN_REGISTRATION)")
+                    @RequestParam(required = false)
+                    List<String> messageType,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "25") int size) {
         if (page < 0) {
             throw ValidationException.of("page", ViolationCodes.INVALID_VALUE, "must be >= 0");
         }
         var pageable = PageRequest.of(page, Math.clamp(size, 1, 200));
-        return ExchangeMessagePage.of(
-                exchange.search(direction, status, partnerBpnl, pageable).map(ExchangeDtos::record));
+        return ExchangeMessagePage.of(exchange.search(direction, status, partnerBpnl, types(messageType), pageable)
+                .map(ExchangeDtos::record));
+    }
+
+    private static List<String> types(List<String> values) {
+        if (values == null) {
+            return List.of();
+        }
+        return values.stream()
+                .flatMap(v -> java.util.Arrays.stream(v.split(",")))
+                .map(String::strip)
+                .filter(v -> !v.isEmpty())
+                .distinct()
+                .toList();
     }
 
     @GetMapping("/messages/{id}")

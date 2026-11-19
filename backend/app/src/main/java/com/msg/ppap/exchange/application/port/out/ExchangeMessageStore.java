@@ -42,6 +42,13 @@ public interface ExchangeMessageStore {
      */
     List<StoredMessage> claimInbound(UUID id, int limit, Instant now, Instant leaseUntil);
 
+    /**
+     * Claims due pull jobs (inbound {@code PULL_SUBMISSION} / {@code PULL_DOCUMENT}, {@code SKIP LOCKED}): pending and
+     * due, or in progress with expired lease. Claimed jobs are {@code IN_PROGRESS} with a lease and an incremented
+     * attempt counter.
+     */
+    List<StoredMessage> claimPulls(int limit, Instant now, Instant leaseUntil);
+
     /** Final or intermediate status change. */
     void updateStatus(
             UUID id,
@@ -53,18 +60,37 @@ public interface ExchangeMessageStore {
             UUID caseId,
             String caseNumber);
 
-    /** Manual retry: outbound {@code FAILED → PENDING} (attempts reset), inbound {@code REJECTED → RECEIVED}. */
+    /**
+     * Manual retry: outbound {@code FAILED → PENDING} (attempts reset), inbound {@code REJECTED → RECEIVED}, pull jobs
+     * {@code FAILED | REJECTED → PENDING} (attempts reset).
+     */
     boolean resetForRetry(UUID id, Instant now);
 
     void addStep(UUID id, ExchangeStep step);
 
     Optional<StoredMessage> find(UUID id);
 
+    /** Inbound record (notification or pull job) of the partner with the given message id. */
+    Optional<ExchangeRecord> findInbound(String partnerBpnl, UUID messageId);
+
     Optional<ExchangeRecord> findRecord(UUID id);
 
     List<ExchangeRecord> findByCase(UUID caseId);
 
-    Page<ExchangeRecord> search(Direction direction, MessageStatus status, String partnerBpnl, Pageable pageable);
+    default Page<ExchangeRecord> search(
+            Direction direction, MessageStatus status, String partnerBpnl, Pageable pageable) {
+        return search(direction, status, partnerBpnl, List.of(), pageable);
+    }
+
+    /**
+     * Search with message/record types (e.g. {@code PPAP_SUBMISSION}, {@code PULL_DOCUMENT}); empty = all.
+     */
+    Page<ExchangeRecord> search(
+            Direction direction,
+            MessageStatus status,
+            String partnerBpnl,
+            java.util.Collection<String> messageTypes,
+            Pageable pageable);
 
     /** Latest outbound message per case (type, status, time of last change). */
     Map<UUID, LastOutbound> lastOutbound(java.util.Collection<UUID> caseIds);
