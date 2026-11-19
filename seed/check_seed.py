@@ -36,8 +36,18 @@ def fail(msg):
 before = {f: f.read_bytes() for f in ROOT.rglob("*") if f.suffix in (".csv", ".json", ".pdf", ".xlsx")}
 for gen in ("generate_catalog.py", "generate_participants.py", "generate_documents.py", "generate_forms.py", "generate_cases.py"):
     subprocess.run([sys.executable, str(ROOT / gen)], check=True, capture_output=True)
+def comparable(path, data):
+    """XLSX are zip containers whose headers vary with the Python/zip version: compare member contents."""
+    if path.suffix == ".xlsx":
+        import io
+        import zipfile
+        with zipfile.ZipFile(io.BytesIO(data)) as z:
+            return {n: z.read(n) for n in sorted(z.namelist())}
+    return data
+
+
 for f, content in before.items():
-    if f.read_bytes() != content:
+    if comparable(f, f.read_bytes()) != comparable(f, content):
         fail(f"{f.relative_to(ROOT)} is not up to date with its generator")
         f.write_bytes(content)
 
