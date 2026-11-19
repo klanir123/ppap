@@ -139,3 +139,14 @@ DecisionDto = { "revision": 1, "result": "REJECTED", "conditions": [], "conditio
 - `documents` verweisen auf Dateien in `PPAP_SEED_DOCUMENTS_PATH` (Compose: `seed/documents`), die über den Dokumenten-Service hochgeladen werden.
 - Idempotent über (`tenant`, `exchangeId`, `ownRole`): vorhandene Vorgänge werden übersprungen.
 - `SUBMITTED`-Revisionen im Seed sind nur bei `source = LEGACY_IMPORT` erlaubt (ohne Signatur); sonst wird der Vorgang abgelehnt (Seed-Fehler).
+
+## Klarstellungen (Phase 3, Abstimmung Backend/Frontend)
+
+1. **`allowedActions`**: `SEND`, `EDIT` (Anforderungs-Entwurf), `CANCEL`, `START_WORK`, `EDIT_SUBMISSION` (Entwurfs-Revision), `SUBMIT`, `START_REVIEW`, `REVIEW` (Prüfergebnisse erfassen), `DECIDE`, `NEW_REVISION`.
+2. **Zwischenstand der Prüfung**: je Element der Revision `finding: { result, comment } | null`.
+3. **Audit-Objekttypen**: `APPROVAL_CASE`, `DOCUMENT` (zusätzlich zu den Stammdaten-Typen).
+4. **Letzte Entscheidung**: Detail `lastDecision` = vollständiges `DecisionDto`; Liste `lastDecisionResult` (Enum).
+5. **Versionierung**: Jede schreibende Operation am Vorgang liefert die neue Vorgangs-Version im `ETag`-Header; das UI verkettet `If-Match` daraus.
+6. **Entwurfswerte**: Werte, die das Werte-Schema verletzen, werden im Entwurf **gespeichert** und als Issue (`VALUE_SCHEMA_VIOLATION`, JSON-Pointer in `field`) gemeldet; das Einreichen ist dann mit `INCOMPLETE_SUBMISSION` blockiert. Abgelehnt (400) werden nur strukturell ungültige Eingaben (unbekannter Code, kein JSON, ungültige Selbstbeurteilung). Begründung: Automatisches Speichern halbfertiger Tabellen darf nicht scheitern.
+7. **Abbrechen**: Body `{ "reason": "…" }` (Pflicht, max. 500 Zeichen).
+8. **Teile mit Lieferant (Anforderungs-Assistent)**: `GET /part-mappings?partnerRole=SUPPLIER&q=&page=&size=` → Page `{ mappingId, relationId, partner: { bpnl, name, exchangeReady }, part: { id, partNumber, nameDe, nameEn }, partnerPartNumber }` (Modul masterdata).
