@@ -234,6 +234,36 @@
   --status-accepted-with-condition-fg: var(--status-conditionally-approved-fg);
   --status-accepted-with-condition-border: var(--status-conditionally-approved-border);
   --status-accepted-with-condition-solid: var(--status-conditionally-approved-solid);
+
+  /* exchange (EDC) messages and steps */
+  --status-pending-bg: var(--status-requested-bg);
+  --status-pending-fg: var(--status-requested-fg);
+  --status-pending-border: var(--status-requested-border);
+  --status-pending-solid: var(--status-requested-solid);
+  --status-delivered-bg: var(--status-approved-bg);
+  --status-delivered-fg: var(--status-approved-fg);
+  --status-delivered-border: var(--status-approved-border);
+  --status-delivered-solid: var(--status-approved-solid);
+  --status-failed-bg: var(--status-rejected-bg);
+  --status-failed-fg: var(--status-rejected-fg);
+  --status-failed-border: var(--status-rejected-border);
+  --status-failed-solid: var(--status-rejected-solid);
+  --status-received-bg: var(--status-submitted-bg);
+  --status-received-fg: var(--status-submitted-fg);
+  --status-received-border: var(--status-submitted-border);
+  --status-received-solid: var(--status-submitted-solid);
+  --status-processed-bg: var(--status-approved-bg);
+  --status-processed-fg: var(--status-approved-fg);
+  --status-processed-border: var(--status-approved-border);
+  --status-processed-solid: var(--status-approved-solid);
+  --status-skipped-bg: var(--status-cancelled-bg);
+  --status-skipped-fg: var(--status-cancelled-fg);
+  --status-skipped-border: var(--status-cancelled-border);
+  --status-skipped-solid: var(--status-cancelled-solid);
+  --status-not-reached-bg: var(--status-draft-bg);
+  --status-not-reached-fg: var(--status-draft-fg);
+  --status-not-reached-border: var(--status-draft-border);
+  --status-not-reached-solid: var(--status-draft-solid);
 }
 
 /* ------------------------------------------------------------------------- */

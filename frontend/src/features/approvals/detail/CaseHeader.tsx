@@ -2,9 +2,10 @@ import { useTranslation } from 'react-i18next'
 
 import { CopyButton } from '@/components/CopyButton'
 import { Card, CardContent } from '@/components/ui/card'
+import { CaseDeliveryIndicator } from '@/features/exchange/components/Delivery'
 
 import type { ApprovalCaseDetail } from '../api'
-import { CaseStatusBadge, DueDate, RoleBadge, SourceBadge } from '../components/badges'
+import { CasePartText, CaseStatusBadge, DueDate, RoleBadge, SourceBadge } from '../components/badges'
 import { CaseActions } from '../components/CaseActions'
 import { localized, useFormat } from '../components/format'
 
@@ -30,9 +31,10 @@ export function CaseHeader({ approvalCase: c }: { approvalCase: ApprovalCaseDeta
             <div className="flex flex-wrap items-center gap-2">
               <h1 className="font-mono text-xl font-semibold tracking-tight sm:text-2xl">{c.caseNumber}</h1>
               <CaseStatusBadge status={c.status} />
+              <CaseDeliveryIndicator caseId={c.id} />
             </div>
             <p className="text-sm text-muted-foreground">
-              <span className="font-mono">{c.part.partNumber}</span> · {localized(c.part, lng)}
+              <CasePartText approvalCase={c} />
             </p>
             <div className="flex flex-wrap items-center gap-1.5">
               <RoleBadge role={c.ownRole} />

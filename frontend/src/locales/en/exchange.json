@@ -1,0 +1,220 @@
+{
+  "messageType": {
+    "PPAP_REQUEST": "Request",
+    "PPAP_REQUEST_WITHDRAWN": "Withdrawal",
+    "PPAP_STATUS_UPDATE": "Status update",
+    "PPAP_SUBMISSION": "PPF package",
+    "PPAP_DECISION": "Decision"
+  },
+  "direction": {
+    "OUTBOUND": "Outbound",
+    "INBOUND": "Inbound",
+    "to": "to {{partner}}",
+    "from": "from {{partner}}"
+  },
+  "steps": {
+    "CATALOG": "Catalogue",
+    "NEGOTIATION": "Contract negotiation",
+    "TRANSFER": "Transfer",
+    "EDR": "Access token",
+    "DELIVERY": "Delivery",
+    "RECEIPT": "Receipt",
+    "VALIDATION": "Validation",
+    "KEY_FETCH": "Partner key",
+    "PROCESSING": "Processing"
+  },
+  "stepHints": {
+    "CATALOG": "Find the partner's offer in the catalogue of its connector (DSP).",
+    "NEGOTIATION": "Negotiate a usage contract for the offer; policies are evaluated.",
+    "TRANSFER": "Start the transfer process for the exchange.",
+    "EDR": "Obtain a short-lived access token (EDR) for the partner's data plane.",
+    "DELIVERY": "Send the message to the partner's system via its data plane.",
+    "RECEIPT": "Message received via the own data plane and stored unchanged.",
+    "VALIDATION": "Schema, hash and sender verified.",
+    "KEY_FETCH": "Partner's public signing key fetched via Catena-X.",
+    "PROCESSING": "Message applied to the case."
+  },
+  "details": {
+    "assetId": "Asset ID",
+    "offerId": "Offer ID",
+    "negotiationId": "Negotiation ID",
+    "agreementId": "Agreement ID",
+    "transferProcessId": "Transfer ID",
+    "httpStatus": "HTTP status",
+    "cachedEdr": "EDR from cache",
+    "yes": "yes",
+    "no": "no",
+    "label": "Technical details of {{step}}"
+  },
+  "record": {
+    "attempts_one": "{{count}} attempt",
+    "attempts_other": "{{count}} attempts",
+    "nextAttempt": "next attempt {{at}}",
+    "payloadHash": "Payload hash",
+    "correlationId": "Correlation ID",
+    "messageId": "Message ID",
+    "createdAt": "Created",
+    "completedAt": "Completed",
+    "duration": "Duration",
+    "totalDuration": "Total {{duration}}",
+    "showSteps": "Show steps",
+    "hideSteps": "Hide steps",
+    "progress": "{{done}} of {{total}} steps",
+    "lastError": "Delivery failed",
+    "lastErrorInbound": "Processing rejected",
+    "retry": "Send again",
+    "reprocess": "Process again",
+    "retrySuccess": "Message is being sent again.",
+    "reprocessSuccess": "Message is being processed again.",
+    "retryFailed": "Could not resend the message.",
+    "copyHash": "Copy payload hash",
+    "copyCorrelation": "Copy correlation ID",
+    "copyMessageId": "Copy message ID",
+    "copyValue": "Copy {{label}}",
+    "stepAttempt": "attempt {{count}}",
+    "durationMs": "{{value}} ms",
+    "durationS": "{{value}} s",
+    "title": "{{type}} {{direction}}"
+  },
+  "tab": {
+    "intro": "Every message travels exclusively through the Catena-X connectors of both partners: find the offer in the catalogue, negotiate a contract, obtain an access token and deliver. Each step is traceable here.",
+    "glossary": "Terms",
+    "empty": "No data exchange yet",
+    "emptyDescription": "As soon as a message for this case is sent or received, it appears here with all steps.",
+    "emptyManual": "This case was captured manually. The customer is not connected to Catena-X, so no messages are exchanged.",
+    "emptyLegacy": "Legacy case from a previous system – without data exchange via Catena-X.",
+    "loadError": "Could not load the data exchange.",
+    "exchangeId": "Exchange ID",
+    "list": "Messages of the case"
+  },
+  "glossary": {
+    "EDC": {
+      "term": "EDC",
+      "text": "Eclipse Dataspace Connector – each participant's connector. Data only flows through it, never directly between systems."
+    },
+    "DSP": {
+      "term": "DSP",
+      "text": "Dataspace Protocol – the standard connectors use to query catalogues and negotiate usage contracts."
+    },
+    "EDR": {
+      "term": "EDR",
+      "text": "Endpoint Data Reference – short-lived access token for the partner's data plane, issued after a successful negotiation."
+    }
+  },
+  "delivery": {
+    "delivered": "Delivered",
+    "pending": "Delivering …",
+    "failed": "Delivery failed",
+    "label": "{{type}}: {{state}}",
+    "open": "Show data exchange"
+  },
+  "submitted": {
+    "description": "The revision is stored immutably and is being transmitted to the customer via Catena-X.",
+    "descriptionManual": "The revision is stored immutably. The customer is not connected to Catena-X – transmit the package through the agreed channel.",
+    "delivery": "Delivery to the customer",
+    "waiting": "Preparing message …",
+    "showExchange": "Show data exchange"
+  },
+  "live": {
+    "label": "Live updates: {{state}}",
+    "open": "Live",
+    "openHint": "Live updates active – changes appear without reloading.",
+    "connecting": "Connecting …",
+    "connectingHint": "Connecting for live updates.",
+    "reconnecting": "Connecting …",
+    "reconnectingHint": "Connection lost – reconnecting automatically.",
+    "paused": "Paused",
+    "pausedHint": "Live updates are paused while the tab is in the background.",
+    "offline": "Offline",
+    "offlineHint": "No live updates.",
+    "toast": {
+      "newRequest": "New request from {{partner}}",
+      "submissionReceived": "New submission from {{partner}}",
+      "decisionReceived": "Decision received: {{result}}",
+      "open": "Open"
+    }
+  },
+  "clarification": {
+    "title": "Part not assigned: customer part number {{number}}",
+    "titleUnknown": "Part not assigned",
+    "description": "The request has arrived, but the customer part number is not mapped to one of your parts. Assign the part to work on the case.",
+    "readOnly": "Assignment is done by the supplier's quality managers.",
+    "action": "Assign part",
+    "filter": "Needs clarification",
+    "badge": "Clarification",
+    "navCount_one": "{{count}} case needs clarification",
+    "navCount_other": "{{count}} cases need clarification",
+    "dialog": {
+      "title": "Assign part",
+      "description": "Choose your part for customer part number {{number}} from {{partner}}.",
+      "search": "Search parts",
+      "searchPlaceholder": "Part number or name",
+      "parts": "Your parts",
+      "noResults": "No matching parts found.",
+      "loading": "Loading parts …",
+      "saveMapping": "Save as part mapping",
+      "saveMappingHint": "Future requests with this customer part number are assigned automatically.",
+      "submit": "Assign",
+      "success": "Part {{part}} assigned",
+      "selectRequired": "Please select a part."
+    }
+  },
+  "cockpit": {
+    "title": "Connector cockpit",
+    "description": "Status of your EDC connection and all messages exchanged via Catena-X.",
+    "status": {
+      "title": "Status",
+      "edc": "EDC connector",
+      "up": "Reachable",
+      "down": "Unreachable",
+      "provisioning": "Catalogue offers",
+      "provisioningOk": "Provisioned",
+      "provisioningFailed": "Reconciliation failed",
+      "lastRun": "Reconciled {{at}}",
+      "assets_one": "{{count}} asset",
+      "assets_other": "{{count}} assets",
+      "outbox": "Outbox",
+      "inbox": "Inbox",
+      "pending": "pending",
+      "failed": "failed",
+      "rejected": "rejected",
+      "loadError": "Could not load the status."
+    },
+    "messages": {
+      "title": "Messages",
+      "empty": "No messages yet",
+      "emptyDescription": "Sent and received messages appear here with status and steps.",
+      "open": "Show details",
+      "filters": {
+        "direction": "Direction",
+        "allDirections": "All directions",
+        "status": "Status",
+        "allStatuses": "All statuses",
+        "partner": "Partner",
+        "allPartners": "All partners",
+        "reset": "Reset filters"
+      },
+      "columns": {
+        "createdAt": "Time",
+        "direction": "Direction",
+        "messageType": "Message",
+        "partner": "Partner",
+        "status": "Status",
+        "attempts": "Attempts",
+        "payloadHash": "Payload hash",
+        "case": "Case"
+      }
+    },
+    "drawer": {
+      "title": "Message",
+      "description": "Steps, identifiers and payload for diagnosis.",
+      "steps": "Steps",
+      "identifiers": "Identifiers",
+      "payload": "Payload (JSON)",
+      "payloadUnavailable": "No payload available.",
+      "copyPayload": "Copy payload",
+      "openCase": "Open case",
+      "loadError": "Could not load the message."
+    }
+  }
+}

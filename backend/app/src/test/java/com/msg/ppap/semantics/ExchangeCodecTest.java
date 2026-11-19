@@ -61,14 +61,20 @@ class ExchangeCodecTest {
         assertThat(encoded.modelUrn()).isEqualTo(ExchangeModels.PPAP_SUBMISSION);
         assertThat(encoded.text())
                 .startsWith("{\"elements\":[")
-                .contains("\"nominal\":12}")
+                // structured values are canonical JSON text (SAMM JsonText)
+                .contains(
+                        "\"values\":\"[{\\\"characteristic\\\":\\\"A1\\\",\\\"measured\\\":12.02,\\\"nominal\\\":12}]\"")
                 .doesNotContain("null")
                 .doesNotContain("\"comment\":\" \"");
         assertThat(encoded.hash()).matches("^sha256:[0-9a-f]{64}$");
         assertThat(codec.encodeSubmission(submission())).isEqualTo(encoded);
 
         // pretty-printed, reordered input decodes to the same canonical payload and hash
-        String reformatted = encoded.text().replace(",", ",\n  ");
+        String reformatted = tools.jackson.databind.json.JsonMapper.builder()
+                .enable(tools.jackson.databind.SerializationFeature.INDENT_OUTPUT)
+                .build()
+                .writeValueAsString(
+                        tools.jackson.databind.json.JsonMapper.builder().build().readTree(encoded.text()));
         var decoded = codec.decodeSubmission(reformatted.getBytes(StandardCharsets.UTF_8));
         assertThat(decoded.payload().hash()).isEqualTo(encoded.hash());
         assertThat(decoded.message().revision()).isEqualTo(1);
@@ -81,6 +87,8 @@ class ExchangeCodecTest {
                         .sha256())
                 .isEqualTo("a".repeat(64));
         assertThat(decoded.message().elements().get(1).values()).isNull();
+        assertThat(decoded.message().elements().getFirst().values())
+                .isEqualTo(List.of(Map.of("characteristic", "A1", "nominal", 12, "measured", 12.02)));
         assertThat(encoded.toString()).contains(encoded.hash());
         assertThat(encoded.canonical()).isEqualTo(encoded.text().getBytes(StandardCharsets.UTF_8));
     }

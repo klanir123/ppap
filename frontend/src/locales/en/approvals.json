@@ -252,11 +252,6 @@
     "finding": "Finding",
     "findingComment": "Comment"
   },
-  "exchange": {
-    "title": "Data exchange follows with the EDC exchange (phase 4)",
-    "description": "Catalogue request, contract negotiation, transfer and delivery status of the messages to the partner will be shown here.",
-    "exchangeId": "Exchange ID {{id}}"
-  },
   "timeline": {
     "title": "History",
     "empty": "No status changes yet.",
@@ -303,7 +298,8 @@
     "hashUnchecked": "Hash not verifiable",
     "hashOk": "Hash verified",
     "hashMismatch": "Hash mismatch",
-    "meta": "{{size}} · {{type}}"
+    "meta": "{{size}} · {{type}}",
+    "remoteHint": "Document retrieval via Catena-X to follow"
   },
   "wizard": {
     "title": "Request submission",
@@ -384,7 +380,7 @@
       "attachments_one": "{{count}} attachment",
       "attachments_other": "{{count}} attachments",
       "sendBlocked": "Requesting is only possible once the supplier is set up for Catena-X. Save as draft.",
-      "phaseHint": "“Request” sets the status to “Requested”. Delivery via the EDC follows with phase 4."
+      "sendHint": "“Request” transmits the request to the supplier via Catena-X."
     },
     "errors": {
       "REQUIRED": "Please make a selection.",
@@ -518,7 +514,6 @@
     "confirm": "I confirm that the information and evidence are correct and complete. I understand that the submission is digitally signed and can no longer be changed.",
     "submit": "Submit bindingly",
     "successTitle": "Revision {{revision}} submitted",
-    "successDescription": "The revision is stored immutably. Delivery to the customer via Catena-X follows with phase 4.",
     "toCase": "Go to case"
   },
   "review": {
@@ -587,5 +582,8 @@
     "signatureHint": "The decision is canonicalised, SHA-256 hashed and signed with the tenant key (JWS). A fresh sign-in may be required.",
     "reauth": "Fresh sign-in required – redirecting …",
     "submit": "Decide bindingly"
+  },
+  "part": {
+    "unassigned": "Part not assigned"
   }
 }

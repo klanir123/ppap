@@ -42,3 +42,6 @@ Der Empfänger vertraut nicht nur dem Header `senderBpn`: Die Data Plane wird so
 ## Konsequenzen
 + Beide Muster demonstrierbar und messbar (Phase 5 liefert Kennzahlen: EDC-Schritte, Latenz).
 − Mehr Implementierungsaufwand (DTR-Client, Submodel-Endpunkte, EDR-Handling für zwei Pfade).
+
+## Umsetzung Phase 4 – Herkunftsprüfung (verifiziert)
+Die Provider-Data-Plane von Tractus-X EDC 0.13 setzt beim Aufruf des Backends die Header **`Edc-Bpn`** (BPNL des Konsumenten aus dem Contract Agreement, `TxDataFlowPropertiesProvider` → `DataPlaneTokenRefreshServiceImpl`) und `Edc-Contract-Agreement-Id`. Live verifiziert (OEM → Tier-1: `Edc-Bpn = BPNL00000000OEM1`). Der Empfänger speichert `Edc-Bpn` in der Inbox und weist Nachrichten mit abweichendem `header.senderBpn` als `REJECTED_SENDER_MISMATCH` ab. Zusätzlich: aktive Beziehung zum Absender (Access Policy `BusinessPartnerGroup ppap-partners`) und JWS-Signatur bei Submission/Decision.

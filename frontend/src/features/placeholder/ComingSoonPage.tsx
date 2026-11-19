@@ -20,12 +20,11 @@ interface ComingSoonPageProps {
   titleKey: NavLabelKey
   descriptionKey: DescriptionKey
   icon: LucideIcon
-  phase: number
   showSystemLink?: boolean
 }
 
-/** Placeholder for areas delivered in later phases – keeps navigation complete. */
-export function ComingSoonPage({ titleKey, descriptionKey, icon: Icon, phase, showSystemLink }: ComingSoonPageProps) {
+/** Placeholder for areas not available yet – keeps navigation complete. */
+export function ComingSoonPage({ titleKey, descriptionKey, icon: Icon, showSystemLink }: ComingSoonPageProps) {
   const { t } = useTranslation(['pages', 'nav'])
   return (
     <div className="space-y-6">
@@ -40,7 +39,7 @@ export function ComingSoonPage({ titleKey, descriptionKey, icon: Icon, phase, sh
           <div className="space-y-2">
             <p className="inline-flex items-center gap-1.5 rounded-full border bg-muted/60 px-2.5 py-0.5 text-xs font-medium text-muted-foreground">
               <Sparkles aria-hidden="true" className="size-3" />
-              {t('comingSoon', { phase })}
+              {t('comingSoon')}
             </p>
             <p className="mx-auto max-w-lg text-sm text-muted-foreground">{t(descriptionKey)}</p>
           </div>

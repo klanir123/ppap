@@ -4,6 +4,7 @@ import com.msg.ppap.approval.domain.CaseRole;
 import com.msg.ppap.approval.domain.CaseSource;
 import com.msg.ppap.approval.domain.CaseStatus;
 import com.msg.ppap.approval.domain.CatalogRef;
+import com.msg.ppap.approval.domain.Clarification;
 import com.msg.ppap.approval.domain.DecisionResult;
 import com.msg.ppap.approval.domain.PartRef;
 import com.msg.ppap.approval.domain.PartnerRef;
@@ -34,7 +35,8 @@ public record CaseSummary(
         DecisionResult lastDecision,
         long version,
         Instant createdAt,
-        Instant updatedAt) {
+        Instant updatedAt,
+        Clarification clarification) {
 
     public String customerPartNumber() {
         return ownRole == CaseRole.CUSTOMER ? part.partNumber() : partnerPartNumber;

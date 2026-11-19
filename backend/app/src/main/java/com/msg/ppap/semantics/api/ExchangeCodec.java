@@ -19,8 +19,20 @@ public interface ExchangeCodec {
     /** @throws PayloadValidationException if the resulting payload violates the schema */
     EncodedPayload encodeDecision(DecisionMessage message);
 
+    /** @throws PayloadValidationException if the resulting payload violates the schema */
+    EncodedPayload encodeStatusUpdate(StatusUpdateMessage message);
+
+    /** @throws PayloadValidationException if the resulting payload violates the schema */
+    EncodedPayload encodeWithdrawal(WithdrawalMessage message);
+
     /** @throws PayloadValidationException if the payload is not valid JSON or violates the schema */
     Decoded<RequestMessage> decodeRequest(byte[] payload);
+
+    /** @throws PayloadValidationException if the payload is not valid JSON or violates the schema */
+    Decoded<StatusUpdateMessage> decodeStatusUpdate(byte[] payload);
+
+    /** @throws PayloadValidationException if the payload is not valid JSON or violates the schema */
+    Decoded<WithdrawalMessage> decodeWithdrawal(byte[] payload);
 
     /** @throws PayloadValidationException if the payload is not valid JSON or violates the schema */
     Decoded<SubmissionMessage> decodeSubmission(byte[] payload);

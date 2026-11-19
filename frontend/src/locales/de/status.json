@@ -45,5 +45,21 @@
     "ACCEPTED": "Akzeptiert",
     "NOT_ACCEPTED": "Nicht akzeptiert",
     "ACCEPTED_WITH_CONDITION": "Mit Auflage"
+  },
+  "exchange": {
+    "PENDING": "Wartet",
+    "IN_PROGRESS": "Wird zugestellt",
+    "DELIVERED": "Zugestellt",
+    "FAILED": "Fehlgeschlagen",
+    "RECEIVED": "Empfangen",
+    "PROCESSED": "Verarbeitet",
+    "REJECTED": "Abgewiesen"
+  },
+  "step": {
+    "OK": "Erfolgreich",
+    "FAILED": "Fehlgeschlagen",
+    "SKIPPED": "Übersprungen",
+    "PENDING": "Ausstehend",
+    "NOT_REACHED": "Nicht erreicht"
   }
 }

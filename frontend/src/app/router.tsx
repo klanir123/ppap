@@ -6,7 +6,7 @@ import {
   redirect,
   type RouterHistory,
 } from '@tanstack/react-router'
-import { Boxes, Cable } from 'lucide-react'
+import { Boxes } from 'lucide-react'
 import { z } from 'zod'
 
 import { listSearchSchema } from '@/components/data-table'
@@ -20,6 +20,8 @@ import { RequestWizardPage } from '@/features/approvals/request/RequestWizardPag
 import { ReviewWorkspace } from '@/features/approvals/review/ReviewWorkspace'
 import { RequirePermission } from '@/features/auth/RequirePermission'
 import { DashboardPage } from '@/features/dashboard/DashboardPage'
+import { cockpitSearchSchema } from '@/features/exchange/cockpit/cockpit-search'
+import { CockpitPage } from '@/features/exchange/cockpit/CockpitPage'
 import { catalogSearchSchema } from '@/features/masterdata/catalog/catalog-search'
 import { CatalogPage } from '@/features/masterdata/catalog/CatalogPage'
 import { PartnersPage } from '@/features/masterdata/partners/PartnersPage'
@@ -215,9 +217,10 @@ const cockpitRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/cockpit',
   staticData: { crumb: 'cockpit' },
+  validateSearch: cockpitSearchSchema,
   component: () => (
     <RequirePermission permission="cockpit:view">
-      <ComingSoonPage titleKey="cockpit" descriptionKey="cockpit.description" icon={Cable} phase={6} showSystemLink />
+      <CockpitPage />
     </RequirePermission>
   ),
 })
@@ -228,7 +231,7 @@ const dataspaceRoute = createRoute({
   staticData: { crumb: 'dataspace' },
   component: () => (
     <RequirePermission permission="dataspace:view">
-      <ComingSoonPage titleKey="dataspace" descriptionKey="dataspace.description" icon={Boxes} phase={6} />
+      <ComingSoonPage titleKey="dataspace" descriptionKey="dataspace.description" icon={Boxes} />
     </RequirePermission>
   ),
 })

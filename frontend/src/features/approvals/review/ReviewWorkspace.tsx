@@ -53,7 +53,7 @@ import {
   type JsonValue,
   type Submission,
 } from '../api'
-import { CaseStatusBadge } from '../components/badges'
+import { CasePartText, CaseStatusBadge } from '../components/badges'
 import { DocumentList, DocumentPreview } from '../components/Documents'
 import { localized } from '../components/format'
 import { problemCode, problemMessage, toastProblem } from '../components/problem'
@@ -255,7 +255,7 @@ function Review({ approvalCase: c, submission }: { approvalCase: ApprovalCaseDet
             <CaseStatusBadge status={c.status} size="sm" />
             <span>{t('revisions.revisionTitle', { revision: submission.revision })}</span>
             <span>
-              <span className="font-mono">{c.part.partNumber}</span> · {c.partner.name ?? c.partner.bpnl}
+              <CasePartText approvalCase={c} layout="number" /> · {c.partner.name ?? c.partner.bpnl}
             </span>
           </div>
         </div>

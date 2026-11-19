@@ -18,3 +18,6 @@ Partner wollen keine nasse Unterschrift, sondern einen nachvollziehbaren digital
 - **`kid`** = JWK-Thumbprint nach RFC 7638 (SHA-256, base64url) des öffentlichen Schlüssels; öffentlich unter `GET /.well-known/jwks.json`.
 - **Ports:** `PayloadSigner` / `SignatureVerifier` (Modul `identity`, Implementierung `JwsTenantKeySigner`), Schlüsselquelle `SigningKeyProvider` mit Adaptern `vault` (OpenBao/Vault KV v2, `secret/ppap-signing-key`, Feld `content`, PEM PKCS#8 EC P-256), `file` (`PPAP_SIGNING_KEY_FILE`) und `generated` (nur Entwicklung/Tests, WARN-Log). Kann der Schlüssel nicht geladen werden, startet die Anwendung nicht (fail fast).
 - **Verifikation fremder Signaturen:** Phase 3 kennt nur den eigenen Schlüssel; Signaturen mit unbekanntem `kid` erhalten den Status `UNVERIFIED` (Auflösung über DID/JWKS des Partners: Phase 4). `INVALID` wird beim Empfang und vor Prüfungsbeginn abgewiesen.
+
+## Umsetzung (Phase 4)
+- Fremde Signaturen werden gegen die Schlüssel **des Absenders** geprüft (`SignatureVerifier.verify(payload, jws, signerBpnl)`; Erweiterungspunkt `identity.PartnerKeys`, implementiert im Modul `exchange`). Unbekannter `kid` → JWKS des Partners über EDC (Asset `ppap-public-keys` → `/internal/edc/jwks`), Cache-Tabelle `ex_partner_key`; erst danach unbekannt → `UNVERIFIED`. Der eigene Schlüssel wird für Partner-Payloads nicht akzeptiert.

@@ -64,11 +64,13 @@ public class ApprovalCaseController {
             @RequestParam(required = false) CaseRole ownRole,
             @RequestParam(required = false) String partnerBpnl,
             @RequestParam(required = false) Boolean overdue,
+            @RequestParam(required = false) Boolean needsClarification,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "25") int size,
             @RequestParam(required = false) List<String> sort) {
         var pageable = ApprovalRest.pageable(page, size, sort, SORTABLE, DEFAULT_SORT);
-        var query = new CaseQuery(q, statuses(status), ownRole, partnerBpnl, overdue, cases.today());
+        var query =
+                new CaseQuery(q, statuses(status), ownRole, partnerBpnl, overdue, cases.today(), needsClarification);
         return ApprovalCasePage.of(cases.search(query, pageable).map(ApprovalDtos::summary));
     }
 
@@ -197,8 +199,25 @@ public class ApprovalCaseController {
         return respond(cases.startWork(id, ApprovalRest.expectedVersion(ifMatch)));
     }
 
+    @PostMapping("/{id}/assign-part")
+    @PreAuthorize(ApprovalRest.SUPPLIER)
+    @Operation(
+            operationId = "assignPart",
+            summary = "Assign the own part to a received request that needs clarification (UC-04 A1), optionally"
+                    + " saving the part mapping (If-Match)")
+    public ResponseEntity<ApprovalCaseDetailDto> assignPart(
+            @PathVariable UUID id,
+            @RequestBody AssignPartRequest request,
+            @RequestHeader(name = HttpHeaders.IF_MATCH, required = false) String ifMatch) {
+        return respond(cases.assignPart(
+                id,
+                request.partId(),
+                !Boolean.FALSE.equals(request.saveMapping()),
+                ApprovalRest.expectedVersion(ifMatch)));
+    }
+
     @PostMapping("/{id}/start-review")
-    @PreAuthorize("hasRole('CUSTOMER_QUALITY_ENGINEER')")
+    @PreAuthorize(ApprovalRest.CUSTOMER)
     @Operation(
             operationId = "startReview",
             summary = "Start the review (SUBMITTED → IN_REVIEW) after verifying hash and signature")

@@ -2,7 +2,9 @@ package com.msg.ppap.semantics.application;
 
 import com.msg.ppap.semantics.api.DecisionMessage;
 import com.msg.ppap.semantics.api.RequestMessage;
+import com.msg.ppap.semantics.api.StatusUpdateMessage;
 import com.msg.ppap.semantics.api.SubmissionMessage;
+import com.msg.ppap.semantics.api.WithdrawalMessage;
 import tools.jackson.databind.JsonNode;
 
 /**
@@ -26,4 +28,12 @@ public interface ExchangeMapper {
     JsonNode toPayload(DecisionMessage message);
 
     DecisionMessage toDecision(JsonNode payload);
+
+    JsonNode toPayload(StatusUpdateMessage message);
+
+    StatusUpdateMessage toStatusUpdate(JsonNode payload);
+
+    JsonNode toPayload(WithdrawalMessage message);
+
+    WithdrawalMessage toWithdrawal(JsonNode payload);
 }

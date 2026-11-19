@@ -45,5 +45,21 @@
     "ACCEPTED": "Accepted",
     "NOT_ACCEPTED": "Not accepted",
     "ACCEPTED_WITH_CONDITION": "With condition"
+  },
+  "exchange": {
+    "PENDING": "Queued",
+    "IN_PROGRESS": "Delivering",
+    "DELIVERED": "Delivered",
+    "FAILED": "Failed",
+    "RECEIVED": "Received",
+    "PROCESSED": "Processed",
+    "REJECTED": "Rejected"
+  },
+  "step": {
+    "OK": "Succeeded",
+    "FAILED": "Failed",
+    "SKIPPED": "Skipped",
+    "PENDING": "Pending",
+    "NOT_REACHED": "Not reached"
   }
 }

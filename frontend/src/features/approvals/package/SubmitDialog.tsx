@@ -16,6 +16,7 @@ import {
 import { Label } from '@/components/ui/label'
 
 import { useSubmitDraft, type ApprovalCaseDetail, type Submission } from '../api'
+import { CasePartText } from '../components/badges'
 import { problemCode, problemMessage } from '../components/problem'
 import type { DraftSaver } from './use-draft-saver'
 
@@ -81,7 +82,9 @@ export function SubmitDialog({
               </div>
               <div>
                 <dt className="text-xs text-muted-foreground">{t('submit.part')}</dt>
-                <dd className="font-mono text-xs">{approvalCase.part.partNumber}</dd>
+                <dd className="font-mono text-xs">
+                  <CasePartText approvalCase={approvalCase} layout="number" />
+                </dd>
               </div>
               <div>
                 <dt className="text-xs text-muted-foreground">{t('submit.assessed')}</dt>

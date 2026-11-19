@@ -40,7 +40,7 @@ import {
   updateDraftElement,
 } from '@/api/generated/endpoints/submissions/submissions'
 import { apiFetchResponse, type ApiRequestInit } from '@/api/fetcher'
-import type { ElementEvidenceRequest } from '@/api/generated/model'
+import type { ElementEvidenceRequest, ListApprovalCasesParams } from '@/api/generated/model'
 
 import type {
   ApprovalCase,
@@ -83,20 +83,20 @@ async function versioned<T>(call: (options: ApiRequestInit) => Promise<T>): Prom
 
 // --- cases --------------------------------------------------------------------------------------
 
-export const listCases = (params: CaseListParams, options?: Options) =>
-  listApprovalCases(
-    {
-      q: params.q,
-      status: params.status?.length ? params.status : undefined,
-      ownRole: params.ownRole,
-      partnerBpnl: params.partnerBpnl,
-      overdue: params.overdue || undefined,
-      page: params.page,
-      size: params.size,
-      sort: params.sort ? [params.sort] : undefined,
-    },
-    options,
-  ) as Promise<CasePage>
+export function listCases(params: CaseListParams, options?: Options) {
+  const query: ListApprovalCasesParams & { needsClarification?: boolean } = {
+    q: params.q,
+    status: params.status?.length ? params.status : undefined,
+    ownRole: params.ownRole,
+    partnerBpnl: params.partnerBpnl,
+    overdue: params.overdue || undefined,
+    needsClarification: params.needsClarification || undefined,
+    page: params.page,
+    size: params.size,
+    sort: params.sort ? [params.sort] : undefined,
+  }
+  return listApprovalCases(query, options) as Promise<CasePage>
+}
 
 export const getCase = (id: string, options?: Options) => getApprovalCase(id, options)
 

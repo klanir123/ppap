@@ -63,8 +63,14 @@ class ApCaseEntity {
     @Column(name = "part_id")
     UUID partId;
 
-    @Column(name = "part_number", nullable = false)
+    @Column(name = "part_number")
     String partNumber;
+
+    @Column(name = "clarification_reason")
+    String clarificationReason;
+
+    @Column(name = "clarification_partner_part_number")
+    String clarificationPartnerPartNumber;
 
     @Column(name = "part_name_de")
     String partNameDe;

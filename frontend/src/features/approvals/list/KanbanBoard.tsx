@@ -7,8 +7,7 @@ import { statusStyle } from '@/lib/status-style'
 import { cn } from '@/lib/utils'
 
 import type { ApprovalCase, CaseStatus } from '../api/types'
-import { CaseStatusBadge, DueDate, RoleBadge, SourceBadge } from '../components/badges'
-import { localized } from '../components/format'
+import { CasePartText, CaseStatusBadge, DueDate, RoleBadge, SourceBadge } from '../components/badges'
 import { groupByStatus } from '../model/kanban'
 import { caseStatusToken } from '../model/status'
 
@@ -74,7 +73,6 @@ export function KanbanBoard({ cases, statuses, isLoading }: KanbanBoardProps) {
 }
 
 function KanbanCard({ approvalCase: c }: { approvalCase: ApprovalCase }) {
-  const { i18n } = useTranslation('approvals')
   return (
     <Link
       to="/approvals/$caseId"
@@ -90,8 +88,7 @@ function KanbanCard({ approvalCase: c }: { approvalCase: ApprovalCase }) {
         <RoleBadge role={c.ownRole} />
       </div>
       <div className="min-w-0">
-        <p className="truncate font-mono text-xs">{c.part.partNumber}</p>
-        <p className="truncate text-xs text-muted-foreground">{localized(c.part, i18n.resolvedLanguage)}</p>
+        <CasePartText approvalCase={c} layout="stacked" />
       </div>
       <p className="truncate text-xs">{c.partner.name ?? c.partner.bpnl}</p>
       <div className="flex flex-wrap items-center justify-between gap-1.5 text-xs">

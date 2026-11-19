@@ -9,9 +9,11 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip
 interface CopyButtonProps {
   value: string
   label: string
+  /** Echo the copied value in the toast (off for long values such as JSON payloads). */
+  showValue?: boolean
 }
 
-export function CopyButton({ value, label }: CopyButtonProps) {
+export function CopyButton({ value, label, showValue = true }: CopyButtonProps) {
   const { t } = useTranslation()
   const [copied, setCopied] = useState(false)
 
@@ -25,7 +27,7 @@ export function CopyButton({ value, label }: CopyButtonProps) {
     try {
       await navigator.clipboard.writeText(value)
       setCopied(true)
-      toast.success(t('copied'), { description: value })
+      toast.success(t('copied'), { description: showValue ? value : undefined })
     } catch {
       toast.error(t('copyFailed'))
     }

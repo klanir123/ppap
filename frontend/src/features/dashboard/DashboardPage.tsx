@@ -10,8 +10,8 @@ import { Button } from '@/components/ui/button'
 import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { useCasePage, useCaseStats } from '@/features/approvals/api'
-import { CaseStatusBadge, DueDate, RoleBadge } from '@/features/approvals/components/badges'
-import { localized, useFormat } from '@/features/approvals/components/format'
+import { CasePartText, CaseStatusBadge, DueDate, RoleBadge } from '@/features/approvals/components/badges'
+import { useFormat } from '@/features/approvals/components/format'
 import { useCurrentUser, usePermission, userDisplayName } from '@/features/auth/current-user'
 import { useComponentInfo } from '@/features/system/component-meta'
 import { useSystemStatus } from '@/features/system/useSystemStatus'
@@ -167,7 +167,7 @@ function KpiCard({
 }
 
 function RecentCasesCard({ cta }: { cta: ReactNode }) {
-  const { t, i18n } = useTranslation(['dashboard', 'common'])
+  const { t } = useTranslation(['dashboard', 'common'])
   const query = useCasePage(RECENT_PARAMS)
   const cases = query.data?.content ?? []
   return (
@@ -207,8 +207,9 @@ function RecentCasesCard({ cta }: { cta: ReactNode }) {
                   </span>
                   <span className="col-span-2 min-w-0 sm:col-span-1">
                     <span className="block truncate text-sm">
-                      <span className="font-mono text-xs">{c.part.partNumber}</span> ·{' '}
-                      {localized(c.part, i18n.resolvedLanguage)}
+                      <span className="text-xs">
+                        <CasePartText approvalCase={c} />
+                      </span>
                     </span>
                     <span className="flex items-center gap-2 truncate text-xs text-muted-foreground">
                       <RoleBadge role={c.ownRole} />

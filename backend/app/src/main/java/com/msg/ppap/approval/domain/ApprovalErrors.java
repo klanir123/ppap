@@ -25,6 +25,8 @@ public final class ApprovalErrors {
     public static final String SIGNATURE_INVALID = "SIGNATURE_INVALID";
     public static final String REVISION_CONFLICT = "REVISION_CONFLICT";
     public static final String RECENT_AUTH_REQUIRED = "RECENT_AUTH_REQUIRED";
+    public static final String CLARIFICATION_PENDING = "CLARIFICATION_PENDING";
+    public static final String NO_CLARIFICATION_PENDING = "NO_CLARIFICATION_PENDING";
 
     private ApprovalErrors() {}
 

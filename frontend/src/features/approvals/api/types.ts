@@ -115,6 +115,8 @@ export interface CaseListParams {
   ownRole?: CaseRole
   partnerBpnl?: string
   overdue?: boolean
+  /** UC-04 A1: only received requests whose part could not be mapped. */
+  needsClarification?: boolean
   page?: number
   size?: number
   sort?: string

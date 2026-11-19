@@ -39,7 +39,9 @@ def call(base, method, path, body=None, expect=(200, 204)):
             return resp.status, (json.loads(raw) if raw else None)
     except urllib.error.HTTPError as e:
         payload = e.read().decode()
-        if e.code == 409:  # already exists -> idempotent re-run
+        # already exists -> idempotent re-run. EDC 0.13 answers 400 "referenced by a Contract Definition"
+        # instead of 409 when an existing policy is re-created.
+        if e.code == 409 or (e.code == 400 and "referenced" in payload):
             return 409, None
         if e.code not in expect:
             sys.exit(f"FAIL {method} {path}: HTTP {e.code} {payload[:800]}")

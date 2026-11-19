@@ -1,5 +1,6 @@
 package com.msg.ppap.approval.domain;
 
+import static com.msg.ppap.approval.domain.CaseAction.ASSIGN_PART;
 import static com.msg.ppap.approval.domain.CaseAction.CANCEL;
 import static com.msg.ppap.approval.domain.CaseAction.CAPTURE_MANUAL;
 import static com.msg.ppap.approval.domain.CaseAction.CREATE;
@@ -9,7 +10,9 @@ import static com.msg.ppap.approval.domain.CaseAction.EDIT_SUBMISSION;
 import static com.msg.ppap.approval.domain.CaseAction.NEW_REVISION;
 import static com.msg.ppap.approval.domain.CaseAction.RECEIVE_DECISION;
 import static com.msg.ppap.approval.domain.CaseAction.RECEIVE_REQUEST;
+import static com.msg.ppap.approval.domain.CaseAction.RECEIVE_STATUS_UPDATE;
 import static com.msg.ppap.approval.domain.CaseAction.RECEIVE_SUBMISSION;
+import static com.msg.ppap.approval.domain.CaseAction.RECEIVE_WITHDRAWAL;
 import static com.msg.ppap.approval.domain.CaseAction.REVIEW;
 import static com.msg.ppap.approval.domain.CaseAction.SEND;
 import static com.msg.ppap.approval.domain.CaseAction.START_REVIEW;
@@ -100,6 +103,7 @@ public final class CaseStateMachine {
             rule(CREATE, CaseRole.CUSTOMER, Set.of(), Set.of(DRAFT), CUSTOMER_USERS),
             rule(CAPTURE_MANUAL, CaseRole.SUPPLIER, Set.of(), Set.of(REQUESTED), SUPPLIER_USERS),
             rule(RECEIVE_REQUEST, CaseRole.SUPPLIER, Set.of(), Set.of(REQUESTED), Set.of(EXCHANGE)),
+            rule(ASSIGN_PART, CaseRole.SUPPLIER, Set.of(REQUESTED), Set.of(REQUESTED), SUPPLIER_USERS),
             rule(EDIT, CaseRole.CUSTOMER, Set.of(DRAFT), Set.of(DRAFT), CUSTOMER_USERS),
             rule(SEND, CaseRole.CUSTOMER, Set.of(DRAFT), Set.of(REQUESTED), CUSTOMER_USERS),
             rule(CANCEL, CaseRole.CUSTOMER, Set.of(DRAFT, REQUESTED), Set.of(CANCELLED), CUSTOMER_USERS),
@@ -111,6 +115,12 @@ public final class CaseStateMachine {
                     SUPPLIER_USERS,
                     true,
                     false),
+            rule(
+                    RECEIVE_WITHDRAWAL,
+                    CaseRole.SUPPLIER,
+                    Set.of(REQUESTED, IN_PROGRESS),
+                    Set.of(CANCELLED),
+                    Set.of(EXCHANGE)),
             rule(START_WORK, CaseRole.SUPPLIER, Set.of(REQUESTED), Set.of(IN_PROGRESS), SUPPLIER_USERS),
             rule(EDIT_SUBMISSION, CaseRole.SUPPLIER, Set.of(IN_PROGRESS), Set.of(IN_PROGRESS), SUPPLIER_USERS),
             rule(SUBMIT, CaseRole.SUPPLIER, Set.of(IN_PROGRESS), Set.of(SUBMITTED), SUPPLIER_USERS),
@@ -121,11 +131,15 @@ public final class CaseStateMachine {
                     Set.of(SUBMITTED),
                     Set.of(EXCHANGE)),
             rule(
-                    START_REVIEW,
+                    RECEIVE_STATUS_UPDATE,
                     CaseRole.CUSTOMER,
-                    Set.of(SUBMITTED),
-                    Set.of(IN_REVIEW),
-                    Set.of(CUSTOMER_QUALITY_ENGINEER)),
+                    Set.of(REQUESTED, REJECTED, CONDITIONALLY_APPROVED),
+                    Set.of(IN_PROGRESS),
+                    Set.of(EXCHANGE)),
+            rule(RECEIVE_STATUS_UPDATE, CaseRole.SUPPLIER, Set.of(SUBMITTED), Set.of(IN_REVIEW), Set.of(EXCHANGE)),
+            // SYSTEM_INTEGRATION only with ppap.decision.allow-technical-clients (like REVIEW/DECIDE)
+            new Rule(
+                    START_REVIEW, CaseRole.CUSTOMER, Set.of(SUBMITTED), Set.of(IN_REVIEW), CUSTOMER_USERS, false, true),
             new Rule(REVIEW, CaseRole.CUSTOMER, Set.of(IN_REVIEW), Set.of(IN_REVIEW), CUSTOMER_USERS, false, true),
             new Rule(DECIDE, CaseRole.CUSTOMER, Set.of(IN_REVIEW), DECISIONS, CUSTOMER_USERS, false, true),
             rule(RECEIVE_DECISION, CaseRole.SUPPLIER, Set.of(SUBMITTED, IN_REVIEW), DECISIONS, Set.of(EXCHANGE)),

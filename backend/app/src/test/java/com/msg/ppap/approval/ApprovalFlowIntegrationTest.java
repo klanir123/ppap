@@ -19,7 +19,9 @@ import com.msg.ppap.approval.application.port.in.InboundMessage;
 import com.msg.ppap.approval.application.port.in.ReceiveDecisionUseCase;
 import com.msg.ppap.approval.application.port.in.ReceiveRequestUseCase;
 import com.msg.ppap.approval.application.port.in.ReceiveSubmissionUseCase;
+import com.msg.ppap.exchange.application.port.out.PartnerKeyStore;
 import com.msg.ppap.identity.PayloadSigner;
+import com.msg.ppap.identity.PublicKeys;
 import com.msg.ppap.semantics.api.DecisionMessage;
 import com.msg.ppap.semantics.api.EncodedPayload;
 import com.msg.ppap.semantics.api.ExchangeCodec;
@@ -79,6 +81,12 @@ class ApprovalFlowIntegrationTest extends AbstractIntegrationTest {
 
     @Autowired
     JdbcTemplate jdbc;
+
+    @Autowired
+    PublicKeys publicKeys;
+
+    @Autowired
+    PartnerKeyStore partnerKeys;
 
     ApprovalScenario s;
 
@@ -178,7 +186,12 @@ class ApprovalFlowIntegrationTest extends AbstractIntegrationTest {
                 List.of(),
                 Instant.now().truncatedTo(ChronoUnit.MILLIS),
                 "tier1.quality"));
-        String jws = signer.sign(submission.canonical()).jws();
+        var signature = signer.sign(submission.canonical());
+        String jws = signature.jws();
+        // the supplier's public key is known (in production fetched via EDC, asset ppap-public-keys)
+        @SuppressWarnings("unchecked")
+        var keys = (List<Map<String, Object>>) publicKeys.publicJwkSet().get("keys");
+        partnerKeys.save(s.supplierBpnl, signature.kid(), keys.getFirst(), Instant.now());
         var inbound = new InboundMessage(s.supplierBpnl, submission.canonical(), jws);
         assertThat(receiveSubmission.receiveSubmission(inbound).applied()).isTrue();
         assertThat(receiveSubmission.receiveSubmission(inbound).applied()).isFalse();

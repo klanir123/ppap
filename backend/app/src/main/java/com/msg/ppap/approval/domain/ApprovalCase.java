@@ -51,6 +51,7 @@ public final class ApprovalCase {
     private final Map<String, ElementFinding> reviewFindings;
     private final List<TimelineEntry> timeline;
     private final CaseMetadata metadata;
+    private Clarification clarification;
     private final List<CaseChange> changes = new ArrayList<>();
 
     private ApprovalCase(
@@ -132,6 +133,21 @@ public final class ApprovalCase {
     /** Supplier receives a request via the dataspace (source {@code EXCHANGE}). */
     public static ApprovalCase receiveRequest(
             String caseNumber, UUID exchangeId, CaseHeader header, ApprovalRequest request, Actor actor, Instant now) {
+        return receiveRequest(caseNumber, exchangeId, header, request, null, actor, now);
+    }
+
+    /**
+     * Supplier receives a request via the dataspace (source {@code EXCHANGE}); with a {@link Clarification} if the
+     * request cannot be processed as is (e.g. part not mapped, UC-04 A1).
+     */
+    public static ApprovalCase receiveRequest(
+            String caseNumber,
+            UUID exchangeId,
+            CaseHeader header,
+            ApprovalRequest request,
+            Clarification clarification,
+            Actor actor,
+            Instant now) {
         CaseStateMachine.checkCreate(CaseAction.RECEIVE_REQUEST, CaseRole.SUPPLIER, CaseSource.EXCHANGE, actor);
         requireElements(request.elements());
         var created = new ApprovalCase(
@@ -147,8 +163,41 @@ public final class ApprovalCase {
                 List.of(),
                 List.of(),
                 null);
+        created.clarification = clarification;
         created.record(CaseAction.RECEIVE_REQUEST, null, CaseStatus.REQUESTED, actor, now, null, null, null);
         return created;
+    }
+
+    /** Restores a persisted case with an open clarification without checks. */
+    public static ApprovalCase restore(
+            UUID id,
+            String caseNumber,
+            UUID exchangeId,
+            CaseRole ownRole,
+            CaseSource source,
+            CaseStatus status,
+            CaseHeader header,
+            ApprovalRequest request,
+            List<Submission> submissions,
+            Collection<ElementFinding> reviewFindings,
+            List<TimelineEntry> timeline,
+            CaseMetadata metadata,
+            Clarification clarification) {
+        ApprovalCase restored = restore(
+                id,
+                caseNumber,
+                exchangeId,
+                ownRole,
+                source,
+                status,
+                header,
+                request,
+                submissions,
+                reviewFindings,
+                timeline,
+                metadata);
+        restored.clarification = clarification;
+        return restored;
     }
 
     /** Restores a persisted (or seeded) case without checks. */
@@ -274,6 +323,11 @@ public final class ApprovalCase {
     /** Starts the work: REQUESTED → IN_PROGRESS with draft revision 1. */
     public void startWork(Actor actor, Instant now) {
         check(CaseAction.START_WORK, actor, CasePolicy.DEFAULT);
+        if (clarification != null) {
+            throw ApprovalErrors.unprocessable(
+                    ApprovalErrors.CLARIFICATION_PENDING,
+                    "The request needs clarification first (" + clarification.reason() + ")");
+        }
         int revision =
                 submissions.isEmpty() ? 1 : currentSubmission().orElseThrow().revision() + 1;
         submissions.add(Submission.draft(
@@ -424,7 +478,12 @@ public final class ApprovalCase {
 
     /** Customer starts the review: SUBMITTED → IN_REVIEW. Guard: payload hash and signature of the revision. */
     public void startReview(SealVerifier verifier, Actor actor, Instant now) {
-        check(CaseAction.START_REVIEW, actor, CasePolicy.DEFAULT);
+        startReview(verifier, CasePolicy.DEFAULT, actor, now);
+    }
+
+    /** Starts the review; technical clients only if the policy allows technical decisions. */
+    public void startReview(SealVerifier verifier, CasePolicy policy, Actor actor, Instant now) {
+        check(CaseAction.START_REVIEW, actor, policy);
         Submission current = currentSubmission().orElseThrow();
         Seal seal = current.seal();
         if (seal == null || !seal.hashValid()) {
@@ -541,13 +600,105 @@ public final class ApprovalCase {
         return true;
     }
 
+    /**
+     * Supplier: the customer withdrew the request. Idempotent (already cancelled = no effect).
+     *
+     * @return {@code false} if the case was already cancelled
+     */
+    public boolean receiveWithdrawal(String reason, Actor actor, Instant now) {
+        if (status == CaseStatus.CANCELLED) {
+            return false;
+        }
+        check(CaseAction.RECEIVE_WITHDRAWAL, actor, CasePolicy.DEFAULT);
+        transition(CaseAction.RECEIVE_WITHDRAWAL, CaseStatus.CANCELLED, actor, now, reason, null);
+        return true;
+    }
+
+    /**
+     * Status change of the partner's case: the customer learns that the supplier works on a revision ({@code
+     * IN_PROGRESS}), the supplier learns that the customer reviews ({@code IN_REVIEW}). Duplicates and updates that
+     * were overtaken by later messages (e.g. the submission arrived first) are ignored.
+     *
+     * @return {@code false} if the update had no effect (duplicate or stale)
+     */
+    public boolean receiveStatusUpdate(CaseStatus reported, int revision, Actor actor, Instant now) {
+        int current = currentSubmission().map(Submission::revision).orElse(0);
+        if (ownRole == CaseRole.CUSTOMER && reported == CaseStatus.IN_PROGRESS) {
+            if (status == CaseStatus.IN_PROGRESS || revision <= current) {
+                return false;
+            }
+        } else if (ownRole == CaseRole.SUPPLIER && reported == CaseStatus.IN_REVIEW) {
+            // overtaken: already in review, decided, or a newer revision is being prepared
+            if (status == CaseStatus.IN_REVIEW
+                    || status.isDecided()
+                    || status == CaseStatus.IN_PROGRESS
+                    || revision < current) {
+                return false;
+            }
+            if (revision != current) {
+                throw ApprovalErrors.unprocessable(
+                        ApprovalErrors.REVISION_CONFLICT,
+                        "Review of revision " + revision + " but current is " + current);
+            }
+        } else {
+            throw ApprovalErrors.invalidTransition(status, CaseAction.RECEIVE_STATUS_UPDATE);
+        }
+        check(CaseAction.RECEIVE_STATUS_UPDATE, actor, CasePolicy.DEFAULT);
+        transition(CaseAction.RECEIVE_STATUS_UPDATE, reported, actor, now, null, revision);
+        return true;
+    }
+
+    /**
+     * Supplier assigns the own part to a received request that needs clarification ({@code PART_NOT_MAPPED}); the
+     * clarification is removed.
+     */
+    public void assignPart(PartRef part, Actor actor, Instant now) {
+        check(CaseAction.ASSIGN_PART, actor, CasePolicy.DEFAULT);
+        if (clarification == null) {
+            throw ApprovalErrors.unprocessable(
+                    ApprovalErrors.NO_CLARIFICATION_PENDING, "Case " + caseNumber + " needs no clarification");
+        }
+        Objects.requireNonNull(part, "part");
+        header = new CaseHeader(
+                header.partner(),
+                header.relationId(),
+                part,
+                header.partnerPartNumber(),
+                header.reason(),
+                header.level(),
+                header.dueDate(),
+                header.remarks(),
+                header.externalReference());
+        clarification = null;
+        record(CaseAction.ASSIGN_PART, status, status, actor, now, null, null, null);
+    }
+
     // ---------------------------------------------------------------------------------------------------------
     // Queries
     // ---------------------------------------------------------------------------------------------------------
 
-    /** User actions the actor may perform now (computed from status, own role and user roles). */
+    /** User actions the actor may perform now (computed from status, own role, user roles and clarification). */
     public List<CaseAction> allowedActions(Actor actor, CasePolicy policy) {
-        return CaseStateMachine.allowedActions(ownRole, source, status, actor, policy);
+        return allowedActions(ownRole, source, status, clarification, actor, policy);
+    }
+
+    /** User actions for a case in the given state (also used for list read models). */
+    public static List<CaseAction> allowedActions(
+            CaseRole ownRole,
+            CaseSource source,
+            CaseStatus status,
+            Clarification clarification,
+            Actor actor,
+            CasePolicy policy) {
+        return CaseStateMachine.allowedActions(ownRole, source, status, actor, policy).stream()
+                .filter(action ->
+                        clarification == null ? action != CaseAction.ASSIGN_PART : action != CaseAction.START_WORK)
+                .toList();
+    }
+
+    /** Open clarification, {@code null} if none. */
+    public Clarification clarification() {
+        return clarification;
     }
 
     /** Whether the case is open and past its due date. */

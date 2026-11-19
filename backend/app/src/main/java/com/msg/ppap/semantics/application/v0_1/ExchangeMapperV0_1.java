@@ -1,10 +1,13 @@
 package com.msg.ppap.semantics.application.v0_1;
 
+import com.msg.ppap.semantics.api.CanonicalJson;
 import com.msg.ppap.semantics.api.DecisionMessage;
 import com.msg.ppap.semantics.api.DocumentReference;
 import com.msg.ppap.semantics.api.ExchangeModels;
 import com.msg.ppap.semantics.api.RequestMessage;
+import com.msg.ppap.semantics.api.StatusUpdateMessage;
 import com.msg.ppap.semantics.api.SubmissionMessage;
+import com.msg.ppap.semantics.api.WithdrawalMessage;
 import com.msg.ppap.semantics.application.ExchangeMapper;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -58,7 +61,7 @@ public class ExchangeMapperV0_1 implements ExchangeMapper {
                                                 e.snapshot().nameDe(),
                                                 e.snapshot().nameEn(),
                                                 e.snapshot().evidenceType(),
-                                                e.snapshot().valueSchema()))),
+                                                jsonText(e.snapshot().valueSchema())))),
                 map(m.attachments(), ExchangeMapperV0_1::document));
         return MAPPER.valueToTree(payload);
     }
@@ -91,7 +94,7 @@ public class ExchangeMapperV0_1 implements ExchangeMapper {
                                         e.snapshot().nameDe(),
                                         e.snapshot().nameEn(),
                                         e.snapshot().evidenceType(),
-                                        e.snapshot().valueSchema()))),
+                                        jsonObject(e.snapshot().valueSchema())))),
                 map(p.attachments(), ExchangeMapperV0_1::reference));
     }
 
@@ -114,7 +117,7 @@ public class ExchangeMapperV0_1 implements ExchangeMapper {
                                 e.code(),
                                 e.requirement(),
                                 e.selfAssessment(),
-                                e.values(),
+                                jsonText(e.values()),
                                 blankToNull(e.comment()),
                                 map(e.documents(), ExchangeMapperV0_1::document))),
                 map(
@@ -151,7 +154,7 @@ public class ExchangeMapperV0_1 implements ExchangeMapper {
                                 e.code(),
                                 e.requirement(),
                                 e.selfAssessment(),
-                                e.values(),
+                                jsonValue(e.values()),
                                 e.comment(),
                                 map(e.documents(), ExchangeMapperV0_1::reference))),
                 map(
@@ -199,6 +202,46 @@ public class ExchangeMapperV0_1 implements ExchangeMapper {
                 map(p.elementFindings(), f -> new DecisionMessage.Finding(f.code(), f.result(), f.comment())),
                 Instant.parse(p.decidedAt()),
                 p.decidedBy());
+    }
+
+    @Override
+    public JsonNode toPayload(StatusUpdateMessage m) {
+        return MAPPER.valueToTree(
+                new PayloadsV0_1.StatusUpdate(str(m.exchangeId()), m.status(), m.revision(), str(m.at()), m.by()));
+    }
+
+    @Override
+    public StatusUpdateMessage toStatusUpdate(JsonNode node) {
+        var p = MAPPER.treeToValue(node, PayloadsV0_1.StatusUpdate.class);
+        return new StatusUpdateMessage(
+                UUID.fromString(p.exchangeId()), p.status(), p.revision(), Instant.parse(p.at()), p.by());
+    }
+
+    @Override
+    public JsonNode toPayload(WithdrawalMessage m) {
+        return MAPPER.valueToTree(
+                new PayloadsV0_1.Withdrawal(str(m.exchangeId()), m.reason(), str(m.withdrawnAt()), m.withdrawnBy()));
+    }
+
+    @Override
+    public WithdrawalMessage toWithdrawal(JsonNode node) {
+        var p = MAPPER.treeToValue(node, PayloadsV0_1.Withdrawal.class);
+        return new WithdrawalMessage(
+                UUID.fromString(p.exchangeId()), p.reason(), Instant.parse(p.withdrawnAt()), p.withdrawnBy());
+    }
+
+    /** Canonical JSON text (RFC 8785) of a value tree, {@code null} for {@code null}. */
+    static String jsonText(Object value) {
+        return value == null ? null : CanonicalJson.write(value);
+    }
+
+    static Object jsonValue(String text) {
+        return text == null ? null : MAPPER.readValue(text, Object.class);
+    }
+
+    @SuppressWarnings("unchecked")
+    static java.util.Map<String, Object> jsonObject(String text) {
+        return text == null ? null : MAPPER.readValue(text, java.util.Map.class);
     }
 
     private static PayloadsV0_1.CatalogEntry entry(RequestMessage.CodeName codeName) {

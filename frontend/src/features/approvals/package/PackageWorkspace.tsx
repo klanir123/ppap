@@ -8,10 +8,11 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { useCurrentUser } from '@/features/auth/current-user'
+import { SubmissionDelivery, SubmissionDeliveryText } from '@/features/exchange/components/SubmissionDelivery'
 import { cn } from '@/lib/utils'
 
 import { useCase, useSubmission, type ApprovalCaseDetail, type Submission } from '../api'
-import { CaseStatusBadge, DueDate, HashText, SignatureBadge } from '../components/badges'
+import { CasePartText, CaseStatusBadge, DueDate, HashText, SignatureBadge } from '../components/badges'
 import { ElementStateIcon } from '../components/ElementStateIcon'
 import { localized } from '../components/format'
 import { availableWorkspace, permittedActions } from '../model/actions'
@@ -108,7 +109,7 @@ function Workspace({
             <CaseStatusBadge status={c.status} size="sm" />
             <span>{t('revisions.revisionTitle', { revision: draft.revision })}</span>
             <span>
-              <span className="font-mono">{c.part.partNumber}</span> · {c.partner.name ?? c.partner.bpnl}
+              <CasePartText approvalCase={c} layout="number" /> · {c.partner.name ?? c.partner.bpnl}
             </span>
             <DueDate dueDate={c.dueDate} overdue={c.overdue} status={c.status} />
           </div>
@@ -249,7 +250,7 @@ function SubmittedPanel({ approvalCase: c, submission }: { approvalCase: Approva
             <h1 className="text-xl font-semibold tracking-tight">
               {t('submit.successTitle', { revision: submission.revision })}
             </h1>
-            <p className="text-sm text-muted-foreground">{t('submit.successDescription')}</p>
+            <SubmissionDeliveryText approvalCase={c} />
           </div>
         </div>
         <dl className="grid gap-3 rounded-lg border p-4 text-sm">
@@ -264,6 +265,7 @@ function SubmittedPanel({ approvalCase: c, submission }: { approvalCase: Approva
             </dd>
           </div>
         </dl>
+        <SubmissionDelivery approvalCase={c} />
         <Button asChild>
           <Link
             to="/approvals/$caseId"

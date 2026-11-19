@@ -13,6 +13,7 @@ import com.msg.ppap.approval.domain.CaseRole;
 import com.msg.ppap.approval.domain.CaseSource;
 import com.msg.ppap.approval.domain.CaseStatus;
 import com.msg.ppap.approval.domain.CatalogRef;
+import com.msg.ppap.approval.domain.Clarification;
 import com.msg.ppap.approval.domain.Decision;
 import com.msg.ppap.approval.domain.DecisionResult;
 import com.msg.ppap.approval.domain.PartRef;
@@ -177,6 +178,7 @@ class JpaApprovalCaseRepository implements ApprovalCaseRepository {
                         OPEN,
                         query.today(),
                         like(query.text()),
+                        query.needsClarification(),
                         pageable)
                 .map(JpaApprovalCaseRepository::summary);
     }
@@ -239,7 +241,11 @@ class JpaApprovalCaseRepository implements ApprovalCaseRepository {
                 leadTime == null ? null : Math.round(leadTime * 10) / 10.0,
                 approvalRate,
                 byStatus,
-                byPartner);
+                byPartner,
+                jdbc.queryForObject(
+                        "select count(*) from ap_case where tenant_id = :tenant and clarification_reason is not null",
+                        params,
+                        Long.class));
     }
 
     @Override
@@ -291,6 +297,10 @@ class JpaApprovalCaseRepository implements ApprovalCaseRepository {
         e.partNameDe = h.part().nameDe();
         e.partNameEn = h.part().nameEn();
         e.partnerPartNumber = h.partnerPartNumber();
+        Clarification clarification = c.clarification();
+        e.clarificationReason =
+                clarification == null ? null : clarification.reason().name();
+        e.clarificationPartnerPartNumber = clarification == null ? null : clarification.partnerPartNumber();
         e.reasonCode = h.reason().code();
         e.reasonNameDe = h.reason().nameDe();
         e.reasonNameEn = h.reason().nameEn();
@@ -433,7 +443,15 @@ class JpaApprovalCaseRepository implements ApprovalCaseRepository {
                 revisions,
                 ApprovalJson.findings(e.reviewFindings),
                 entries,
-                new CaseMetadata(e.version, e.createdAt, e.createdBy, e.updatedAt, e.updatedBy));
+                new CaseMetadata(e.version, e.createdAt, e.createdBy, e.updatedAt, e.updatedBy),
+                clarification(e));
+    }
+
+    private static Clarification clarification(ApCaseEntity e) {
+        return e.clarificationReason == null
+                ? null
+                : new Clarification(
+                        Clarification.Reason.valueOf(e.clarificationReason), e.clarificationPartnerPartNumber);
     }
 
     private static CaseHeader header(ApCaseEntity e) {
@@ -473,7 +491,8 @@ class JpaApprovalCaseRepository implements ApprovalCaseRepository {
                 e.lastDecision == null ? null : DecisionResult.valueOf(e.lastDecision),
                 e.version,
                 e.createdAt,
-                e.updatedAt);
+                e.updatedAt,
+                clarification(e));
     }
 
     private static SignatureInfo signature(String alg, String kid, String jws, String status) {

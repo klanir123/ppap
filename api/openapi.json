@@ -56,6 +56,13 @@
           }
         }, {
           "in" : "query",
+          "name" : "needsClarification",
+          "required" : false,
+          "schema" : {
+            "type" : "boolean"
+          }
+        }, {
+          "in" : "query",
           "name" : "page",
           "required" : false,
           "schema" : {
@@ -471,6 +478,121 @@
         "tags" : [ "approval-cases" ]
       }
     },
+    "/api/v1/approval-cases/{id}/assign-part" : {
+      "post" : {
+        "operationId" : "assignPart",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "header",
+          "name" : "If-Match",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/AssignPartRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApprovalCaseDetailDto"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "400" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Invalid request (code VALIDATION_FAILED with errors, MALFORMED_REQUEST, …)"
+          },
+          "401" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Not authenticated"
+          },
+          "403" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Missing role (code FORBIDDEN)"
+          },
+          "404" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Not found (code NOT_FOUND)"
+          },
+          "409" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Conflict (code DUPLICATE_KEY or REFERENCED)"
+          },
+          "412" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "If-Match does not match the current version (code VERSION_CONFLICT)"
+          },
+          "422" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Business rule violated (e.g. INCOMPLETE_SUBMISSION, REJECTION_REASON_REQUIRED, PARTNER_NOT_EXCHANGE_READY)"
+          }
+        },
+        "summary" : "Assign the own part to a received request that needs clarification (UC-04 A1), optionally saving the part mapping (If-Match)",
+        "tags" : [ "approval-cases" ]
+      }
+    },
     "/api/v1/approval-cases/{id}/cancel" : {
       "post" : {
         "operationId" : "cancelApprovalCase",
@@ -698,6 +820,67 @@
           }
         },
         "summary" : "Decide (IN_REVIEW → APPROVED | CONDITIONALLY_APPROVED | REJECTED); signed, immutable; 401 RECENT_AUTH_REQUIRED if a fresh login is required",
+        "tags" : [ "approval-cases" ]
+      }
+    },
+    "/api/v1/approval-cases/{id}/exchange" : {
+      "get" : {
+        "operationId" : "getApprovalCaseExchange",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/ExchangeRecordDto"
+                  }
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "400" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Invalid request (code VALIDATION_FAILED with errors, MALFORMED_REQUEST, …)"
+          },
+          "401" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Not authenticated"
+          },
+          "404" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Not found (code NOT_FOUND)"
+          }
+        },
+        "summary" : "Messages exchanged with the partner for a case, with steps (newest first)",
         "tags" : [ "approval-cases" ]
       }
     },
@@ -4473,6 +4656,301 @@
         "tags" : [ "documents" ]
       }
     },
+    "/api/v1/events" : {
+      "get" : {
+        "operationId" : "streamEvents",
+        "responses" : {
+          "200" : {
+            "content" : {
+              "text/event-stream" : {
+                "schema" : {
+                  "type" : "string"
+                }
+              }
+            },
+            "description" : "Event stream: case.changed, exchange.changed, heartbeat"
+          },
+          "401" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Not authenticated"
+          }
+        },
+        "summary" : "Live updates of cases and exchange (Server-Sent Events)",
+        "tags" : [ "events" ]
+      }
+    },
+    "/api/v1/exchange/messages" : {
+      "get" : {
+        "operationId" : "listExchangeMessages",
+        "parameters" : [ {
+          "in" : "query",
+          "name" : "direction",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "enum" : [ "OUTBOUND", "INBOUND" ]
+          }
+        }, {
+          "in" : "query",
+          "name" : "status",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "enum" : [ "PENDING", "IN_PROGRESS", "DELIVERED", "FAILED", "RECEIVED", "PROCESSED", "REJECTED" ]
+          }
+        }, {
+          "in" : "query",
+          "name" : "partnerBpnl",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "in" : "query",
+          "name" : "page",
+          "required" : false,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32",
+            "default" : 0
+          }
+        }, {
+          "in" : "query",
+          "name" : "size",
+          "required" : false,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32",
+            "default" : 25
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ExchangeMessagePage"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "400" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Invalid request (code VALIDATION_FAILED with errors, MALFORMED_REQUEST, …)"
+          },
+          "401" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Not authenticated"
+          },
+          "403" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Missing role (code FORBIDDEN)"
+          }
+        },
+        "summary" : "Search exchanged messages (without payload)",
+        "tags" : [ "exchange" ]
+      }
+    },
+    "/api/v1/exchange/messages/{id}" : {
+      "get" : {
+        "operationId" : "getExchangeMessage",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ExchangeMessageDetailDto"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "400" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Invalid request (code VALIDATION_FAILED with errors, MALFORMED_REQUEST, …)"
+          },
+          "401" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Not authenticated"
+          },
+          "403" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Missing role (code FORBIDDEN)"
+          },
+          "404" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Not found (code NOT_FOUND)"
+          }
+        },
+        "summary" : "Exchanged message with envelope (diagnosis)",
+        "tags" : [ "exchange" ]
+      }
+    },
+    "/api/v1/exchange/messages/{id}/retry" : {
+      "post" : {
+        "operationId" : "retryExchangeMessage",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ExchangeRecordDto"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "400" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Invalid request (code VALIDATION_FAILED with errors, MALFORMED_REQUEST, …)"
+          },
+          "401" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Not authenticated"
+          },
+          "403" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Missing role (code FORBIDDEN)"
+          },
+          "404" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Not found (code NOT_FOUND)"
+          }
+        },
+        "summary" : "Retry a failed delivery (outbound FAILED) or reprocess a rejected message (inbound REJECTED)",
+        "tags" : [ "exchange" ]
+      }
+    },
+    "/api/v1/exchange/status" : {
+      "get" : {
+        "operationId" : "getExchangeStatus",
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ExchangeStatusDto"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "401" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Not authenticated"
+          },
+          "403" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Missing role (code FORBIDDEN)"
+          }
+        },
+        "summary" : "EDC, provisioning, outbox and inbox status",
+        "tags" : [ "exchange" ]
+      }
+    },
     "/api/v1/form-templates" : {
       "get" : {
         "operationId" : "listFormTemplates",
@@ -7478,11 +7956,15 @@
             "description" : "Actions the current user may perform",
             "items" : {
               "type" : "string",
-              "enum" : [ "CREATE", "CAPTURE_MANUAL", "RECEIVE_REQUEST", "EDIT", "SEND", "CANCEL", "START_WORK", "EDIT_SUBMISSION", "SUBMIT", "RECEIVE_SUBMISSION", "START_REVIEW", "REVIEW", "DECIDE", "RECEIVE_DECISION", "NEW_REVISION" ]
+              "enum" : [ "CREATE", "CAPTURE_MANUAL", "RECEIVE_REQUEST", "ASSIGN_PART", "EDIT", "SEND", "CANCEL", "RECEIVE_WITHDRAWAL", "START_WORK", "EDIT_SUBMISSION", "SUBMIT", "RECEIVE_SUBMISSION", "RECEIVE_STATUS_UPDATE", "START_REVIEW", "REVIEW", "DECIDE", "RECEIVE_DECISION", "NEW_REVISION" ]
             }
           },
           "caseNumber" : {
             "type" : "string"
+          },
+          "clarification" : {
+            "$ref" : "#/components/schemas/ClarificationDto",
+            "description" : "Open clarification (UC-04 A1), null if none"
           },
           "createdAt" : {
             "type" : "string",
@@ -7523,6 +8005,10 @@
             "$ref" : "#/components/schemas/DecisionDto",
             "description" : "Latest decision (full)"
           },
+          "lastOutbound" : {
+            "$ref" : "#/components/schemas/LastOutboundDto",
+            "description" : "Latest message sent to the partner, null if none"
+          },
           "level" : {
             "$ref" : "#/components/schemas/CatalogRefDto"
           },
@@ -7534,7 +8020,8 @@
             "enum" : [ "CUSTOMER", "SUPPLIER" ]
           },
           "part" : {
-            "$ref" : "#/components/schemas/CasePartDto"
+            "$ref" : "#/components/schemas/CasePartDto",
+            "description" : "Own part; null while the part of a received request is not mapped (clarification)"
           },
           "partner" : {
             "$ref" : "#/components/schemas/CasePartnerDto"
@@ -7602,7 +8089,7 @@
             "format" : "int64"
           }
         },
-        "required" : [ "allowedActions", "caseNumber", "dueDate", "exchangeId", "id", "level", "overdue", "ownRole", "part", "partner", "reason", "request", "reviewFindings", "source", "status", "submissions", "timeline", "version" ]
+        "required" : [ "allowedActions", "caseNumber", "dueDate", "exchangeId", "id", "level", "overdue", "ownRole", "partner", "reason", "request", "reviewFindings", "source", "status", "submissions", "timeline", "version" ]
       },
       "ApprovalCaseDto" : {
         "type" : "object",
@@ -7612,11 +8099,15 @@
             "description" : "Actions the current user may perform",
             "items" : {
               "type" : "string",
-              "enum" : [ "CREATE", "CAPTURE_MANUAL", "RECEIVE_REQUEST", "EDIT", "SEND", "CANCEL", "START_WORK", "EDIT_SUBMISSION", "SUBMIT", "RECEIVE_SUBMISSION", "START_REVIEW", "REVIEW", "DECIDE", "RECEIVE_DECISION", "NEW_REVISION" ]
+              "enum" : [ "CREATE", "CAPTURE_MANUAL", "RECEIVE_REQUEST", "ASSIGN_PART", "EDIT", "SEND", "CANCEL", "RECEIVE_WITHDRAWAL", "START_WORK", "EDIT_SUBMISSION", "SUBMIT", "RECEIVE_SUBMISSION", "RECEIVE_STATUS_UPDATE", "START_REVIEW", "REVIEW", "DECIDE", "RECEIVE_DECISION", "NEW_REVISION" ]
             }
           },
           "caseNumber" : {
             "type" : "string"
+          },
+          "clarification" : {
+            "$ref" : "#/components/schemas/ClarificationDto",
+            "description" : "Open clarification (UC-04 A1), null if none"
           },
           "createdAt" : {
             "type" : "string",
@@ -7653,6 +8144,10 @@
             "type" : "string",
             "enum" : [ "APPROVED", "CONDITIONALLY_APPROVED", "REJECTED" ]
           },
+          "lastOutbound" : {
+            "$ref" : "#/components/schemas/LastOutboundDto",
+            "description" : "Latest message sent to the partner, null if none"
+          },
           "level" : {
             "$ref" : "#/components/schemas/CatalogRefDto"
           },
@@ -7664,7 +8159,8 @@
             "enum" : [ "CUSTOMER", "SUPPLIER" ]
           },
           "part" : {
-            "$ref" : "#/components/schemas/CasePartDto"
+            "$ref" : "#/components/schemas/CasePartDto",
+            "description" : "Own part; null while the part of a received request is not mapped (clarification)"
           },
           "partner" : {
             "$ref" : "#/components/schemas/CasePartnerDto"
@@ -7710,7 +8206,7 @@
             "format" : "int64"
           }
         },
-        "required" : [ "allowedActions", "caseNumber", "dueDate", "exchangeId", "id", "level", "overdue", "ownRole", "part", "partner", "reason", "source", "status", "version" ]
+        "required" : [ "allowedActions", "caseNumber", "dueDate", "exchangeId", "id", "level", "overdue", "ownRole", "partner", "reason", "source", "status", "version" ]
       },
       "ApprovalCasePage" : {
         "type" : "object",
@@ -7739,6 +8235,20 @@
           }
         },
         "required" : [ "content", "page", "size", "totalElements", "totalPages" ]
+      },
+      "AssignPartRequest" : {
+        "type" : "object",
+        "properties" : {
+          "partId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "saveMapping" : {
+            "type" : "boolean",
+            "description" : "Also create the part mapping for future requests (default true)"
+          }
+        },
+        "required" : [ "partId" ]
       },
       "AuditEventDto" : {
         "type" : "object",
@@ -7911,6 +8421,11 @@
             "type" : "integer",
             "format" : "int64"
           },
+          "needsClarification" : {
+            "type" : "integer",
+            "format" : "int64",
+            "description" : "Received requests to clarify (UC-04 A1)"
+          },
           "open" : {
             "type" : "integer",
             "format" : "int64"
@@ -7920,7 +8435,7 @@
             "format" : "int64"
           }
         },
-        "required" : [ "approvedLast30Days", "byPartner", "byStatus", "inReview", "open", "overdue" ]
+        "required" : [ "approvedLast30Days", "byPartner", "byStatus", "inReview", "needsClarification", "open", "overdue" ]
       },
       "CatalogElementDto" : {
         "type" : "object",
@@ -8062,6 +8577,20 @@
           }
         },
         "required" : [ "code", "nameDe", "nameEn" ]
+      },
+      "ClarificationDto" : {
+        "type" : "object",
+        "properties" : {
+          "partnerPartNumber" : {
+            "type" : "string",
+            "description" : "Customer part number that could not be mapped"
+          },
+          "reason" : {
+            "type" : "string",
+            "enum" : [ "PART_NOT_MAPPED" ]
+          }
+        },
+        "required" : [ "reason" ]
       },
       "CompletenessDto" : {
         "type" : "object",
@@ -8422,6 +8951,181 @@
           }
         },
         "required" : [ "evidenceType", "nameDe", "nameEn" ]
+      },
+      "ExchangeMessageDetailDto" : {
+        "type" : "object",
+        "properties" : {
+          "edcBpn" : {
+            "type" : "string",
+            "description" : "Consumer BPN forwarded by the own data plane (Edc-Bpn), inbound only"
+          },
+          "payload" : {
+            "description" : "PpapNotification envelope as sent/received (JSON), or the raw text if invalid"
+          },
+          "record" : {
+            "$ref" : "#/components/schemas/ExchangeRecordDto"
+          }
+        },
+        "required" : [ "record" ]
+      },
+      "ExchangeMessagePage" : {
+        "type" : "object",
+        "properties" : {
+          "content" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/ExchangeRecordDto"
+            }
+          },
+          "page" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "size" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "totalElements" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "totalPages" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        },
+        "required" : [ "content", "page", "size", "totalElements", "totalPages" ]
+      },
+      "ExchangeRecordDto" : {
+        "type" : "object",
+        "properties" : {
+          "attempts" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "caseId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "caseNumber" : {
+            "type" : "string"
+          },
+          "completedAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "correlationId" : {
+            "type" : "string"
+          },
+          "createdAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "direction" : {
+            "type" : "string",
+            "enum" : [ "OUTBOUND", "INBOUND" ]
+          },
+          "errorCode" : {
+            "type" : "string",
+            "description" : "Rejection or error code, e.g. REJECTED_UNKNOWN_PARTNER, EDC_CATALOG"
+          },
+          "exchangeId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "id" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "lastError" : {
+            "type" : "string"
+          },
+          "messageId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "messageType" : {
+            "type" : "string"
+          },
+          "nextAttemptAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "partner" : {
+            "$ref" : "#/components/schemas/PartnerRefDto"
+          },
+          "payloadHash" : {
+            "type" : "string"
+          },
+          "retryable" : {
+            "type" : "boolean"
+          },
+          "status" : {
+            "type" : "string",
+            "enum" : [ "PENDING", "IN_PROGRESS", "DELIVERED", "FAILED", "RECEIVED", "PROCESSED", "REJECTED" ]
+          },
+          "steps" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/ExchangeStepDto"
+            }
+          }
+        },
+        "required" : [ "attempts", "createdAt", "direction", "id", "messageId", "messageType", "partner", "retryable", "status", "steps" ]
+      },
+      "ExchangeStatusDto" : {
+        "type" : "object",
+        "properties" : {
+          "edc" : {
+            "type" : "string",
+            "enum" : [ "UP", "DOWN" ]
+          },
+          "edcError" : {
+            "type" : "string"
+          },
+          "inbox" : {
+            "$ref" : "#/components/schemas/InboxDto"
+          },
+          "outbox" : {
+            "$ref" : "#/components/schemas/OutboxDto"
+          },
+          "provisioning" : {
+            "$ref" : "#/components/schemas/ProvisioningDto"
+          }
+        },
+        "required" : [ "edc", "inbox", "outbox", "provisioning" ]
+      },
+      "ExchangeStepDto" : {
+        "type" : "object",
+        "properties" : {
+          "at" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "attempt" : {
+            "type" : "integer",
+            "format" : "int32",
+            "description" : "Delivery attempt / processing run"
+          },
+          "details" : {
+            "type" : "object",
+            "additionalProperties" : { },
+            "description" : "assetId, offerId, negotiationId, agreementId, transferProcessId, httpStatus, cachedEdr, error …"
+          },
+          "durationMs" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "status" : {
+            "type" : "string",
+            "enum" : [ "OK", "FAILED", "SKIPPED" ]
+          },
+          "step" : {
+            "type" : "string",
+            "enum" : [ "CATALOG", "NEGOTIATION", "TRANSFER", "EDR", "DELIVERY", "RECEIPT", "VALIDATION", "PROCESSING", "KEY_FETCH" ]
+          }
+        },
+        "required" : [ "at", "attempt", "details", "durationMs", "status", "step" ]
       },
       "FieldError" : {
         "type" : "object",
@@ -8828,6 +9532,16 @@
         },
         "required" : [ "labelKey", "name", "required" ]
       },
+      "InboxDto" : {
+        "type" : "object",
+        "properties" : {
+          "rejected" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        },
+        "required" : [ "rejected" ]
+      },
       "IssueDto" : {
         "type" : "object",
         "properties" : {
@@ -8844,6 +9558,24 @@
           }
         },
         "required" : [ "code", "message" ]
+      },
+      "LastOutboundDto" : {
+        "type" : "object",
+        "properties" : {
+          "at" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "messageType" : {
+            "type" : "string",
+            "description" : "e.g. PPAP_SUBMISSION"
+          },
+          "status" : {
+            "type" : "string",
+            "description" : "PENDING, IN_PROGRESS, DELIVERED or FAILED"
+          }
+        },
+        "required" : [ "at", "messageType", "status" ]
       },
       "ManualApprovalCaseRequest" : {
         "type" : "object",
@@ -8924,6 +9656,20 @@
           }
         },
         "required" : [ "authority", "clientId" ]
+      },
+      "OutboxDto" : {
+        "type" : "object",
+        "properties" : {
+          "failed" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "pending" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        },
+        "required" : [ "failed", "pending" ]
       },
       "PartDto" : {
         "type" : "object",
@@ -9308,6 +10054,18 @@
         },
         "required" : [ "content", "page", "size", "totalElements", "totalPages" ]
       },
+      "PartnerRefDto" : {
+        "type" : "object",
+        "properties" : {
+          "bpnl" : {
+            "type" : "string"
+          },
+          "name" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "bpnl" ]
+      },
       "PartnerRequest" : {
         "type" : "object",
         "properties" : {
@@ -9398,6 +10156,35 @@
           }
         },
         "required" : [ "code", "status" ]
+      },
+      "ProvisioningDto" : {
+        "type" : "object",
+        "properties" : {
+          "assets" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string"
+            }
+          },
+          "error" : {
+            "type" : "string"
+          },
+          "lastRun" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "ok" : {
+            "type" : "boolean"
+          },
+          "partners" : {
+            "type" : "array",
+            "description" : "BPNLs in the access group",
+            "items" : {
+              "type" : "string"
+            }
+          }
+        },
+        "required" : [ "assets", "ok", "partners" ]
       },
       "RelationDto" : {
         "type" : "object",
@@ -9950,7 +10737,7 @@
         "properties" : {
           "action" : {
             "type" : "string",
-            "enum" : [ "CREATE", "CAPTURE_MANUAL", "RECEIVE_REQUEST", "EDIT", "SEND", "CANCEL", "START_WORK", "EDIT_SUBMISSION", "SUBMIT", "RECEIVE_SUBMISSION", "START_REVIEW", "REVIEW", "DECIDE", "RECEIVE_DECISION", "NEW_REVISION" ]
+            "enum" : [ "CREATE", "CAPTURE_MANUAL", "RECEIVE_REQUEST", "ASSIGN_PART", "EDIT", "SEND", "CANCEL", "RECEIVE_WITHDRAWAL", "START_WORK", "EDIT_SUBMISSION", "SUBMIT", "RECEIVE_SUBMISSION", "RECEIVE_STATUS_UPDATE", "START_REVIEW", "REVIEW", "DECIDE", "RECEIVE_DECISION", "NEW_REVISION" ]
           },
           "actor" : {
             "type" : "string"

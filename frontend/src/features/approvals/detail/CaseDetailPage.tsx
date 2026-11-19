@@ -1,5 +1,5 @@
 import { getRouteApi, Link } from '@tanstack/react-router'
-import { ArrowLeft, Cable, FileX2, Gavel, History, SearchX } from 'lucide-react'
+import { ArrowLeft, FileX2, Gavel, History, SearchX } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
 import { EmptyState } from '@/components/EmptyState'
@@ -7,6 +7,8 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { ClarificationBanner } from '@/features/exchange/clarification/ClarificationBanner'
+import { ExchangeTab } from '@/features/exchange/components/ExchangeTab'
 import { AuditTrail } from '@/features/masterdata/shared/AuditTrail'
 import { cn } from '@/lib/utils'
 
@@ -58,6 +60,7 @@ export function CaseDetailPage() {
           {t('list.title')}
         </Link>
       </Button>
+      <ClarificationBanner approvalCase={c} />
       <CaseHeader approvalCase={c} />
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_20rem]">
@@ -99,16 +102,7 @@ export function CaseDetailPage() {
             <DecisionTab approvalCase={c} />
           </TabsContent>
           <TabsContent value="exchange" className="pt-2">
-            <EmptyState
-              icon={Cable}
-              title={t('exchange.title')}
-              description={t('exchange.description')}
-              action={
-                <p className="font-mono text-[11px] text-muted-foreground">
-                  {t('exchange.exchangeId', { id: c.exchangeId })}
-                </p>
-              }
-            />
+            <ExchangeTab approvalCase={c} />
           </TabsContent>
           <TabsContent value="audit" className="pt-2">
             <Card>

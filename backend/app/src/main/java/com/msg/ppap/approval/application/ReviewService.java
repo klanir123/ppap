@@ -40,7 +40,9 @@ public class ReviewService {
     public CaseView startReview(UUID caseId, Long expectedVersion) {
         Actor actor = context.actor();
         ApprovalCase c = loadChecked(caseId, expectedVersion);
-        c.startReview(sealing::verify, actor, context.now());
+        // the revision was signed by the supplier (partner) – verify against the partner's keys
+        String signer = c.header().partner().bpnl();
+        c.startReview(seal -> sealing.verify(seal, signer), context.policy(), actor, context.now());
         return cases.view(context.save(c), actor);
     }
 

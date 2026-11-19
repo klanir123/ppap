@@ -18,6 +18,7 @@ import {
   BOARD_PAGE_SIZE,
   DEFAULT_SORT,
   hasFilters,
+  RESET_FILTERS,
   toCaseListParams,
   type ApprovalsSearch,
   type ApprovalView,
@@ -123,16 +124,7 @@ export function ApprovalsPage() {
           activeFilter={false}
           filters={<ApprovalFilters search={search} onChange={update} />}
           filtered={filtered}
-          onResetFilters={() =>
-            update({
-              q: undefined,
-              status: undefined,
-              role: undefined,
-              partner: undefined,
-              overdue: undefined,
-              page: undefined,
-            })
-          }
+          onResetFilters={() => update(RESET_FILTERS)}
           toolbar={viewToggle}
           isLoading={query.isPending}
           isFetching={query.isFetching}

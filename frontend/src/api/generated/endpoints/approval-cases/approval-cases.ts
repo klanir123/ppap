@@ -25,6 +25,8 @@ import type {
   AddRequestAttachmentHeaders,
   ApprovalCaseDetailDto,
   ApprovalCasePage,
+  AssignPartHeaders,
+  AssignPartRequest,
   CancelApprovalCaseHeaders,
   CancelCaseRequest,
   CaseStatsDto,
@@ -34,6 +36,7 @@ import type {
   DecisionRequest,
   DocumentReferenceRequest,
   ElementFindingRequest,
+  ExchangeRecordDto,
   ListApprovalCasesParams,
   ManualApprovalCaseRequest,
   ProblemDetail,
@@ -707,6 +710,64 @@ export const useUpdateApprovalCase = <TError = ErrorType<ProblemDetail>, TContex
 > => {
   return useMutation(getUpdateApprovalCaseMutationOptions(options), queryClient)
 }
+export const getAssignPartUrl = (id: string) => {
+  return `/api/v1/approval-cases/${id}/assign-part`
+}
+
+/**
+ * @summary Assign the own part to a received request that needs clarification (UC-04 A1), optionally saving the part mapping (If-Match)
+ */
+export const assignPart = async (
+  id: string,
+  assignPartRequest: AssignPartRequest,
+  headers?: AssignPartHeaders,
+  options?: Parameters<typeof apiFetch>[1],
+): Promise<ApprovalCaseDetailDto> => {
+  return apiFetch<ApprovalCaseDetailDto>(getAssignPartUrl(id), {
+    ...options,
+    method: 'POST',
+    headers: getHeaders({ 'Content-Type': 'application/json' }, headers, options?.headers),
+    body: JSON.stringify(assignPartRequest),
+  })
+}
+
+export const getAssignPartMutationKey = () => ['assignPart'] as const
+
+export const getAssignPartMutationOptions = <TError = ErrorType<ProblemDetail>, TContext = unknown>(options?: {
+  mutation?: UseMutationOptions<Awaited<ReturnType<typeof assignPart>>, TError, AssignPartMutationVariables, TContext>
+  request?: SecondParameter<typeof apiFetch>
+}): UseMutationOptions<Awaited<ReturnType<typeof assignPart>>, TError, AssignPartMutationVariables, TContext> => {
+  const mutationKey = getAssignPartMutationKey()
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined }
+
+  const mutationFn: MutationFunction<Awaited<ReturnType<typeof assignPart>>, AssignPartMutationVariables> = (props) => {
+    const { id, data, headers } = props ?? {}
+
+    return assignPart(id, data, headers, requestOptions)
+  }
+
+  return { mutationFn, ...mutationOptions }
+}
+
+export type AssignPartMutationResult = NonNullable<Awaited<ReturnType<typeof assignPart>>>
+export type AssignPartMutationBody = AssignPartRequest
+export type AssignPartMutationError = ErrorType<ProblemDetail>
+export type AssignPartMutationVariables = { id: string; data: AssignPartRequest; headers?: AssignPartHeaders }
+
+/** @summary Assign the own part to a received request that needs clarification (UC-04 A1), optionally saving the part mapping (If-Match) */
+export const useAssignPart = <TError = ErrorType<ProblemDetail>, TContext = unknown>(
+  options?: {
+    mutation?: UseMutationOptions<Awaited<ReturnType<typeof assignPart>>, TError, AssignPartMutationVariables, TContext>
+    request?: SecondParameter<typeof apiFetch>
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<Awaited<ReturnType<typeof assignPart>>, TError, AssignPartMutationVariables, TContext> => {
+  return useMutation(getAssignPartMutationOptions(options), queryClient)
+}
 export const getCancelApprovalCaseUrl = (id: string) => {
   return `/api/v1/approval-cases/${id}/cancel`
 }
@@ -877,6 +938,127 @@ export const useDecideApprovalCase = <TError = ErrorType<ProblemDetail>, TContex
 > => {
   return useMutation(getDecideApprovalCaseMutationOptions(options), queryClient)
 }
+export const getGetApprovalCaseExchangeUrl = (id: string) => {
+  return `/api/v1/approval-cases/${id}/exchange`
+}
+
+/**
+ * @summary Messages exchanged with the partner for a case, with steps (newest first)
+ */
+export const getApprovalCaseExchange = async (
+  id: string,
+  options?: Parameters<typeof apiFetch>[1],
+): Promise<ExchangeRecordDto[]> => {
+  return apiFetch<ExchangeRecordDto[]>(getGetApprovalCaseExchangeUrl(id), {
+    ...options,
+    method: 'GET',
+  })
+}
+
+export const getGetApprovalCaseExchangeQueryKey = (id: string) => {
+  return [`/api/v1/approval-cases/${id}/exchange`] as const
+}
+
+export const getGetApprovalCaseExchangeQueryOptions = <
+  TData = Awaited<ReturnType<typeof getApprovalCaseExchange>>,
+  TError = ErrorType<ProblemDetail>,
+>(
+  id: string,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getApprovalCaseExchange>>, TError, TData>>
+    request?: SecondParameter<typeof apiFetch>
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {}
+
+  const queryKey = queryOptions?.queryKey ?? getGetApprovalCaseExchangeQueryKey(id)
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getApprovalCaseExchange>>> = ({ signal }) =>
+    getApprovalCaseExchange(id, { signal, ...requestOptions })
+
+  return { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getApprovalCaseExchange>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetApprovalCaseExchangeQueryResult = NonNullable<Awaited<ReturnType<typeof getApprovalCaseExchange>>>
+export type GetApprovalCaseExchangeQueryError = ErrorType<ProblemDetail>
+
+/** @summary Messages exchanged with the partner for a case, with steps (newest first) */
+export function useGetApprovalCaseExchange<
+  TData = Awaited<ReturnType<typeof getApprovalCaseExchange>>,
+  TError = ErrorType<ProblemDetail>,
+>(
+  id: string,
+  options: {
+    query: Partial<UseQueryOptions<Awaited<ReturnType<typeof getApprovalCaseExchange>>, TError, TData>> &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getApprovalCaseExchange>>,
+          TError,
+          Awaited<ReturnType<typeof getApprovalCaseExchange>>
+        >,
+        'initialData'
+      >
+    request?: SecondParameter<typeof apiFetch>
+  },
+  queryClient?: QueryClient,
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/** @summary Messages exchanged with the partner for a case, with steps (newest first) */
+export function useGetApprovalCaseExchange<
+  TData = Awaited<ReturnType<typeof getApprovalCaseExchange>>,
+  TError = ErrorType<ProblemDetail>,
+>(
+  id: string,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getApprovalCaseExchange>>, TError, TData>> &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getApprovalCaseExchange>>,
+          TError,
+          Awaited<ReturnType<typeof getApprovalCaseExchange>>
+        >,
+        'initialData'
+      >
+    request?: SecondParameter<typeof apiFetch>
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/** @summary Messages exchanged with the partner for a case, with steps (newest first) */
+export function useGetApprovalCaseExchange<
+  TData = Awaited<ReturnType<typeof getApprovalCaseExchange>>,
+  TError = ErrorType<ProblemDetail>,
+>(
+  id: string,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getApprovalCaseExchange>>, TError, TData>>
+    request?: SecondParameter<typeof apiFetch>
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/** @summary Messages exchanged with the partner for a case, with steps (newest first) */
+export function useGetApprovalCaseExchange<
+  TData = Awaited<ReturnType<typeof getApprovalCaseExchange>>,
+  TError = ErrorType<ProblemDetail>,
+>(
+  id: string,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getApprovalCaseExchange>>, TError, TData>>
+    request?: SecondParameter<typeof apiFetch>
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+  const queryOptions = getGetApprovalCaseExchangeQueryOptions(id, options)
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
+    queryKey: DataTag<QueryKey, TData, TError>
+  }
+
+  return withQueryKey(query, queryOptions.queryKey)
+}
+
 export const getAddRequestAttachmentUrl = (id: string) => {
   return `/api/v1/approval-cases/${id}/request/attachments`
 }

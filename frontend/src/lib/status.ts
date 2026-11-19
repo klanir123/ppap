@@ -45,3 +45,19 @@ export type Assessment = (typeof ASSESSMENTS)[number]
 /** Customer review finding per element. */
 export const FINDINGS = ['ACCEPTED', 'NOT_ACCEPTED', 'ACCEPTED_WITH_CONDITION'] as const
 export type Finding = (typeof FINDINGS)[number]
+
+/** Exchange message status (EDC outbox/inbox), API values. */
+export const EXCHANGE_STATES = [
+  'PENDING',
+  'IN_PROGRESS',
+  'DELIVERED',
+  'FAILED',
+  'RECEIVED',
+  'PROCESSED',
+  'REJECTED',
+] as const
+export type ExchangeState = (typeof EXCHANGE_STATES)[number]
+
+/** State of one exchange step (catalog, negotiation, …); PENDING/NOT_REACHED for steps without a record. */
+export const STEP_STATES = ['OK', 'FAILED', 'SKIPPED', 'PENDING', 'NOT_REACHED'] as const
+export type StepStateValue = (typeof STEP_STATES)[number]

@@ -527,7 +527,7 @@ export function SummaryStep({
           </span>
         </SummaryRow>
       </dl>
-      <p className="text-xs text-muted-foreground">{t('wizard.summary.phaseHint')}</p>
+      <p className="text-xs text-muted-foreground">{t('wizard.summary.sendHint')}</p>
     </div>
   )
 }
