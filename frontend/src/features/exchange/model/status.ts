@@ -1,4 +1,11 @@
-import type { ExchangeRecord, ExchangeStatus, LastOutbound, MessageType } from '../api/types'
+import {
+  NOTIFICATION_TYPES,
+  PULL_KINDS,
+  type ExchangeRecord,
+  type ExchangeStatus,
+  type LastOutbound,
+  type MessageType,
+} from '../api/types'
 
 /** Message still on its way (outbound) or not yet processed (inbound). */
 export function isInFlight(status: ExchangeStatus): boolean {
@@ -27,13 +34,28 @@ export interface DeliverySummary {
   record: ExchangeRecord
 }
 
-/** Delivery indicator: state of the latest outbound message (optionally of one message type). */
+/** Notification (EDC message) – as opposed to pull records and the local twin registration. */
+export function isNotification(messageType: string): boolean {
+  return (NOTIFICATION_TYPES as readonly string[]).includes(messageType)
+}
+
+export function isPullRecord(messageType: string): boolean {
+  return (PULL_KINDS as readonly string[]).includes(messageType)
+}
+
+/**
+ * Delivery indicator: state of the latest outbound record of the given kind(s);
+ * without kinds, of the latest outbound notification (twin registrations are no deliveries).
+ */
 export function deriveDelivery(
   records: readonly ExchangeRecord[] | undefined,
-  messageType?: MessageType,
+  messageType?: MessageType | readonly MessageType[],
 ): DeliverySummary | undefined {
+  const kinds = messageType === undefined ? undefined : ([] as readonly string[]).concat(messageType)
   const outbound = (records ?? []).filter(
-    (r) => r.direction === 'OUTBOUND' && (messageType === undefined || r.messageType === messageType),
+    (r) =>
+      r.direction === 'OUTBOUND' &&
+      (kinds === undefined ? isNotification(r.messageType) : kinds.includes(r.messageType)),
   )
   const latest = sortNewestFirst(outbound)[0]
   if (!latest) return undefined

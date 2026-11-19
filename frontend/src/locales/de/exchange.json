@@ -4,13 +4,19 @@
     "PPAP_REQUEST_WITHDRAWN": "Rückzug",
     "PPAP_STATUS_UPDATE": "Statusmeldung",
     "PPAP_SUBMISSION": "PPF-Paket",
-    "PPAP_DECISION": "Entscheidung"
+    "PPAP_DECISION": "Entscheidung",
+    "PPAP_SUBMISSION_AVAILABLE": "Paket bereitgestellt",
+    "PULL_SUBMISSION": "Paketabruf",
+    "PULL_DOCUMENT": "Dokumentabruf",
+    "TWIN_REGISTRATION": "Twin-Registrierung"
   },
   "direction": {
     "OUTBOUND": "Ausgehend",
     "INBOUND": "Eingehend",
     "to": "an {{partner}}",
-    "from": "von {{partner}}"
+    "from": "von {{partner}}",
+    "pullFrom": "bei {{partner}}",
+    "local": "eigene Registry · für {{partner}}"
   },
   "steps": {
     "CATALOG": "Katalog",
@@ -21,7 +27,14 @@
     "RECEIPT": "Empfang",
     "VALIDATION": "Prüfung",
     "KEY_FETCH": "Partnerschlüssel",
-    "PROCESSING": "Verarbeitung"
+    "PROCESSING": "Verarbeitung",
+    "DTR_LOOKUP": "Twin-Suche",
+    "SHELL_DESCRIPTOR": "Twin-Beschreibung",
+    "SUBMODEL_FETCH": "Paketabruf",
+    "HASH_CHECK": "Hash-Prüfung",
+    "SIGNATURE_CHECK": "Signaturprüfung",
+    "DOCUMENT_FETCH": "Dokumentabruf",
+    "TWIN_REGISTRATION": "Twin-Registrierung"
   },
   "stepHints": {
     "CATALOG": "Angebot des Partners im Katalog seines Connectors finden (DSP).",
@@ -32,7 +45,14 @@
     "RECEIPT": "Nachricht über die eigene Data Plane empfangen und unverändert gespeichert.",
     "VALIDATION": "Schema, Hash und Absender geprüft.",
     "KEY_FETCH": "Öffentlichen Signaturschlüssel des Partners über Catena-X abgerufen.",
-    "PROCESSING": "Nachricht im Vorgang übernommen."
+    "PROCESSING": "Nachricht im Vorgang übernommen.",
+    "DTR_LOOKUP": "Digital Twin des Vorgangs in der Registry (DTR) des Lieferanten über die Austausch-ID gesucht.",
+    "SHELL_DESCRIPTOR": "Beschreibung des Digital Twins gelesen und den Eintrag zur Revision gefunden.",
+    "SUBMODEL_FETCH": "PPF-Paket über die Data Plane des Lieferanten abgerufen.",
+    "HASH_CHECK": "SHA-256 der abgerufenen Daten mit dem erwarteten Wert verglichen, um Veränderungen unterwegs auszuschließen.",
+    "SIGNATURE_CHECK": "Digitale Signatur des Lieferanten mit seinem öffentlichen Schlüssel geprüft.",
+    "DOCUMENT_FETCH": "Dokument über die Data Plane des Partners abgerufen und im eigenen Speicher abgelegt.",
+    "TWIN_REGISTRATION": "Digital Twin und Paketbeschreibung in der eigenen Registry (DTR) eingetragen – sichtbar nur für den Kunden."
   },
   "details": {
     "assetId": "Asset-ID",
@@ -44,7 +64,22 @@
     "cachedEdr": "EDR aus Cache",
     "yes": "ja",
     "no": "nein",
-    "label": "Technische Details zu {{step}}"
+    "label": "Technische Details zu {{step}}",
+    "shellId": "Shell-ID",
+    "submodelId": "Submodel-ID",
+    "semanticId": "Semantic-ID",
+    "href": "Endpoint",
+    "endpoint": "Endpoint",
+    "revision": "Revision",
+    "sha256": "SHA-256",
+    "expectedHash": "Erwarteter Hash",
+    "actualHash": "Ermittelter Hash",
+    "kid": "Schlüssel-ID (kid)",
+    "signatureStatus": "Signatur",
+    "fileName": "Datei",
+    "dtrAssetId": "DTR-Asset",
+    "submodelAssetId": "Submodel-Asset",
+    "dspEndpoint": "DSP-Endpoint"
   },
   "record": {
     "attempts_one": "{{count}} Versuch",
@@ -74,10 +109,13 @@
     "stepAttempt": "{{count}}. Versuch",
     "durationMs": "{{value}} ms",
     "durationS": "{{value}} s",
-    "title": "{{type}} {{direction}}"
+    "title": "{{type}} {{direction}}",
+    "lastErrorPull": "Abruf fehlgeschlagen",
+    "refetch": "Erneut abrufen",
+    "refetchSuccess": "Abruf wird wiederholt."
   },
   "tab": {
-    "intro": "Jede Nachricht läuft ausschließlich über die Catena-X-Connectoren beider Partner: Angebot im Katalog finden, Vertrag aushandeln, Zugangsschlüssel erhalten und zustellen. Jeder Schritt ist hier nachvollziehbar.",
+    "intro": "Nachrichten und Abrufe laufen ausschließlich über die Catena-X-Connectoren beider Partner: Angebot im Katalog finden, Vertrag aushandeln, Zugangsschlüssel erhalten und zustellen bzw. abrufen. Jeder Schritt ist hier nachvollziehbar.",
     "glossary": "Begriffe",
     "empty": "Noch kein Datenaustausch",
     "emptyDescription": "Sobald zu diesem Vorgang eine Nachricht gesendet oder empfangen wird, erscheint sie hier mit allen Schritten.",
@@ -99,6 +137,10 @@
     "EDR": {
       "term": "EDR",
       "text": "Endpoint Data Reference – kurzlebiger Zugangsschlüssel zur Data Plane des Partners, ausgestellt nach erfolgreicher Vertragsverhandlung."
+    },
+    "DTR": {
+      "term": "DTR",
+      "text": "Digital Twin Registry – Verzeichnis, in dem der Lieferant je Vorgang einen Digital Twin mit Verweis auf das PPF-Paket einträgt. Der Kunde findet das Paket darüber und ruft es per Catena-X ab."
     }
   },
   "delivery": {
@@ -106,14 +148,17 @@
     "pending": "Wird zugestellt …",
     "failed": "Zustellung fehlgeschlagen",
     "label": "{{type}}: {{state}}",
-    "open": "Datenaustausch anzeigen"
+    "open": "Datenaustausch anzeigen",
+    "provided": "Bereitgestellt"
   },
   "submitted": {
     "description": "Die Revision ist unveränderlich gespeichert und wird über Catena-X an den Kunden übermittelt.",
     "descriptionManual": "Die Revision ist unveränderlich gespeichert. Der Kunde ist nicht über Catena-X angebunden – übermitteln Sie das Paket auf dem vereinbarten Weg.",
     "delivery": "Zustellung an den Kunden",
     "waiting": "Nachricht wird vorbereitet …",
-    "showExchange": "Datenaustausch anzeigen"
+    "showExchange": "Datenaustausch anzeigen",
+    "descriptionPull": "Die Revision ist unveränderlich gespeichert und in Ihrem Digital Twin bereitgestellt. Der Kunde ruft sie bei seiner nächsten Abfrage über Catena-X ab (Modus Pull).",
+    "deliveryPull": "Bereitstellung für den Kunden"
   },
   "live": {
     "label": "Live-Aktualisierung: {{state}}",
@@ -196,7 +241,12 @@
         "allStatuses": "Alle Status",
         "partner": "Partner",
         "allPartners": "Alle Partner",
-        "reset": "Filter zurücksetzen"
+        "reset": "Filter zurücksetzen",
+        "messageType": "Art",
+        "allTypes": "Alle Arten",
+        "groupNotifications": "Nachrichten",
+        "groupPulls": "Abrufe",
+        "groupLocal": "Lokal"
       },
       "columns": {
         "createdAt": "Zeitpunkt",
@@ -220,5 +270,61 @@
       "openCase": "Zum Vorgang",
       "loadError": "Nachricht konnte nicht geladen werden."
     }
+  },
+  "mode": {
+    "label": "Austauschmodus",
+    "badgeLabel": "Austauschmodus: {{mode}}",
+    "PUSH": {
+      "short": "Push",
+      "hint": "Der Lieferant hat das vollständige Paket als Catena-X-Nachricht an den Kunden gesendet."
+    },
+    "PULL": {
+      "short": "Pull",
+      "hint": "Der Lieferant hat das Paket nur in seinem Digital Twin bereitgestellt; der Kunde hat es bei seiner regelmäßigen Abfrage abgeholt."
+    },
+    "PUSH_NOTIFY_PULL_PAYLOAD": {
+      "short": "Benachrichtigung + Pull",
+      "hint": "Der Lieferant hat den Kunden benachrichtigt; der Kunde hat das Paket daraufhin aus dem Digital Twin des Lieferanten abgerufen."
+    }
+  },
+  "twin": {
+    "title": "Digital Twin",
+    "description": "Eintrag dieses Vorgangs in Ihrer Digital Twin Registry. Darüber findet der Kunde Ihre Einreichungen und ruft sie über Catena-X ab.",
+    "shellId": "Shell-ID",
+    "idShort": "Kurzname",
+    "specificAssetIds": "Kennungen",
+    "assetIdNames": {
+      "customerPartId": "Kundensachnummer",
+      "manufacturerPartId": "Lieferantensachnummer",
+      "manufacturerId": "Hersteller (BPNL)",
+      "ppapExchangeId": "Austausch-ID"
+    },
+    "visibility": "Sichtbar für",
+    "visibilityHint": "Die Kennungen sind nur für den Kunden sichtbar (externalSubjectId), nicht öffentlich.",
+    "public": "Öffentlich",
+    "submodels": "Paketbeschreibungen je Revision",
+    "submodelsEmpty": "Noch keine Revision eingetragen.",
+    "revision": "Revision {{revision}}",
+    "revisionUnknown": "Revision",
+    "submodelId": "Submodel-ID",
+    "semanticId": "Semantic-ID",
+    "endpoint": "Endpoint",
+    "subprotocol": "Subprotokoll",
+    "subprotocolBody": "Zugang (subprotocolBody)",
+    "registeredAt": "Registriert {{at}}",
+    "updatedAt": "Aktualisiert {{at}}",
+    "show": "Technische Details anzeigen",
+    "hide": "Technische Details ausblenden",
+    "empty": "Noch kein Digital Twin",
+    "emptyDescription": "Der Digital Twin wird mit der ersten Einreichung im Modus Pull oder Benachrichtigung + Pull in Ihrer Registry eingetragen.",
+    "loadError": "Digital Twin konnte nicht geladen werden.",
+    "emptyPush": "Im Modus Push wird kein Digital Twin registriert – der Kunde erhält das vollständige Paket als Nachricht."
+  },
+  "targets": {
+    "NOTIFICATION": "Nachricht",
+    "PUBLIC_KEYS": "Partnerschlüssel",
+    "DTR": "Digital Twin Registry des Lieferanten",
+    "SUBMODEL": "PPF-Paket (Submodel)",
+    "DOCUMENT": "Dokument"
   }
 }

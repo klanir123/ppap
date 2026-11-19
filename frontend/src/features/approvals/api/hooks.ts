@@ -112,3 +112,10 @@ export function useDecision() {
 export function useUploadDocument() {
   return useMutation({ meta: { silent: true }, mutationFn: (file: File) => api.uploadDocument(file) })
 }
+
+/** Re-triggers a failed document pull; the status changes arrive via SSE (`case.changed`). */
+export function useFetchDocument() {
+  return useInvalidatingMutation(({ caseId, sha256 }: { caseId: string; sha256: string }) =>
+    api.fetchCaseDocument(caseId, sha256),
+  )
+}

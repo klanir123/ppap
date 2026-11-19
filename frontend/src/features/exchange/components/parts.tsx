@@ -57,7 +57,7 @@ export function IdText({ value, label, className }: { value: string; label: stri
 }
 
 /** Glossary term with explanation (keyboard: focusable button with tooltip). */
-export function GlossaryTerm({ term }: { term: 'EDC' | 'DSP' | 'EDR' }) {
+export function GlossaryTerm({ term }: { term: 'EDC' | 'DSP' | 'EDR' | 'DTR' }) {
   const { t } = useTranslation('exchange')
   return (
     <Tooltip>

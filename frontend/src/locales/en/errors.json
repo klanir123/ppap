@@ -81,6 +81,11 @@
     "HTTP_409": "Conflict with the current state. Please reload.",
     "HTTP_412": "The record has been changed in the meantime.",
     "HTTP_413": "The file exceeds the permitted size.",
-    "HTTP_500": "Server error. Please try again later."
+    "HTTP_500": "Server error. Please try again later.",
+    "DOCUMENT_HASH_MISMATCH": "The content of the retrieved document does not match the SHA-256 of the submission.",
+    "DOCUMENT_NOT_AVAILABLE": "The partner does not (or no longer) offer this document.",
+    "DOCUMENT_FETCH_FAILED": "The document could not be retrieved via Catena-X.",
+    "DOCUMENT_FETCH_NOT_ALLOWED": "This document cannot be retrieved again.",
+    "TWIN_NOT_FOUND": "No digital twin has been registered for this case yet."
   }
 }

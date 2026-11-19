@@ -1,9 +1,11 @@
 import { keepPreviousData, useMutation, useQuery, useQueryClient, type QueryClient } from '@tanstack/react-query'
 
+import { isApiError } from '@/api/problem'
 import { invalidateApprovals, useCaseStats } from '@/features/approvals/api'
 
 import { useLiveConnected } from '../live/live-context'
 import { isInFlight } from '../model/status'
+import { normalizeTwin } from '../model/twin'
 import * as api from './client'
 import type { AssignPartInput, ExchangeMessageParams, ExchangeRecord } from './types'
 
@@ -13,6 +15,7 @@ export const exchangeKeys = {
   messages: (params: ExchangeMessageParams) => [api.MESSAGES_URL, params] as const,
   message: (id: string) => [`${api.MESSAGES_URL}/${id}`] as const,
   overview: () => [`${api.EXCHANGE_URL}/status`] as const,
+  twin: (exchangeId: string) => [api.twinUrl(exchangeId)] as const,
 }
 
 /** Fallback polling while a message is still on its way and the live connection is down. */
@@ -58,6 +61,22 @@ export function useExchangeOverview() {
   })
 }
 
+/** Digital twin of a case; `null` while none is registered (404). */
+export function useTwin(exchangeId: string | undefined, enabled = true) {
+  return useQuery({
+    queryKey: exchangeKeys.twin(exchangeId ?? ''),
+    queryFn: async ({ signal }) => {
+      try {
+        return normalizeTwin(await api.getTwin(exchangeId!, { signal }))
+      } catch (error) {
+        if (isApiError(error) && error.status === 404) return null
+        throw error
+      }
+    },
+    enabled: Boolean(exchangeId) && enabled,
+  })
+}
+
 /** Number of cases in the clarification list (UC-04 A1) – from the case stats. */
 export function useClarificationCount(enabled = true) {
   const stats = useCaseStats(enabled)
@@ -68,7 +87,10 @@ export function invalidateExchange(queryClient: QueryClient) {
   return queryClient.invalidateQueries({
     predicate: (query) => {
       const key = query.queryKey[0]
-      return typeof key === 'string' && (key.startsWith(api.EXCHANGE_URL) || /\/exchange$/.test(key))
+      return (
+        typeof key === 'string' &&
+        (key.startsWith(api.EXCHANGE_URL) || key.startsWith(api.TWINS_URL) || /\/exchange$/.test(key))
+      )
     },
   })
 }

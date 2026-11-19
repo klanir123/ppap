@@ -3,6 +3,7 @@ import { ArrowRight } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
 import type { ApprovalCaseDetail } from '@/features/approvals/api/types'
+import { latestSubmission, revisionExchangeMode } from '@/features/approvals/model/submissions'
 
 import { useCaseExchange } from '../api/hooks'
 import { deriveDelivery } from '../model/status'
@@ -11,30 +12,52 @@ import { DeliveryBadge } from './Delivery'
 import { RecordError } from './ExchangeRecordCard'
 import { StepStrip } from './Steps'
 
-/** Text below "Revision n eingereicht" – depends on whether the customer is reachable via Catena-X. */
+/** Exchange mode the latest revision was submitted with (PULL → no notification, the customer polls). */
+function useSubmittedMode(c: ApprovalCaseDetail) {
+  return revisionExchangeMode(latestSubmission(c.submissions.filter((s) => s.status === 'SUBMITTED')))
+}
+
+/** Text below "Revision n eingereicht" – depends on whether the customer is reachable via Catena-X and the mode. */
 export function SubmissionDeliveryText({ approvalCase: c }: { approvalCase: ApprovalCaseDetail }) {
   const { t } = useTranslation('exchange')
+  const mode = useSubmittedMode(c)
   return (
     <p className="text-sm text-muted-foreground">
-      {c.source === 'MANUAL' ? t('submitted.descriptionManual') : t('submitted.description')}
+      {c.source === 'MANUAL'
+        ? t('submitted.descriptionManual')
+        : mode === 'PULL'
+          ? t('submitted.descriptionPull')
+          : t('submitted.description')}
     </p>
   )
 }
 
-/** Live delivery status of the PPAP_SUBMISSION message (success panel after submitting). */
+/**
+ * Live status of how the submission reaches the customer (success panel after submitting):
+ * PUSH → PPAP_SUBMISSION, PUSH_NOTIFY_PULL_PAYLOAD → PPAP_SUBMISSION_AVAILABLE, PULL → twin registration only.
+ */
 export function SubmissionDelivery({ approvalCase: c }: { approvalCase: ApprovalCaseDetail }) {
   const { t } = useTranslation('exchange')
   const records = useCaseExchange(c.id, c.source !== 'MANUAL')
+  const mode = useSubmittedMode(c)
   if (c.source === 'MANUAL') return null
-  const delivery = deriveDelivery(records.data, 'PPAP_SUBMISSION')
+  const pull = mode === 'PULL'
+  const delivery = pull
+    ? deriveDelivery(records.data, 'TWIN_REGISTRATION')
+    : deriveDelivery(records.data, ['PPAP_SUBMISSION', 'PPAP_SUBMISSION_AVAILABLE'])
+  const messageType = delivery?.record.messageType ?? (pull ? 'TWIN_REGISTRATION' : 'PPAP_SUBMISSION')
   return (
     <section className="space-y-3 rounded-lg border p-4" aria-labelledby="submission-delivery">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <h2 id="submission-delivery" className="text-sm font-medium">
-          {t('submitted.delivery')}
+          {pull ? t('submitted.deliveryPull') : t('submitted.delivery')}
         </h2>
         <span aria-live="polite">
-          <DeliveryBadge state={delivery?.state ?? 'pending'} messageType="PPAP_SUBMISSION" />
+          <DeliveryBadge
+            state={delivery?.state ?? 'pending'}
+            messageType={messageType}
+            label={pull && delivery?.state === 'delivered' ? t('delivery.provided') : undefined}
+          />
         </span>
       </div>
       {delivery ? (

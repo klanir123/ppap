@@ -8,6 +8,7 @@
 import type { ExchangeStepDtoDetails } from './exchangeStepDtoDetails'
 import type { ExchangeStepDtoStatus } from './exchangeStepDtoStatus'
 import type { ExchangeStepDtoStep } from './exchangeStepDtoStep'
+import type { ExchangeStepDtoTarget } from './exchangeStepDtoTarget'
 
 export interface ExchangeStepDto {
   at: string
@@ -18,4 +19,8 @@ export interface ExchangeStepDto {
   durationMs: number
   status: ExchangeStepDtoStatus
   step: ExchangeStepDtoStep
+  /** What the step works on; repeated EDC steps of a pull belong to different targets */
+  target: ExchangeStepDtoTarget
+  /** Reference within the target, e.g. sha256 of a document or the submodel id */
+  targetRef?: string
 }

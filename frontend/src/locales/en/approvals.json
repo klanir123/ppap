@@ -212,7 +212,9 @@
     "currentStatus": "Current revision",
     "notAssessed": "Not assessed",
     "documentCount_one": "{{count}} document",
-    "documentCount_other": "{{count}} documents"
+    "documentCount_other": "{{count}} documents",
+    "attachments": "Request attachments",
+    "attachmentsHint": "Documents provided by the customer (e.g. drawing, test specification)."
   },
   "evidence": {
     "DOCUMENT": "Document",
@@ -299,7 +301,21 @@
     "hashOk": "Hash verified",
     "hashMismatch": "Hash mismatch",
     "meta": "{{size}} · {{type}}",
-    "remoteHint": "Document retrieval via Catena-X to follow"
+    "transfer": {
+      "PENDING": "Retrieving via Catena-X …",
+      "FETCHED": "Retrieved via Catena-X",
+      "FAILED": "Retrieval failed",
+      "NOT_AVAILABLE": "Not available"
+    },
+    "transferHint": {
+      "PENDING": "The document is stored at the partner. Your connector is retrieving it via Catena-X and verifying its SHA-256.",
+      "FETCHED": "The document was retrieved from the partner via Catena-X and stored in your own storage.",
+      "FAILED": "Retrieval from the partner failed. It is retried automatically or can be triggered again manually.",
+      "NOT_AVAILABLE": "The partner does not offer this document via Catena-X; only its metadata is available."
+    },
+    "refetch": "Retrieve again",
+    "refetchLabel": "Retrieve {{name}} again",
+    "refetchStarted": "Retrieval of {{name}} started."
   },
   "wizard": {
     "title": "Request submission",

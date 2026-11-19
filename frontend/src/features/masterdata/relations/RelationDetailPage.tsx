@@ -100,10 +100,13 @@ export function RelationDetailPage() {
                 <PartnerRoleChip role={data.partnerRole} />
               </dd>
             </div>
-            <div className="space-y-1">
+            <div className="max-w-xs space-y-1">
               <dt className="text-xs text-muted-foreground">{t('relations.exchangeMode')}</dt>
-              <dd>
+              <dd className="space-y-0.5">
                 <ExchangeModeText mode={data.exchangeMode} />
+                <span className="block text-xs text-muted-foreground">
+                  {t(`relations.modes.${data.exchangeMode}.summary`)}
+                </span>
               </dd>
             </div>
             <div className="space-y-1">

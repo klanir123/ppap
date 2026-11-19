@@ -7,7 +7,7 @@ import { statusStyle, statusToken } from '@/lib/status-style'
 import { cn } from '@/lib/utils'
 
 import type { StepDetails } from '../api/types'
-import type { StepState, TimelineStep } from '../model/steps'
+import { groupTimeline, type StepState, type TimelineStep } from '../model/steps'
 import { IdText } from './parts'
 import { useDuration } from './use-duration'
 
@@ -34,7 +34,13 @@ export function StepStrip({ steps }: { steps: TimelineStep[] }) {
   return (
     <ol className="flex items-start overflow-x-auto pb-1" aria-label={t('record.showSteps')}>
       {steps.map((s, index) => (
-        <li key={s.step} className="relative flex min-w-[5.5rem] flex-1 flex-col items-center gap-1.5 text-center">
+        <li
+          key={`${s.target}:${s.step}`}
+          className={cn(
+            'relative flex min-w-[5.5rem] flex-1 flex-col items-center gap-1.5 text-center',
+            index > 0 && steps[index - 1]?.target !== s.target && 'ml-2',
+          )}
+        >
           {index > 0 ? (
             <span
               aria-hidden="true"
@@ -55,7 +61,19 @@ export function StepStrip({ steps }: { steps: TimelineStep[] }) {
   )
 }
 
+const HIDDEN_DETAILS = ['target', 'targetRef']
+
 const DETAIL_KEYS = [
+  'shellId',
+  'submodelId',
+  'revision',
+  'semanticId',
+  'href',
+  'endpoint',
+  'expectedHash',
+  'actualHash',
+  'sha256',
+  'kid',
   'assetId',
   'offerId',
   'negotiationId',
@@ -67,7 +85,10 @@ const DETAIL_KEYS = [
 
 function detailEntries(details: StepDetails | null | undefined): [string, unknown][] {
   if (!details) return []
-  const entries = Object.entries(details).filter(([, v]) => v !== null && v !== undefined && v !== '')
+  // target/targetRef are shown as group heading, not as technical detail
+  const entries = Object.entries(details).filter(
+    ([k, v]) => !HIDDEN_DETAILS.includes(k) && v !== null && v !== undefined && v !== '',
+  )
   return entries.sort(([a], [b]) => {
     const ia = DETAIL_KEYS.indexOf(a)
     const ib = DETAIL_KEYS.indexOf(b)
@@ -85,8 +106,33 @@ function DetailValue({ name, value, label }: { name: string; value: unknown; lab
   return <IdText value={text} label={label} />
 }
 
-/** Detailed vertical step list with status, time, duration, hint and technical EDC details. */
-export function StepList({ steps }: { steps: TimelineStep[] }) {
+/**
+ * Detailed vertical step list with status, time, duration, hint and technical EDC details.
+ * With `grouped` (pull records), steps are shown in one block per target (DTR, submodel, partner keys, document).
+ */
+export function StepList({ steps, grouped = false }: { steps: TimelineStep[]; grouped?: boolean }) {
+  const { t } = useTranslation('exchange')
+  if (!grouped) return <StepItems steps={steps} />
+  return (
+    <div className="space-y-5">
+      {groupTimeline(steps).map((group, i) => (
+        <section key={`${group.target}-${i}`} aria-label={t(`targets.${group.target}`)} className="space-y-3">
+          <h4 className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1 text-xs font-semibold tracking-wide text-muted-foreground uppercase">
+            {t(`targets.${group.target}`)}
+            {group.targetRef ? (
+              <span className="min-w-0 font-normal tracking-normal normal-case">
+                <IdText value={group.targetRef} label={t(`targets.${group.target}`)} />
+              </span>
+            ) : null}
+          </h4>
+          <StepItems steps={group.steps} />
+        </section>
+      ))}
+    </div>
+  )
+}
+
+function StepItems({ steps }: { steps: TimelineStep[] }) {
   const { t } = useTranslation(['exchange', 'status'])
   const fmt = useFormat()
   const duration = useDuration()
@@ -97,7 +143,7 @@ export function StepList({ steps }: { steps: TimelineStep[] }) {
         const last = index === steps.length - 1
         const stepLabel = t(`steps.${s.step}`)
         return (
-          <li key={s.step} className="relative flex gap-3">
+          <li key={`${s.target}:${s.step}`} className="relative flex gap-3">
             {last ? null : (
               <span aria-hidden="true" className="absolute top-7 bottom-[-1rem] left-[13px] w-px bg-border" />
             )}

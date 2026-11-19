@@ -25,6 +25,14 @@ describe('permissions', () => {
     }
   })
 
+  it('twin diagnostics for supplier quality managers and connector admins, document re-fetch for case roles', () => {
+    expect(hasPermission(['SUPPLIER_QUALITY_MANAGER'], 'twins:view')).toBe(true)
+    expect(hasPermission(['CONNECTOR_ADMIN'], 'twins:view')).toBe(true)
+    expect(hasPermission(['CUSTOMER_QUALITY_ENGINEER'], 'twins:view')).toBe(false)
+    expect(hasPermission(['CUSTOMER_QUALITY_ENGINEER'], 'documents:fetch')).toBe(true)
+    expect(hasPermission(['MASTERDATA_MANAGER'], 'documents:fetch')).toBe(false)
+  })
+
   it('technical integration clients get no UI permissions', () => {
     expect(hasPermission(['SYSTEM_INTEGRATION'], 'dashboard:view')).toBe(false)
   })

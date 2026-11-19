@@ -5,17 +5,24 @@
  * REST API of the msg CX PPAP Connector backend.
  * OpenAPI spec version: v1
  */
+import type { DocumentRefDtoTransferStatus } from './documentRefDtoTransferStatus'
 
 export interface DocumentRefDto {
   fileName: string
+  /** Whether the local content matches sha256 (own uploads and verified transfers) */
+  hashVerified: boolean
   /**
-   * Document id; null for documents of received payloads until they are pulled (phase 5)
+   * Local document id; null for partner documents until they are fetched and verified
    * @nullable
    */
   id: string | null
   mediaType: string
   sha256: string
   size: number
+  /** Error code of a FAILED transfer (e.g. DOCUMENT_HASH_MISMATCH), otherwise null */
+  transferError?: string
+  /** LOCAL = own document; partner documents: PENDING, FETCHED, FAILED, NOT_AVAILABLE */
+  transferStatus: DocumentRefDtoTransferStatus
   uploadedAt?: string
   uploadedBy?: string
 }

@@ -7,11 +7,14 @@
  */
 import type { SignatureDto } from './signatureDto'
 import type { SubmissionSummaryDtoDecisionResult } from './submissionSummaryDtoDecisionResult'
+import type { SubmissionSummaryDtoExchangeMode } from './submissionSummaryDtoExchangeMode'
 import type { SubmissionSummaryDtoStatus } from './submissionSummaryDtoStatus'
 
 export interface SubmissionSummaryDto {
   basedOnRevision?: number
   decisionResult?: SubmissionSummaryDtoDecisionResult
+  /** Effective exchange mode of the revision (supplier: how it was provided, customer: how it was received); null for drafts and local cases */
+  exchangeMode?: SubmissionSummaryDtoExchangeMode
   payloadHash?: string
   revision: number
   signature?: SignatureDto

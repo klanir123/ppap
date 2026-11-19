@@ -4,8 +4,9 @@ import { toast } from 'sonner'
 import { FormSheet, SelectField, TextField } from '@/components/forms'
 
 import { relationsApi } from '../api'
-import { EXCHANGE_MODES, PARTNER_ROLES, type Relation } from '../api/types'
+import { PARTNER_ROLES, type Relation } from '../api/types'
 import { usePartnerOptions } from '../shared/usePartnerOptions'
+import { ExchangeModeField } from './ExchangeModeField'
 import { relationDefaults, relationSchema, toRelationInput } from './relation-schema'
 
 interface RelationFormSheetProps {
@@ -64,12 +65,7 @@ export function RelationFormSheet({ editing, onClose, onReloaded, readOnly }: Re
             disabled={!isNew}
             options={PARTNER_ROLES.map((role) => ({ value: role, label: t(`relations.partnerRoleValues.${role}`) }))}
           />
-          <SelectField
-            name="exchangeMode"
-            label={t('relations.exchangeMode')}
-            required
-            options={EXCHANGE_MODES.map((mode) => ({ value: mode, label: t(`relations.exchangeModeValues.${mode}`) }))}
-          />
+          <ExchangeModeField />
           <TextField name="policyProfile" label={t('relations.policyProfile')} mono placeholder="default" />
         </>
       )}

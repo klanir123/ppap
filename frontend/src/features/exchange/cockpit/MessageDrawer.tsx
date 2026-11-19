@@ -13,6 +13,7 @@ import { RecordError, RecordIdentifiers, RecordMeta } from '../components/Exchan
 import { JsonViewer } from '../components/JsonViewer'
 import { DirectionIcon, ExchangeStatusBadge } from '../components/parts'
 import { StepList } from '../components/Steps'
+import { isPullRecord } from '../model/status'
 import { buildTimeline } from '../model/steps'
 import { useMessageTypeLabel } from '../components/use-labels'
 
@@ -89,7 +90,7 @@ export function MessageDrawer({
             </section>
             <section className="space-y-3">
               <h3 className="text-sm font-medium">{t('cockpit.drawer.steps')}</h3>
-              <StepList steps={buildTimeline(record)} />
+              <StepList steps={buildTimeline(record)} grouped={isPullRecord(record.messageType)} />
             </section>
             <section className="space-y-2">
               <h3 className="text-sm font-medium">{t('cockpit.drawer.payload')}</h3>

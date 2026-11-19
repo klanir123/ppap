@@ -2,6 +2,7 @@ import type { ExchangeRecord, ExchangeStep } from '../api/types'
 
 export const step = (s: Partial<ExchangeStep> & Pick<ExchangeStep, 'step'>): ExchangeStep => ({
   status: 'OK',
+  target: 'NOTIFICATION',
   at: '2026-11-19T09:00:00Z',
   durationMs: 100,
   ...s,
