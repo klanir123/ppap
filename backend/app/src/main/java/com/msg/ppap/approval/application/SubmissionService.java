@@ -1,17 +1,24 @@
 package com.msg.ppap.approval.application;
 
+import com.msg.ppap.approval.DocumentTransferStatus;
 import com.msg.ppap.approval.domain.Actor;
 import com.msg.ppap.approval.domain.ApprovalCase;
+import com.msg.ppap.approval.domain.CaseRole;
+import com.msg.ppap.approval.domain.CaseSource;
+import com.msg.ppap.approval.domain.ExchangeMode;
 import com.msg.ppap.approval.domain.Seal;
 import com.msg.ppap.approval.domain.SelfAssessment;
 import com.msg.ppap.approval.domain.Submission;
 import com.msg.ppap.approval.domain.ValueValidator;
+import com.msg.ppap.masterdata.api.MasterdataQueries;
 import com.msg.ppap.platform.domain.NotFoundException;
 import com.msg.ppap.platform.domain.Validation;
 import com.msg.ppap.platform.domain.ValidationException;
 import com.msg.ppap.platform.domain.ViolationCodes;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -26,13 +33,22 @@ public class SubmissionService {
     private final DocumentRefs documents;
     private final PayloadSealing sealing;
     private final ValueValidator validator;
+    private final MasterdataQueries masterdata;
+    private final ObjectProvider<DocumentTransferStatus> transfers;
 
     public SubmissionService(
-            ApprovalContext context, DocumentRefs documents, PayloadSealing sealing, ValueValidator validator) {
+            ApprovalContext context,
+            DocumentRefs documents,
+            PayloadSealing sealing,
+            ValueValidator validator,
+            MasterdataQueries masterdata,
+            ObjectProvider<DocumentTransferStatus> transfers) {
         this.context = context;
         this.documents = documents;
         this.sealing = sealing;
         this.validator = validator;
+        this.masterdata = masterdata;
+        this.transfers = transfers;
     }
 
     @Transactional(readOnly = true)
@@ -90,8 +106,13 @@ public class SubmissionService {
     public SubmissionView submit(UUID caseId, Boolean confirmation, Long expectedVersion) {
         Actor actor = context.actor();
         ApprovalCase c = loadChecked(caseId, expectedVersion);
-        Submission submitted =
-                c.submit(Boolean.TRUE.equals(confirmation), validator, sealing::sealSubmission, actor, context.now());
+        Submission submitted = c.submit(
+                Boolean.TRUE.equals(confirmation),
+                validator,
+                sealing::sealSubmission,
+                exchangeMode(c),
+                actor,
+                context.now());
         ApprovalCase saved = context.save(c);
         return view(saved, saved.submission(submitted.revision()));
     }
@@ -116,7 +137,26 @@ public class SubmissionService {
     }
 
     SubmissionView view(ApprovalCase c, Submission s) {
-        return new SubmissionView(c, s, c.completeness(s, validator));
+        DocumentTransferStatus status = transfers.getIfAvailable();
+        return new SubmissionView(
+                c, s, c.completeness(s, validator), status == null ? Map.of() : status.transfers(c.id()));
+    }
+
+    /**
+     * Effective exchange mode of a dataspace-linked supplier case: the mode of the relation at the time of the
+     * submission (the supplier decides how it provides the package); {@code null} for local/manual cases.
+     */
+    ExchangeMode exchangeMode(ApprovalCase c) {
+        if (c.ownRole() != CaseRole.SUPPLIER || c.source() != CaseSource.EXCHANGE) {
+            return null;
+        }
+        String mode = c.header().relationId() == null
+                ? null
+                : masterdata
+                        .findRelation(c.header().relationId())
+                        .map(MasterdataQueries.RelationInfo::exchangeMode)
+                        .orElse(null);
+        return ExchangeMode.of(mode);
     }
 
     private ApprovalCase loadChecked(UUID id, Long expectedVersion) {

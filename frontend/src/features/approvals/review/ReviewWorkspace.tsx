@@ -48,13 +48,13 @@ import {
   useSubmission,
   useTransition,
   type ApprovalCaseDetail,
-  type DocumentDto,
   type FindingResult,
   type JsonValue,
   type Submission,
 } from '../api'
 import { CasePartText, CaseStatusBadge } from '../components/badges'
 import { DocumentList, DocumentPreview } from '../components/Documents'
+import { isStored } from '../components/documents'
 import { localized } from '../components/format'
 import { problemCode, problemMessage, toastProblem } from '../components/problem'
 import { IntegrityInfo } from '../components/RevisionView'
@@ -418,7 +418,10 @@ function ElementReview({
   const { t } = useTranslation('approvals')
   const commentId = useId()
   const request = approvalCase.request.elements.find((e) => e.code === element.code)
-  const [previewDoc, setPreviewDoc] = useState<DocumentDto | undefined>(element.documents[0])
+  // by hash: received documents get their `id` only once pulled (live update) – then the preview appears
+  const [previewSha, setPreviewSha] = useState<string | undefined>()
+  const stored = element.documents.filter(isStored)
+  const previewDoc = stored.find((d) => d.sha256 === previewSha) ?? stored[0]
   const commentRequired = finding?.result === 'NOT_ACCEPTED' || finding?.result === 'ACCEPTED_WITH_CONDITION'
 
   return (
@@ -508,7 +511,11 @@ function ElementReview({
 
       <section className="space-y-3" aria-label={t('package.documents')}>
         <h3 className="text-sm font-medium">{t('package.documents')}</h3>
-        <DocumentList documents={element.documents} onPreview={setPreviewDoc} />
+        <DocumentList
+          documents={element.documents}
+          caseId={approvalCase.id}
+          onPreview={(doc) => setPreviewSha(doc.sha256)}
+        />
         {previewDoc ? (
           <div className="rounded-lg border bg-muted/30 p-3">
             <p className="mb-2 truncate text-xs font-medium">{previewDoc.fileName}</p>

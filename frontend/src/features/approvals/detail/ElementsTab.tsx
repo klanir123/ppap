@@ -4,6 +4,7 @@ import { StatusBadge } from '@/components/StatusBadge'
 import { Skeleton } from '@/components/ui/skeleton'
 
 import { useSubmission, type ApprovalCaseDetail } from '../api'
+import { DocumentList } from '../components/Documents'
 import { ElementStateIcon, EvidenceTypeLabel } from '../components/ElementStateIcon'
 import { localized } from '../components/format'
 import { elementState, issuesByElement } from '../model/elements'
@@ -97,6 +98,17 @@ export function ElementsTab({ approvalCase: c }: { approvalCase: ApprovalCaseDet
           </tbody>
         </table>
       </div>
+      {c.request.attachments.length > 0 ? (
+        <section className="space-y-2 pt-3" aria-labelledby="request-attachments">
+          <div>
+            <h3 id="request-attachments" className="text-sm font-medium">
+              {t('elements.attachments')}
+            </h3>
+            <p className="text-xs text-muted-foreground">{t('elements.attachmentsHint')}</p>
+          </div>
+          <DocumentList documents={c.request.attachments} caseId={c.id} />
+        </section>
+      ) : null}
     </div>
   )
 }

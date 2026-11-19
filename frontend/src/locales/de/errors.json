@@ -81,6 +81,11 @@
     "HTTP_409": "Konflikt mit dem aktuellen Stand. Bitte laden Sie neu.",
     "HTTP_412": "Der Datensatz wurde zwischenzeitlich geändert.",
     "HTTP_413": "Die Datei überschreitet die zulässige Größe.",
-    "HTTP_500": "Serverfehler. Bitte versuchen Sie es später erneut."
+    "HTTP_500": "Serverfehler. Bitte versuchen Sie es später erneut.",
+    "DOCUMENT_HASH_MISMATCH": "Der Inhalt des abgerufenen Dokuments passt nicht zum SHA-256 der Einreichung.",
+    "DOCUMENT_NOT_AVAILABLE": "Das Dokument wird vom Partner nicht (mehr) angeboten.",
+    "DOCUMENT_FETCH_FAILED": "Das Dokument konnte nicht über Catena-X abgerufen werden.",
+    "DOCUMENT_FETCH_NOT_ALLOWED": "Für dieses Dokument ist kein erneuter Abruf möglich.",
+    "TWIN_NOT_FOUND": "Für diesen Vorgang ist noch kein Digital Twin registriert."
   }
 }

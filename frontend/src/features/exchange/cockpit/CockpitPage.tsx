@@ -9,7 +9,15 @@ import { PageHeader } from '@/components/PageHeader'
 import { StatusBadge } from '@/components/StatusBadge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { Skeleton } from '@/components/ui/skeleton'
 import { HashText, PartnerText } from '@/features/approvals/components/badges'
 import { useFormat } from '@/features/approvals/components/format'
@@ -17,7 +25,15 @@ import { partnersApi } from '@/features/masterdata/api'
 import { cn } from '@/lib/utils'
 
 import { useExchangeMessages, useExchangeOverview } from '../api/hooks'
-import { EXCHANGE_DIRECTIONS, EXCHANGE_STATUSES, type ExchangeOverview, type ExchangeRecord } from '../api/types'
+import {
+  EXCHANGE_DIRECTIONS,
+  EXCHANGE_STATUSES,
+  LOCAL_KINDS,
+  NOTIFICATION_TYPES,
+  PULL_KINDS,
+  type ExchangeOverview,
+  type ExchangeRecord,
+} from '../api/types'
 import { RetryButton } from '../components/ExchangeRecordCard'
 import { DirectionLabel, ExchangeStatusBadge } from '../components/parts'
 import { hasMessageFilters, toMessageParams, type CockpitSearch } from './cockpit-search'
@@ -155,7 +171,7 @@ export function CockpitPage() {
           filters={<MessageFilters search={search} onChange={update} />}
           filtered={hasMessageFilters(search)}
           onResetFilters={() =>
-            update({ direction: undefined, status: undefined, partner: undefined, page: undefined })
+            update({ direction: undefined, status: undefined, type: undefined, partner: undefined, page: undefined })
           }
           isLoading={messages.isPending}
           isFetching={messages.isFetching}
@@ -185,9 +201,36 @@ function MessageFilters({
   onChange: (p: Partial<CockpitSearch>) => void
 }) {
   const { t } = useTranslation(['exchange', 'status'])
+  const typeLabel = useMessageTypeLabel()
   const partners = partnersApi.usePage({ active: true, size: 200, sort: ['name,asc'] })
+  const groups = [
+    { key: 'groupNotifications', types: NOTIFICATION_TYPES },
+    { key: 'groupPulls', types: PULL_KINDS },
+    { key: 'groupLocal', types: LOCAL_KINDS },
+  ] as const
   return (
     <>
+      <Select
+        value={search.type ?? ALL}
+        onValueChange={(v) => onChange({ type: v === ALL ? undefined : (v as CockpitSearch['type']), page: undefined })}
+      >
+        <SelectTrigger size="sm" className="w-full sm:w-52" aria-label={t('cockpit.messages.filters.messageType')}>
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value={ALL}>{t('cockpit.messages.filters.allTypes')}</SelectItem>
+          {groups.map((group) => (
+            <SelectGroup key={group.key}>
+              <SelectLabel>{t(`cockpit.messages.filters.${group.key}`)}</SelectLabel>
+              {group.types.map((type) => (
+                <SelectItem key={type} value={type}>
+                  {typeLabel(type)}
+                </SelectItem>
+              ))}
+            </SelectGroup>
+          ))}
+        </SelectContent>
+      </Select>
       <Select
         value={search.direction ?? ALL}
         onValueChange={(v) =>

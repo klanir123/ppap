@@ -1,6 +1,5 @@
 import { useMutation, useQuery } from '@tanstack/react-query'
 import {
-  CloudDownload,
   Download,
   Eye,
   File,
@@ -29,7 +28,16 @@ import type { DocumentDto as StoredDocument } from '@/api/generated/model'
 
 import { approvalsApi, type DocumentDto } from '../api'
 import { HashText } from './badges'
-import { ACCEPTED_DOCUMENT_TYPES, documentFileError, downloadDocument, previewKind, sha256Hex } from './documents'
+import {
+  ACCEPTED_DOCUMENT_TYPES,
+  documentFileError,
+  downloadDocument,
+  isStored,
+  previewKind,
+  sha256Hex,
+  transferStatusOf,
+} from './documents'
+import { RefetchDocumentButton, TransferStatusBadge } from './DocumentTransfer'
 import { useFormat } from './format'
 
 const PdfViewer = lazy(() => import('./PdfViewer'))
@@ -48,10 +56,15 @@ interface DocumentListProps {
   onRemove?: (doc: DocumentDto) => void
   removingId?: string
   emptyText?: string
+  /** Case of received documents → "Erneut abrufen" for failed pulls. */
+  caseId?: string
 }
 
-/** Documents with name, size, SHA-256 (copy), preview, download and optional remove. */
-export function DocumentList({ documents, onPreview, onRemove, removingId, emptyText }: DocumentListProps) {
+/**
+ * Documents with name, size, SHA-256 (copy), transfer state of received documents (pull over EDC),
+ * preview/download once stored locally and optional remove.
+ */
+export function DocumentList({ documents, onPreview, onRemove, removingId, emptyText, caseId }: DocumentListProps) {
   const { t } = useTranslation('approvals')
   const fmt = useFormat()
   const [previewing, setPreviewing] = useState<DocumentDto | null>(null)
@@ -65,9 +78,14 @@ export function DocumentList({ documents, onPreview, onRemove, removingId, empty
       <ul className="divide-y rounded-md border">
         {documents.map((doc) => {
           const Icon = iconFor(doc)
-          const stored = Boolean(doc.id)
+          const stored = isStored(doc)
+          const transfer = transferStatusOf(doc)
           return (
-            <li key={doc.id ?? doc.sha256} className="flex flex-wrap items-center gap-x-3 gap-y-1 px-3 py-2">
+            <li
+              key={doc.id ?? doc.sha256}
+              data-transfer-status={transfer}
+              className="flex flex-wrap items-center gap-x-3 gap-y-1 px-3 py-2"
+            >
               <Icon aria-hidden="true" className="size-4 shrink-0 text-muted-foreground" />
               <div className="min-w-0 flex-1">
                 {stored ? (
@@ -96,6 +114,16 @@ export function DocumentList({ documents, onPreview, onRemove, removingId, empty
                   <span className="sr-only">{t('documents.sha256')}: </span>
                   <HashText hash={doc.sha256} label={t('documents.copyHash', { name: doc.fileName })} />
                 </div>
+                {transfer !== 'LOCAL' ? (
+                  <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1">
+                    <TransferStatusBadge doc={doc} />
+                    {transfer === 'FAILED' && doc.transferError ? (
+                      <span className="text-xs text-(--status-failed-fg)">
+                        {translateErrorCode(doc.transferError, doc.transferError)}
+                      </span>
+                    ) : null}
+                  </div>
+                ) : null}
               </div>
               <div className="flex items-center gap-0.5">
                 {stored ? (
@@ -117,12 +145,9 @@ export function DocumentList({ documents, onPreview, onRemove, removingId, empty
                       <Download aria-hidden="true" />
                     </Button>
                   </>
-                ) : (
-                  <span className="inline-flex items-center gap-1 rounded-md border border-dashed px-2 py-0.5 text-[11px] text-muted-foreground">
-                    <CloudDownload aria-hidden="true" className="size-3" />
-                    {t('documents.remoteHint')}
-                  </span>
-                )}
+                ) : caseId ? (
+                  <RefetchDocumentButton caseId={caseId} doc={doc} />
+                ) : null}
                 {onRemove ? (
                   <Button
                     variant="ghost"

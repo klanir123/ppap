@@ -10,11 +10,14 @@ import { useCaseExchange } from '../api/hooks'
 import { isFailure, sortNewestFirst } from '../model/status'
 import { ExchangeRecordCard } from './ExchangeRecordCard'
 import { GlossaryTerm, IdText } from './parts'
+import { TwinPanel } from './TwinPanel'
+import { useCanViewTwin } from './use-twin-access'
 
 /** Case detail › "Datenaustausch": all EDC messages of the case, newest first. */
 export function ExchangeTab({ approvalCase: c }: { approvalCase: ApprovalCaseDetail }) {
   const { t } = useTranslation(['exchange', 'common'])
   const query = useCaseExchange(c.id)
+  const twin = useCanViewTwin(c) ? <TwinPanel approvalCase={c} /> : null
 
   const intro = (
     <div className="space-y-2.5 rounded-lg border bg-muted/30 px-4 py-3">
@@ -25,6 +28,7 @@ export function ExchangeTab({ approvalCase: c }: { approvalCase: ApprovalCaseDet
           <GlossaryTerm term="EDC" />
           <GlossaryTerm term="DSP" />
           <GlossaryTerm term="EDR" />
+          <GlossaryTerm term="DTR" />
         </div>
         <span className="flex min-w-0 items-center gap-1.5 text-xs text-muted-foreground sm:ml-auto">
           {t('tab.exchangeId')}
@@ -70,6 +74,7 @@ export function ExchangeTab({ approvalCase: c }: { approvalCase: ApprovalCaseDet
     return (
       <div className="space-y-4">
         {intro}
+        {twin}
         <EmptyState icon={Cable} title={t('tab.empty')} description={description} />
       </div>
     )
@@ -77,6 +82,7 @@ export function ExchangeTab({ approvalCase: c }: { approvalCase: ApprovalCaseDet
   return (
     <div className="space-y-4">
       {intro}
+      {twin}
       <ul className="space-y-3" aria-label={t('tab.list')}>
         {records.map((record, index) => (
           <li key={record.id}>

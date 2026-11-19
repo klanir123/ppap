@@ -21,15 +21,18 @@ export function DeliveryBadge({
   state,
   messageType,
   className,
+  label: labelOverride,
 }: {
   state: DeliveryState
   messageType?: string
   className?: string
+  /** Replaces the state text (e.g. "Bereitgestellt" for a pull-mode twin registration). */
+  label?: string
 }) {
   const { t } = useTranslation('exchange')
   const typeLabel = useMessageTypeLabel()
   const { icon: Icon, token } = DELIVERY_META[state]
-  const label = t(`delivery.${state}`)
+  const label = labelOverride ?? t(`delivery.${state}`)
   return (
     <span
       data-delivery={state}

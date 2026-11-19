@@ -102,6 +102,9 @@ final class PayloadsV0_1 {
     @JsonInclude(JsonInclude.Include.NON_NULL)
     record StatusUpdate(String exchangeId, String status, int revision, String at, String by) {}
 
+    record SubmissionAvailable(
+            String exchangeId, int revision, String payloadHash, String shellId, String submodelId) {}
+
     @JsonInclude(JsonInclude.Include.NON_NULL)
     record Withdrawal(String exchangeId, String reason, String withdrawnAt, String withdrawnBy) {}
 }

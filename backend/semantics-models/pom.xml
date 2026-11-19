@@ -29,6 +29,7 @@
             <include>urn:samm:com.msg.ppap:0.1.0#PpapRequestWithdrawn</include>
             <include>urn:samm:com.msg.ppap:0.1.0#PpapStatusUpdate</include>
             <include>urn:samm:com.msg.ppap:0.1.0#PpapSubmission</include>
+            <include>urn:samm:com.msg.ppap:0.1.0#PpapSubmissionAvailable</include>
             <include>urn:samm:com.msg.ppap:0.1.0#PpapDecision</include>
             <include>urn:samm:com.msg.ppap:0.1.0#PpapNotification</include>
           </includes>

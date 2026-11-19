@@ -13,7 +13,7 @@ import { cn } from '@/lib/utils'
 
 import { useRetryMessage } from '../api/hooks'
 import type { ExchangeRecord } from '../api/types'
-import { canRetry, isFailure } from '../model/status'
+import { canRetry, isFailure, isPullRecord } from '../model/status'
 import { buildTimeline, totalDuration } from '../model/steps'
 import { DirectionIcon, ExchangeStatusBadge, IdText } from './parts'
 import { useDuration } from './use-duration'
@@ -27,6 +27,7 @@ export function RetryButton({ record, size = 'sm' }: { record: ExchangeRecord; s
   const retry = useRetryMessage()
   if (!allowed || !canRetry(record)) return null
   const outbound = record.direction === 'OUTBOUND'
+  const pull = isPullRecord(record.messageType)
   return (
     <Button
       variant="outline"
@@ -34,12 +35,15 @@ export function RetryButton({ record, size = 'sm' }: { record: ExchangeRecord; s
       disabled={retry.isPending}
       onClick={() =>
         retry.mutate(record.id, {
-          onSuccess: () => toast.success(outbound ? t('record.retrySuccess') : t('record.reprocessSuccess')),
+          onSuccess: () =>
+            toast.success(
+              pull ? t('record.refetchSuccess') : outbound ? t('record.retrySuccess') : t('record.reprocessSuccess'),
+            ),
         })
       }
     >
       {retry.isPending ? <Loader2 aria-hidden="true" className="animate-spin" /> : <RotateCw aria-hidden="true" />}
-      {outbound ? t('record.retry') : t('record.reprocess')}
+      {pull ? t('record.refetch') : outbound ? t('record.retry') : t('record.reprocess')}
     </Button>
   )
 }
@@ -51,7 +55,13 @@ export function RecordError({ record }: { record: ExchangeRecord }) {
   return (
     <Alert variant="destructive" className="border-(--status-failed-border) bg-(--status-failed-bg)/60">
       <TriangleAlert aria-hidden="true" />
-      <AlertTitle>{record.direction === 'OUTBOUND' ? t('record.lastError') : t('record.lastErrorInbound')}</AlertTitle>
+      <AlertTitle>
+        {isPullRecord(record.messageType)
+          ? t('record.lastErrorPull')
+          : record.direction === 'OUTBOUND'
+            ? t('record.lastError')
+            : t('record.lastErrorInbound')}
+      </AlertTitle>
       <AlertDescription className="space-y-2">
         {record.errorCode ? (
           <p>
@@ -128,6 +138,16 @@ export function ExchangeRecordCard({ record, defaultOpen = false }: { record: Ex
   const steps = buildTimeline(record)
   const done = steps.filter((s) => s.state === 'OK' || s.state === 'SKIPPED').length
   const partner = record.partner.name ?? record.partner.bpnl
+  const directionPhrase =
+    record.messageType === 'TWIN_REGISTRATION'
+      ? t('direction.local', { partner })
+      : `${t(`direction.${record.direction}`)} ${
+          isPullRecord(record.messageType)
+            ? t('direction.pullFrom', { partner })
+            : record.direction === 'OUTBOUND'
+              ? t('direction.to', { partner })
+              : t('direction.from', { partner })
+        }`
   const headingId = `exchange-record-${record.id}`
 
   return (
@@ -146,10 +166,7 @@ export function ExchangeRecordCard({ record, defaultOpen = false }: { record: Ex
             <div className="min-w-0 flex-1 basis-[13rem] space-y-0.5">
               <h3 id={headingId} className="flex flex-wrap items-baseline gap-x-1.5 text-sm font-semibold">
                 {typeLabel(record.messageType)}
-                <span className="font-normal text-muted-foreground">
-                  · {t(`direction.${record.direction}`)}{' '}
-                  {record.direction === 'OUTBOUND' ? t('direction.to', { partner }) : t('direction.from', { partner })}
-                </span>
+                <span className="font-normal text-muted-foreground">· {directionPhrase}</span>
               </h3>
               <RecordMeta record={record} />
             </div>
@@ -161,7 +178,7 @@ export function ExchangeRecordCard({ record, defaultOpen = false }: { record: Ex
           <RecordIdentifiers record={record} className="border-t pt-3" />
         </div>
         <CollapsibleContent className="border-t bg-muted/20 px-4 py-4">
-          <StepList steps={steps} />
+          <StepList steps={steps} grouped={isPullRecord(record.messageType)} />
         </CollapsibleContent>
         <CollapsibleTrigger asChild>
           <button

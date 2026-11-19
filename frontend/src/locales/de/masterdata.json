@@ -117,7 +117,36 @@
       "PUSH_NOTIFY_PULL_PAYLOAD": "Push-Benachrichtigung, Pull-Nutzdaten"
     },
     "detailTitle": "Beziehung zu {{name}}",
-    "notFound": "Beziehung nicht gefunden"
+    "notFound": "Beziehung nicht gefunden",
+    "modes": {
+      "recommended": "Empfohlen",
+      "facts": {
+        "storage": "Daten liegen",
+        "timing": "Kunde erhält",
+        "pattern": "Catena-X-Muster"
+      },
+      "PUSH_NOTIFY_PULL_PAYLOAD": {
+        "summary": "Sie benachrichtigen den Kunden; der Kunde holt das Paket direkt bei Ihnen ab.",
+        "storage": "bei Ihnen – im Digital Twin Ihrer Registry",
+        "timing": "sofort nach der Benachrichtigung (automatischer Abruf)",
+        "pattern": "Notification + Digital Twin"
+      },
+      "PUSH": {
+        "summary": "Sie senden das vollständige Paket als Nachricht an den Kunden.",
+        "storage": "zusätzlich als Kopie beim Kunden",
+        "timing": "sofort mit der Zustellung",
+        "pattern": "Notification"
+      },
+      "PULL": {
+        "summary": "Sie stellen das Paket nur im Digital Twin bereit; der Kunde fragt regelmäßig nach.",
+        "storage": "bei Ihnen – im Digital Twin Ihrer Registry",
+        "timing": "beim nächsten Abfragezyklus des Kunden (z. B. minütlich)",
+        "pattern": "Digital Twin (ohne Benachrichtigung)"
+      },
+      "appliesNext": "Eine Änderung gilt ab der nächsten Einreichung; bereits eingereichte Revisionen behalten ihren Modus.",
+      "documents": "Dokumente ruft der Partner in allen Modi über Catena-X ab und prüft sie per SHA-256.",
+      "supplierHint": "Bei Lieferanten bestimmt der Lieferant, wie er bereitstellt – Ihr System empfängt alle Modi. Die Einstellung wirkt nur in Beziehungen, in denen Sie liefern."
+    }
   },
   "partMappings": {
     "title": "Teilezuordnungen",

@@ -2,6 +2,7 @@ package com.msg.ppap.exchange.application;
 
 import com.msg.ppap.approval.application.port.in.InboundMessage;
 import com.msg.ppap.approval.application.port.in.InboundResult;
+import com.msg.ppap.approval.application.port.in.PartnerSharingUseCase;
 import com.msg.ppap.approval.application.port.in.ReceiveDecisionUseCase;
 import com.msg.ppap.approval.application.port.in.ReceiveRequestUseCase;
 import com.msg.ppap.approval.application.port.in.ReceiveStatusUpdateUseCase;
@@ -17,14 +18,18 @@ import com.msg.ppap.exchange.domain.InboundRejection;
 import com.msg.ppap.exchange.domain.MessageStatus;
 import com.msg.ppap.exchange.domain.StepName;
 import com.msg.ppap.exchange.domain.StepStatus;
+import com.msg.ppap.exchange.domain.StepTarget;
 import com.msg.ppap.identity.SignatureVerifier;
 import com.msg.ppap.platform.domain.FieldViolation;
 import com.msg.ppap.platform.domain.Ids;
+import com.msg.ppap.platform.domain.NotFoundException;
 import com.msg.ppap.platform.domain.PpapException;
 import com.msg.ppap.platform.web.CorrelationIdFilter;
+import com.msg.ppap.semantics.api.ExchangeCodec;
 import com.msg.ppap.semantics.api.Notification;
 import com.msg.ppap.semantics.api.NotificationCodec;
 import com.msg.ppap.semantics.api.PayloadValidationException;
+import com.msg.ppap.semantics.api.SubmissionAvailableMessage;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.Instant;
@@ -67,6 +72,18 @@ public class InboxService {
     private final ExchangeProperties properties;
     private final TransactionTemplate transaction;
     private final Executor executor;
+    private final PullCollaborators pull;
+
+    /**
+     * Phase 5 collaborators: announced submissions are pulled, documents of received requests and submissions are
+     * transferred.
+     */
+    public record PullCollaborators(
+            ExchangeCodec codec,
+            PartnerSharingUseCase sharing,
+            SubmissionPullService submissions,
+            DocumentTransferService documents,
+            PullJobs jobs) {}
 
     @SuppressWarnings("java:S107") // one port per message type
     public InboxService(
@@ -82,7 +99,13 @@ public class InboxService {
             ReceiveDecisionUseCase decisions,
             ExchangeProperties properties,
             PlatformTransactionManager transactionManager,
-            @Qualifier("applicationTaskExecutor") Executor executor) {
+            @Qualifier("applicationTaskExecutor") Executor executor,
+            ExchangeCodec exchangeCodec,
+            PartnerSharingUseCase sharing,
+            SubmissionPullService submissionPulls,
+            DocumentTransferService documentTransfers,
+            PullJobs pullJobs) {
+        this.pull = new PullCollaborators(exchangeCodec, sharing, submissionPulls, documentTransfers, pullJobs);
         this.context = context;
         this.codec = codec;
         this.partners = partners;
@@ -234,6 +257,7 @@ public class InboxService {
             details.put("applied", result.applied());
             step(r, result.caseId(), StepName.PROCESSING, StepStatus.OK, elapsed(start), details);
             context.live().exchangeChanged(result.caseId(), r.messageId(), MessageStatus.PROCESSED.name());
+            afterProcessing(n, result);
             LOG.info(
                     "Processed {} {} from {} (case {}, applied {})",
                     r.messageType(),
@@ -311,9 +335,60 @@ public class InboxService {
         }
     }
 
+    /** Phase 5: start the pull of an announced submission and the transfer of partner documents. */
+    private void afterProcessing(Notification n, InboundResult result) {
+        try {
+            switch (n.messageType()) {
+                case PPAP_SUBMISSION_AVAILABLE -> pull.jobs().nudge();
+                case PPAP_SUBMISSION, PPAP_REQUEST -> {
+                    if (result.caseId() != null
+                            && pull.documents().scheduleForCase(result.caseId(), n.correlationId()) > 0) {
+                        pull.jobs().nudge();
+                    }
+                }
+                default -> {
+                    // no follow-up
+                }
+            }
+        } catch (RuntimeException ex) {
+            LOG.warn(
+                    "Follow-up of {} {} failed: {}", n.messageType(), n.header().messageId(), ex.toString());
+        }
+    }
+
+    /**
+     * {@code PPAP_SUBMISSION_AVAILABLE}: the own case must exist with the sender as partner; the pull job is queued
+     * in the same transaction (idempotent per exchange id and revision).
+     */
+    private InboundResult submissionAvailable(Notification n) {
+        SubmissionAvailableMessage available =
+                pull.codec().decodeSubmissionAvailable(n.payload()).message();
+        String sender = n.header().senderBpn();
+        PartnerSharingUseCase.CaseRef own = pull.sharing()
+                .findCase(available.exchangeId(), "CUSTOMER")
+                .orElseThrow(() -> new NotFoundException("Approval case with exchange id", available.exchangeId()));
+        if (!own.partnerBpnl().equals(sender)) {
+            throw new PpapException(
+                    PpapException.Kind.UNPROCESSABLE,
+                    "UNKNOWN_SENDER",
+                    "Sender " + sender + " is not the partner of the case");
+        }
+        boolean queued = pull.submissions()
+                .schedule(
+                        sender,
+                        available.exchangeId(),
+                        available.revision(),
+                        available.payloadHash(),
+                        SubmissionPullService.Trigger.NOTIFICATION,
+                        n.correlationId(),
+                        List.of());
+        return new InboundResult(own.caseId(), queued, own.caseNumber());
+    }
+
     private InboundResult dispatch(Notification n) {
         var message = new InboundMessage(n.header().senderBpn(), n.payload(), n.signature());
         return switch (n.messageType()) {
+            case PPAP_SUBMISSION_AVAILABLE -> submissionAvailable(n);
             case PPAP_REQUEST -> requests.receiveRequest(message);
             case PPAP_REQUEST_WITHDRAWN -> withdrawals.receiveWithdrawal(message);
             case PPAP_STATUS_UPDATE -> statusUpdates.receiveStatusUpdate(message);
@@ -405,7 +480,17 @@ public class InboxService {
 
     private void step(
             ExchangeRecord r, UUID caseId, StepName step, StepStatus status, Duration duration, Map<String, Object> d) {
-        context.step(r.id(), caseId, r.messageId(), r.status(), Math.max(1, r.attempts()), step, status, duration, d);
+        StepTarget target = step == StepName.KEY_FETCH ? StepTarget.PUBLIC_KEYS : StepTarget.NOTIFICATION;
+        context.step(
+                r.id(),
+                caseId,
+                r.messageId(),
+                r.status(),
+                Math.max(1, r.attempts()),
+                step,
+                status,
+                duration,
+                target.apply(d, null));
     }
 
     private static Map<String, Object> withStep(Map<String, Object> details, StepName step) {

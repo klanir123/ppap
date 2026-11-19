@@ -74,9 +74,15 @@ public record ExchangeRecord(
                 newSteps);
     }
 
-    /** Whether a manual retry is possible (failed delivery or rejected/failed processing). */
+    /** Whether a manual retry is possible (failed delivery or pull, rejected/failed processing). */
     public boolean retryable() {
         return (direction == Direction.OUTBOUND && status == MessageStatus.FAILED)
-                || (direction == Direction.INBOUND && status == MessageStatus.REJECTED);
+                || (direction == Direction.INBOUND && status == MessageStatus.REJECTED)
+                || (pull() && status == MessageStatus.FAILED);
+    }
+
+    /** Whether this is a pull job of the own participant (phase 5) rather than a received notification. */
+    public boolean pull() {
+        return direction == Direction.INBOUND && RecordTypes.isPull(messageType);
     }
 }

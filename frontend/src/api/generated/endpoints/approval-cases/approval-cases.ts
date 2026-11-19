@@ -35,6 +35,7 @@ import type {
   DecisionDto,
   DecisionRequest,
   DocumentReferenceRequest,
+  DocumentTransferDto,
   ElementFindingRequest,
   ExchangeRecordDto,
   ListApprovalCasesParams,
@@ -937,6 +938,87 @@ export const useDecideApprovalCase = <TError = ErrorType<ProblemDetail>, TContex
   TContext
 > => {
   return useMutation(getDecideApprovalCaseMutationOptions(options), queryClient)
+}
+export const getFetchApprovalCaseDocumentUrl = (id: string, sha256: string) => {
+  return `/api/v1/approval-cases/${id}/documents/${sha256}/fetch`
+}
+
+/**
+ * @summary Fetch a partner document of the case (again) via EDC; no effect if fetched or pending
+ */
+export const fetchApprovalCaseDocument = async (
+  id: string,
+  sha256: string,
+  options?: Parameters<typeof apiFetch>[1],
+): Promise<DocumentTransferDto> => {
+  return apiFetch<DocumentTransferDto>(getFetchApprovalCaseDocumentUrl(id, sha256), {
+    ...options,
+    method: 'POST',
+  })
+}
+
+export const getFetchApprovalCaseDocumentMutationKey = () => ['fetchApprovalCaseDocument'] as const
+
+export const getFetchApprovalCaseDocumentMutationOptions = <
+  TError = ErrorType<ProblemDetail>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof fetchApprovalCaseDocument>>,
+    TError,
+    FetchApprovalCaseDocumentMutationVariables,
+    TContext
+  >
+  request?: SecondParameter<typeof apiFetch>
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof fetchApprovalCaseDocument>>,
+  TError,
+  FetchApprovalCaseDocumentMutationVariables,
+  TContext
+> => {
+  const mutationKey = getFetchApprovalCaseDocumentMutationKey()
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined }
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof fetchApprovalCaseDocument>>,
+    FetchApprovalCaseDocumentMutationVariables
+  > = (props) => {
+    const { id, sha256 } = props ?? {}
+
+    return fetchApprovalCaseDocument(id, sha256, requestOptions)
+  }
+
+  return { mutationFn, ...mutationOptions }
+}
+
+export type FetchApprovalCaseDocumentMutationResult = NonNullable<Awaited<ReturnType<typeof fetchApprovalCaseDocument>>>
+
+export type FetchApprovalCaseDocumentMutationError = ErrorType<ProblemDetail>
+export type FetchApprovalCaseDocumentMutationVariables = { id: string; sha256: string }
+
+/** @summary Fetch a partner document of the case (again) via EDC; no effect if fetched or pending */
+export const useFetchApprovalCaseDocument = <TError = ErrorType<ProblemDetail>, TContext = unknown>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof fetchApprovalCaseDocument>>,
+      TError,
+      FetchApprovalCaseDocumentMutationVariables,
+      TContext
+    >
+    request?: SecondParameter<typeof apiFetch>
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<ReturnType<typeof fetchApprovalCaseDocument>>,
+  TError,
+  FetchApprovalCaseDocumentMutationVariables,
+  TContext
+> => {
+  return useMutation(getFetchApprovalCaseDocumentMutationOptions(options), queryClient)
 }
 export const getGetApprovalCaseExchangeUrl = (id: string) => {
   return `/api/v1/approval-cases/${id}/exchange`

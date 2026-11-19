@@ -10,6 +10,7 @@ import com.msg.ppap.exchange.application.port.out.CatalogOffer;
 import com.msg.ppap.exchange.application.port.out.ConnectorHealth;
 import com.msg.ppap.exchange.application.port.out.ContractDefinitionSpec;
 import com.msg.ppap.exchange.application.port.out.DataPlaneResponse;
+import com.msg.ppap.exchange.application.port.out.DataPlaneStream;
 import com.msg.ppap.exchange.application.port.out.DataspaceConnector;
 import com.msg.ppap.exchange.application.port.out.DataspaceException;
 import com.msg.ppap.exchange.application.port.out.EndpointDataReference;
@@ -64,6 +65,8 @@ public class TractusXEdcAdapter implements DataspaceConnector {
     static final Duration HEALTH_TIMEOUT = Duration.ofSeconds(3);
     static final String ASSET_QUERY_PATH = "/v3/assets/request";
     static final String GROUPS_PATH = "/v3/business-partner-groups";
+    static final String DCT_TYPE = "http://purl.org/dc/terms/type";
+    static final String CX_TAXO_NS = "https://w3id.org/catenax/taxonomy#";
 
     private final EdcProperties properties;
     private final ManagementApi api;
@@ -278,39 +281,110 @@ public class TractusXEdcAdapter implements DataspaceConnector {
     }
 
     @Override
+    public List<CatalogOffer> requestCatalogByType(PartnerEndpoint partner, String dctType) {
+        String expanded = expandTaxonomy(dctType);
+        var body = new LinkedHashMap<String, Object>();
+        body.put("@context", JsonLd.edcContext());
+        body.put("@type", "CatalogRequest");
+        body.put("counterPartyAddress", partner.dspEndpoint());
+        body.put("counterPartyId", partner.did());
+        body.put("protocol", JsonLd.DSP_PROTOCOL);
+        // Digital Twin KIT: filter on the asset property dct:type (object with @id)
+        body.put("querySpec", Map.of("filterExpression", List.of(JsonLd.filter("'" + DCT_TYPE + "'.'@id'", expanded))));
+        Response response = call(StepName.CATALOG, () -> api.post("/v3/catalog/request", body));
+        if (!response.ok()) {
+            throw new DataspaceException(
+                    StepName.CATALOG,
+                    "Catalog request to " + partner.bpnl() + " failed: HTTP " + response.status() + " "
+                            + abbreviate(response.raw()),
+                    true,
+                    response.status(),
+                    null);
+        }
+        List<CatalogOffer> offers = new ArrayList<>();
+        for (JsonNode dataset : JsonLd.list(response.body(), "dataset")) {
+            String type = datasetType(dataset);
+            if (type != null && !type.equals(expanded) && !type.equals(dctType)) {
+                continue;
+            }
+            List<JsonNode> policies = JsonLd.list(dataset, "hasPolicy");
+            if (!policies.isEmpty()) {
+                JsonNode offer = policies.getFirst();
+                @SuppressWarnings("unchecked")
+                Map<String, Object> policy = ManagementApi.JSON.convertValue(offer, Map.class);
+                offers.add(
+                        new CatalogOffer(JsonLd.scalar(dataset.get("@id")), JsonLd.scalar(offer.get("@id")), policy));
+            }
+        }
+        return offers;
+    }
+
+    /** {@code cx-taxo:X} → {@code https://w3id.org/catenax/taxonomy#X}. */
+    static String expandTaxonomy(String type) {
+        return type.startsWith("cx-taxo:") ? CX_TAXO_NS + type.substring("cx-taxo:".length()) : type;
+    }
+
+    private static String datasetType(JsonNode dataset) {
+        for (String name : List.of("dct:type", DCT_TYPE, "type")) {
+            JsonNode value = dataset.get(name);
+            if (value != null && !value.isNull()) {
+                String type = JsonLd.scalar(value);
+                return type == null ? null : expandTaxonomy(type);
+            }
+        }
+        return null;
+    }
+
+    @Override
+    public EndpointDataReference obtainEndpoint(PartnerEndpoint partner, CatalogOffer offer, StepListener listener) {
+        Optional<EndpointDataReference> cached = cachedEndpoint(partner, offer.assetId());
+        if (cached.isPresent()) {
+            reportCached(cached.get(), offer.assetId(), listener);
+            return cached.get();
+        }
+        return negotiate(partner, offer.assetId(), offer, listener);
+    }
+
+    @Override
     public EndpointDataReference obtainEndpoint(PartnerEndpoint partner, String assetId, StepListener listener) {
         Optional<EndpointDataReference> cached = cachedEndpoint(partner, assetId);
         if (cached.isPresent()) {
-            EndpointDataReference edr = cached.get();
-            var details = Map.<String, Object>of(
-                    "assetId", assetId, "agreementId", nullToEmpty(edr.agreementId()), "cachedEdr", true);
-            listener.onStep(StepName.CATALOG, StepStatus.SKIPPED, Duration.ZERO, details);
-            listener.onStep(StepName.NEGOTIATION, StepStatus.SKIPPED, Duration.ZERO, details);
-            listener.onStep(
-                    StepName.TRANSFER,
-                    StepStatus.SKIPPED,
-                    Duration.ZERO,
-                    Map.of("transferProcessId", nullToEmpty(edr.transferProcessId()), "cachedEdr", true));
-            listener.onStep(StepName.EDR, StepStatus.OK, Duration.ZERO, edrDetails(edr));
-            return edr;
+            reportCached(cached.get(), assetId, listener);
+            return cached.get();
         }
-        return negotiate(partner, assetId, listener);
+        return negotiate(partner, assetId, null, listener);
     }
 
-    private EndpointDataReference negotiate(PartnerEndpoint partner, String assetId, StepListener listener) {
-        long start = System.nanoTime();
-        CatalogOffer offer;
-        try {
-            offer = requestCatalog(partner, assetId);
-        } catch (DataspaceException ex) {
-            listener.onStep(StepName.CATALOG, StepStatus.FAILED, elapsed(start), error(ex, assetId));
-            throw ex;
-        }
+    private static void reportCached(EndpointDataReference edr, String assetId, StepListener listener) {
+        var details = Map.<String, Object>of(
+                "assetId", assetId, "agreementId", nullToEmpty(edr.agreementId()), "cachedEdr", true);
+        listener.onStep(StepName.CATALOG, StepStatus.SKIPPED, Duration.ZERO, details);
+        listener.onStep(StepName.NEGOTIATION, StepStatus.SKIPPED, Duration.ZERO, details);
         listener.onStep(
-                StepName.CATALOG,
-                StepStatus.OK,
-                elapsed(start),
-                Map.of("assetId", assetId, "offerId", nullToEmpty(offer.offerId())));
+                StepName.TRANSFER,
+                StepStatus.SKIPPED,
+                Duration.ZERO,
+                Map.of("transferProcessId", nullToEmpty(edr.transferProcessId()), "cachedEdr", true));
+        listener.onStep(StepName.EDR, StepStatus.OK, Duration.ZERO, edrDetails(edr));
+    }
+
+    private EndpointDataReference negotiate(
+            PartnerEndpoint partner, String assetId, CatalogOffer known, StepListener listener) {
+        long start = System.nanoTime();
+        CatalogOffer offer = known;
+        if (offer == null) {
+            try {
+                offer = requestCatalog(partner, assetId);
+            } catch (DataspaceException ex) {
+                listener.onStep(StepName.CATALOG, StepStatus.FAILED, elapsed(start), error(ex, assetId));
+                throw ex;
+            }
+            listener.onStep(
+                    StepName.CATALOG,
+                    StepStatus.OK,
+                    elapsed(start),
+                    Map.of("assetId", assetId, "offerId", nullToEmpty(offer.offerId())));
+        }
 
         long negotiationStart = System.nanoTime();
         var policy = new LinkedHashMap<>(offer.policy());
@@ -520,8 +594,13 @@ public class TractusXEdcAdapter implements DataspaceConnector {
 
     @Override
     public DataPlaneResponse call(
-            EndpointDataReference edr, String method, byte[] body, String contentType, Map<String, String> headers) {
-        HttpRequest.Builder request = HttpRequest.newBuilder(edr.endpoint())
+            EndpointDataReference edr,
+            String method,
+            String pathAndQuery,
+            byte[] body,
+            String contentType,
+            Map<String, String> headers) {
+        HttpRequest.Builder request = HttpRequest.newBuilder(resolve(edr, pathAndQuery))
                 .timeout(properties.requestTimeout())
                 .header("Authorization", edr.authorization())
                 .method(
@@ -535,7 +614,7 @@ public class TractusXEdcAdapter implements DataspaceConnector {
         headers.forEach(request::header);
         try {
             HttpResponse<byte[]> response = dataPlane.send(request.build(), HttpResponse.BodyHandlers.ofByteArray());
-            return new DataPlaneResponse(response.statusCode(), response.body());
+            return new DataPlaneResponse(response.statusCode(), response.body(), firstValues(response));
         } catch (IOException ex) {
             throw new DataspaceException(
                     StepName.DELIVERY,
@@ -546,6 +625,80 @@ public class TractusXEdcAdapter implements DataspaceConnector {
         } catch (InterruptedException ex) {
             Thread.currentThread().interrupt();
             throw new DataspaceException(StepName.DELIVERY, "interrupted", true, null, ex);
+        }
+    }
+
+    @Override
+    public DataPlaneStream stream(EndpointDataReference edr, String pathAndQuery, Map<String, String> headers) {
+        HttpRequest.Builder request = HttpRequest.newBuilder(resolve(edr, pathAndQuery))
+                .timeout(properties.negotiationTimeout())
+                .header("Authorization", edr.authorization())
+                .GET();
+        headers.forEach(request::header);
+        try {
+            HttpResponse<java.io.InputStream> response =
+                    dataPlane.send(request.build(), HttpResponse.BodyHandlers.ofInputStream());
+            long length = response.headers().firstValueAsLong("Content-Length").orElse(-1);
+            return new DataPlaneStream(response.statusCode(), response.body(), length, firstValues(response));
+        } catch (IOException ex) {
+            throw new DataspaceException(
+                    StepName.DOCUMENT_FETCH,
+                    "Data plane " + edr.endpoint() + " not reachable: " + ManagementApi.describe(ex),
+                    true,
+                    null,
+                    ex);
+        } catch (InterruptedException ex) {
+            Thread.currentThread().interrupt();
+            throw new DataspaceException(StepName.DOCUMENT_FETCH, "interrupted", true, null, ex);
+        }
+    }
+
+    /** EDR endpoint plus path/query (no double slashes). */
+    static URI resolve(EndpointDataReference edr, String pathAndQuery) {
+        if (pathAndQuery == null || pathAndQuery.isEmpty()) {
+            return edr.endpoint();
+        }
+        String base = edr.endpoint().toString().replaceAll("/+$", "");
+        String suffix =
+                pathAndQuery.startsWith("/") || pathAndQuery.startsWith("?") ? pathAndQuery : "/" + pathAndQuery;
+        return URI.create(base + suffix);
+    }
+
+    private static Map<String, String> firstValues(HttpResponse<?> response) {
+        var headers = new LinkedHashMap<String, String>();
+        response.headers().map().forEach((name, values) -> {
+            if (!values.isEmpty()) {
+                headers.put(name, values.getFirst());
+            }
+        });
+        return headers;
+    }
+
+    // ---------------------------------------------------------------------------------------- reconciliation
+
+    @Override
+    public List<String> listContractDefinitionIds() {
+        Map<String, Object> spec = new LinkedHashMap<>(JsonLd.querySpec(null, null, 1000));
+        Response response = call(StepName.CATALOG, () -> api.post("/v3/contractdefinitions/request", spec));
+        if (!response.ok()) {
+            throw provisioningFailure("list contract definitions", response);
+        }
+        return JsonLd.list(response.body(), null).stream()
+                .map(n -> JsonLd.scalar(n.get("@id")))
+                .filter(java.util.Objects::nonNull)
+                .toList();
+    }
+
+    @Override
+    public void removeOffer(String contractDefinitionId, String assetId) {
+        Response definition = api.delete("/v3/contractdefinitions/" + encode(contractDefinitionId));
+        if (!definition.ok() && definition.status() != 404) {
+            throw provisioningFailure("delete contract definition " + contractDefinitionId, definition);
+        }
+        Response asset = api.delete("/v3/assets/" + encode(assetId));
+        if (!asset.ok() && asset.status() != 404) {
+            // assets with agreements cannot be deleted (409); the offer is gone with the contract definition
+            LOG.info("EDC: asset {} kept: HTTP {}", assetId, asset.status());
         }
     }
 

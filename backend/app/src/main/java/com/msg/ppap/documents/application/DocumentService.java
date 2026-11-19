@@ -1,5 +1,6 @@
 package com.msg.ppap.documents.application;
 
+import com.msg.ppap.documents.api.DocumentContent;
 import com.msg.ppap.documents.api.DocumentInfo;
 import com.msg.ppap.documents.api.Documents;
 import com.msg.ppap.documents.application.port.out.ContentTypeDetector;
@@ -83,6 +84,24 @@ public class DocumentService implements Documents {
     @Override
     @Transactional
     public DocumentInfo upload(String rawFileName, InputStream content) {
+        return store(rawFileName, content, null, actors.currentActor());
+    }
+
+    @Override
+    @Transactional
+    public DocumentInfo importVerified(String fileName, InputStream content, String expectedSha256, String actor) {
+        return store(fileName, content, expectedSha256, actor);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public DocumentContent openContent(UUID id) {
+        Content content = open(id);
+        return new DocumentContent(
+                content.info(), content.stored().content(), content.stored().contentLength());
+    }
+
+    private DocumentInfo store(String rawFileName, InputStream content, String expectedSha256, String actor) {
         String fileName = FileNames.sanitize(rawFileName, "document");
         Path temp = null;
         try {
@@ -96,6 +115,10 @@ public class DocumentService implements Documents {
             if (size == 0) {
                 throw DocumentErrors.empty();
             }
+            String sha256 = HexFormat.of().formatHex(digest.digest());
+            if (expectedSha256 != null && !expectedSha256.equalsIgnoreCase(sha256)) {
+                throw DocumentErrors.hashMismatch(expectedSha256, sha256);
+            }
             String mediaType = AllowedMediaTypes.baseType(detector.detect(temp, fileName));
             if (!AllowedMediaTypes.isAllowed(mediaType)) {
                 throw DocumentErrors.unsupported(mediaType);
@@ -104,7 +127,6 @@ public class DocumentService implements Documents {
             if (finding.isPresent()) {
                 throw DocumentErrors.malware(finding.get());
             }
-            String sha256 = HexFormat.of().formatHex(digest.digest());
             var document = new Document(
                     Ids.newId(),
                     tenant.tenantId(),
@@ -113,7 +135,7 @@ public class DocumentService implements Documents {
                     size,
                     sha256,
                     clock.instant().truncatedTo(ChronoUnit.MICROS),
-                    actors.currentActor());
+                    actor);
             String key = document.storageKey();
             if (!storage.exists(key)) {
                 try (InputStream in = Files.newInputStream(temp)) {

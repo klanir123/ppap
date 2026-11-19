@@ -212,7 +212,9 @@
     "currentStatus": "Stand aktuelle Revision",
     "notAssessed": "Nicht beurteilt",
     "documentCount_one": "{{count}} Dokument",
-    "documentCount_other": "{{count}} Dokumente"
+    "documentCount_other": "{{count}} Dokumente",
+    "attachments": "Anhänge der Anforderung",
+    "attachmentsHint": "Vom Kunden bereitgestellte Unterlagen (z. B. Zeichnung, Prüfvorschrift)."
   },
   "evidence": {
     "DOCUMENT": "Dokument",
@@ -299,7 +301,21 @@
     "hashOk": "Hash geprüft",
     "hashMismatch": "Hash stimmt nicht überein",
     "meta": "{{size}} · {{type}}",
-    "remoteHint": "Abruf des Dokuments über Catena-X folgt"
+    "transfer": {
+      "PENDING": "Wird über Catena-X abgerufen …",
+      "FETCHED": "Über Catena-X abgerufen",
+      "FAILED": "Abruf fehlgeschlagen",
+      "NOT_AVAILABLE": "Nicht verfügbar"
+    },
+    "transferHint": {
+      "PENDING": "Das Dokument liegt beim Partner. Ihr Connector ruft es gerade über Catena-X ab und prüft den SHA-256.",
+      "FETCHED": "Das Dokument wurde über Catena-X vom Partner abgerufen und im eigenen Speicher abgelegt.",
+      "FAILED": "Der Abruf beim Partner ist fehlgeschlagen. Er wird automatisch wiederholt oder kann manuell neu angestoßen werden.",
+      "NOT_AVAILABLE": "Der Partner bietet dieses Dokument nicht über Catena-X an; es liegen nur die Metadaten vor."
+    },
+    "refetch": "Erneut abrufen",
+    "refetchLabel": "{{name}} erneut abrufen",
+    "refetchStarted": "Abruf von {{name}} wurde angestoßen."
   },
   "wizard": {
     "title": "Vorlage anfordern",

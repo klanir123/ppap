@@ -117,7 +117,36 @@
       "PUSH_NOTIFY_PULL_PAYLOAD": "Push notification, pull payload"
     },
     "detailTitle": "Relationship with {{name}}",
-    "notFound": "Relationship not found"
+    "notFound": "Relationship not found",
+    "modes": {
+      "recommended": "Recommended",
+      "facts": {
+        "storage": "Data stored",
+        "timing": "Customer receives",
+        "pattern": "Catena-X pattern"
+      },
+      "PUSH_NOTIFY_PULL_PAYLOAD": {
+        "summary": "You notify the customer; the customer retrieves the package directly from you.",
+        "storage": "with you – in the digital twin of your registry",
+        "timing": "right after the notification (automatic retrieval)",
+        "pattern": "Notification + digital twin"
+      },
+      "PUSH": {
+        "summary": "You send the complete package to the customer as a message.",
+        "storage": "additionally as a copy at the customer",
+        "timing": "immediately on delivery",
+        "pattern": "Notification"
+      },
+      "PULL": {
+        "summary": "You only provide the package in the digital twin; the customer checks regularly.",
+        "storage": "with you – in the digital twin of your registry",
+        "timing": "at the customer's next polling cycle (e.g. every minute)",
+        "pattern": "Digital twin (without notification)"
+      },
+      "appliesNext": "A change applies from the next submission; revisions already submitted keep their mode.",
+      "documents": "In all modes, the partner retrieves documents via Catena-X and verifies them by SHA-256.",
+      "supplierHint": "For suppliers, the supplier decides how to provide – your system receives all modes. The setting only takes effect in relationships in which you supply."
+    }
   },
   "partMappings": {
     "title": "Part mappings",

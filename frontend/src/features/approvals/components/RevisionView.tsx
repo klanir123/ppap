@@ -6,7 +6,10 @@ import { StatusBadge } from '@/components/StatusBadge'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 
+import { ExchangeModeBadge } from '@/features/exchange/components/ExchangeModeBadge'
+
 import { approvalsApi, useSubmission, type ApprovalCaseDetail, type JsonValue, type Submission } from '../api'
+import { revisionExchangeMode } from '../model/submissions'
 import { SchemaValueView } from '../schema-form/SchemaValueView'
 import { HashText, SignatureBadge } from './badges'
 import { DocumentList } from './Documents'
@@ -93,6 +96,7 @@ export function RevisionView({
   if (query.isError || !query.data) return <p className="text-sm text-destructive">{t('revisions.loadError')}</p>
   const s = query.data
   const snapshots = new Map(approvalCase.request.elements.map((e) => [e.code, e]))
+  const mode = revisionExchangeMode(approvalCase.submissions.find((r) => r.revision === s.revision))
 
   return (
     <div className="space-y-4">
@@ -106,10 +110,11 @@ export function RevisionView({
               </span>
             ) : null}
           </h3>
-          <span className="text-xs text-muted-foreground">
+          <span className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
             {s.status === 'SUBMITTED'
               ? t('revisions.submittedBy', { at: fmt.dateTime(s.submittedAt), by: s.submittedBy ?? '–' })
               : t('revisions.draft')}
+            {s.status === 'SUBMITTED' && mode ? <ExchangeModeBadge mode={mode} /> : null}
           </span>
         </div>
         {s.status === 'SUBMITTED' ? (
@@ -157,7 +162,7 @@ export function RevisionView({
                   ) : null}
                   <div className="space-y-1.5">
                     <p className="text-xs text-muted-foreground">{t('package.documents')}</p>
-                    <DocumentList documents={el.documents} />
+                    <DocumentList documents={el.documents} caseId={approvalCase.id} />
                   </div>
                 </div>
               </details>

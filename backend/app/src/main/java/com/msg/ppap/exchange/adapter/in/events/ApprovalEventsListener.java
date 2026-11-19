@@ -1,9 +1,11 @@
 package com.msg.ppap.exchange.adapter.in.events;
 
 import com.msg.ppap.approval.ApprovalEvent;
+import com.msg.ppap.approval.SubmissionSubmitted;
 import com.msg.ppap.approval.application.port.in.OutboundMessageUseCase;
 import com.msg.ppap.exchange.application.LiveEventService;
 import com.msg.ppap.exchange.application.OutboxService;
+import com.msg.ppap.exchange.domain.RecordTypes;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
@@ -34,7 +36,22 @@ class ApprovalEventsListener {
 
     @TransactionalEventListener(phase = TransactionPhase.BEFORE_COMMIT)
     void enqueue(ApprovalEvent event) {
+        // phase 5: the twin is registered (local outbox task) before the notification of the same exchange id
+        if (event instanceof SubmissionSubmitted s && registersTwin(s.exchangeMode())) {
+            outbox.enqueueTask(
+                    RecordTypes.TWIN_REGISTRATION,
+                    s.caseId(),
+                    s.caseNumber(),
+                    s.exchangeId(),
+                    s.partnerBpnl(),
+                    "{\"exchangeId\":\"" + s.exchangeId() + "\",\"revision\":" + s.revision() + ",\"exchangeMode\":\""
+                            + s.exchangeMode() + "\"}");
+        }
         outbound.messageFor(event).ifPresent(outbox::enqueue);
+    }
+
+    static boolean registersTwin(String exchangeMode) {
+        return "PULL".equals(exchangeMode) || "PUSH_NOTIFY_PULL_PAYLOAD".equals(exchangeMode);
     }
 
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT, fallbackExecution = true)

@@ -4,13 +4,19 @@
     "PPAP_REQUEST_WITHDRAWN": "Withdrawal",
     "PPAP_STATUS_UPDATE": "Status update",
     "PPAP_SUBMISSION": "PPF package",
-    "PPAP_DECISION": "Decision"
+    "PPAP_DECISION": "Decision",
+    "PPAP_SUBMISSION_AVAILABLE": "Package available",
+    "PULL_SUBMISSION": "Package pull",
+    "PULL_DOCUMENT": "Document pull",
+    "TWIN_REGISTRATION": "Twin registration"
   },
   "direction": {
     "OUTBOUND": "Outbound",
     "INBOUND": "Inbound",
     "to": "to {{partner}}",
-    "from": "from {{partner}}"
+    "from": "from {{partner}}",
+    "pullFrom": "from {{partner}}",
+    "local": "own registry · for {{partner}}"
   },
   "steps": {
     "CATALOG": "Catalogue",
@@ -21,7 +27,14 @@
     "RECEIPT": "Receipt",
     "VALIDATION": "Validation",
     "KEY_FETCH": "Partner key",
-    "PROCESSING": "Processing"
+    "PROCESSING": "Processing",
+    "DTR_LOOKUP": "Twin lookup",
+    "SHELL_DESCRIPTOR": "Twin descriptor",
+    "SUBMODEL_FETCH": "Package fetch",
+    "HASH_CHECK": "Hash check",
+    "SIGNATURE_CHECK": "Signature check",
+    "DOCUMENT_FETCH": "Document fetch",
+    "TWIN_REGISTRATION": "Twin registration"
   },
   "stepHints": {
     "CATALOG": "Find the partner's offer in the catalogue of its connector (DSP).",
@@ -32,7 +45,14 @@
     "RECEIPT": "Message received via the own data plane and stored unchanged.",
     "VALIDATION": "Schema, hash and sender verified.",
     "KEY_FETCH": "Partner's public signing key fetched via Catena-X.",
-    "PROCESSING": "Message applied to the case."
+    "PROCESSING": "Message applied to the case.",
+    "DTR_LOOKUP": "Looked up the case's digital twin in the supplier's registry (DTR) by exchange ID.",
+    "SHELL_DESCRIPTOR": "Read the digital twin's descriptor and found the entry for the revision.",
+    "SUBMODEL_FETCH": "Retrieved the PPF package via the supplier's data plane.",
+    "HASH_CHECK": "Compared the SHA-256 of the retrieved data with the expected value to rule out changes on the way.",
+    "SIGNATURE_CHECK": "Verified the supplier's digital signature with their public key.",
+    "DOCUMENT_FETCH": "Retrieved the document via the partner's data plane and stored it in your own storage.",
+    "TWIN_REGISTRATION": "Registered the digital twin and package descriptor in your own registry (DTR) – visible to the customer only."
   },
   "details": {
     "assetId": "Asset ID",
@@ -44,7 +64,22 @@
     "cachedEdr": "EDR from cache",
     "yes": "yes",
     "no": "no",
-    "label": "Technical details of {{step}}"
+    "label": "Technical details of {{step}}",
+    "shellId": "Shell ID",
+    "submodelId": "Submodel ID",
+    "semanticId": "Semantic ID",
+    "href": "Endpoint",
+    "endpoint": "Endpoint",
+    "revision": "Revision",
+    "sha256": "SHA-256",
+    "expectedHash": "Expected hash",
+    "actualHash": "Computed hash",
+    "kid": "Key ID (kid)",
+    "signatureStatus": "Signature",
+    "fileName": "File",
+    "dtrAssetId": "DTR asset",
+    "submodelAssetId": "Submodel asset",
+    "dspEndpoint": "DSP endpoint"
   },
   "record": {
     "attempts_one": "{{count}} attempt",
@@ -74,10 +109,13 @@
     "stepAttempt": "attempt {{count}}",
     "durationMs": "{{value}} ms",
     "durationS": "{{value}} s",
-    "title": "{{type}} {{direction}}"
+    "title": "{{type}} {{direction}}",
+    "lastErrorPull": "Retrieval failed",
+    "refetch": "Retrieve again",
+    "refetchSuccess": "Retrieval is being retried."
   },
   "tab": {
-    "intro": "Every message travels exclusively through the Catena-X connectors of both partners: find the offer in the catalogue, negotiate a contract, obtain an access token and deliver. Each step is traceable here.",
+    "intro": "Messages and retrievals run exclusively through both partners' Catena-X connectors: find the offer in the catalogue, negotiate the contract, obtain the access token and deliver or retrieve. Every step is traceable here.",
     "glossary": "Terms",
     "empty": "No data exchange yet",
     "emptyDescription": "As soon as a message for this case is sent or received, it appears here with all steps.",
@@ -99,6 +137,10 @@
     "EDR": {
       "term": "EDR",
       "text": "Endpoint Data Reference – short-lived access token for the partner's data plane, issued after a successful negotiation."
+    },
+    "DTR": {
+      "term": "DTR",
+      "text": "Digital Twin Registry – directory in which the supplier registers a digital twin per case pointing to the PPF package. The customer finds the package there and retrieves it via Catena-X."
     }
   },
   "delivery": {
@@ -106,14 +148,17 @@
     "pending": "Delivering …",
     "failed": "Delivery failed",
     "label": "{{type}}: {{state}}",
-    "open": "Show data exchange"
+    "open": "Show data exchange",
+    "provided": "Provided"
   },
   "submitted": {
     "description": "The revision is stored immutably and is being transmitted to the customer via Catena-X.",
     "descriptionManual": "The revision is stored immutably. The customer is not connected to Catena-X – transmit the package through the agreed channel.",
     "delivery": "Delivery to the customer",
     "waiting": "Preparing message …",
-    "showExchange": "Show data exchange"
+    "showExchange": "Show data exchange",
+    "descriptionPull": "The revision is stored immutably and provided in your digital twin. The customer retrieves it via Catena-X at its next poll (pull mode).",
+    "deliveryPull": "Provision for the customer"
   },
   "live": {
     "label": "Live updates: {{state}}",
@@ -196,7 +241,12 @@
         "allStatuses": "All statuses",
         "partner": "Partner",
         "allPartners": "All partners",
-        "reset": "Reset filters"
+        "reset": "Reset filters",
+        "messageType": "Kind",
+        "allTypes": "All kinds",
+        "groupNotifications": "Messages",
+        "groupPulls": "Retrievals",
+        "groupLocal": "Local"
       },
       "columns": {
         "createdAt": "Time",
@@ -220,5 +270,61 @@
       "openCase": "Open case",
       "loadError": "Could not load the message."
     }
+  },
+  "mode": {
+    "label": "Exchange mode",
+    "badgeLabel": "Exchange mode: {{mode}}",
+    "PUSH": {
+      "short": "Push",
+      "hint": "The supplier sent the complete package to the customer as a Catena-X message."
+    },
+    "PULL": {
+      "short": "Pull",
+      "hint": "The supplier only provided the package in their digital twin; the customer collected it during its regular polling."
+    },
+    "PUSH_NOTIFY_PULL_PAYLOAD": {
+      "short": "Notification + pull",
+      "hint": "The supplier notified the customer; the customer then retrieved the package from the supplier's digital twin."
+    }
+  },
+  "twin": {
+    "title": "Digital twin",
+    "description": "This case's entry in your digital twin registry. The customer uses it to find your submissions and retrieve them via Catena-X.",
+    "shellId": "Shell ID",
+    "idShort": "Short name",
+    "specificAssetIds": "Identifiers",
+    "assetIdNames": {
+      "customerPartId": "Customer part number",
+      "manufacturerPartId": "Supplier part number",
+      "manufacturerId": "Manufacturer (BPNL)",
+      "ppapExchangeId": "Exchange ID"
+    },
+    "visibility": "Visible to",
+    "visibilityHint": "The identifiers are visible to the customer only (externalSubjectId), not public.",
+    "public": "Public",
+    "submodels": "Package descriptors per revision",
+    "submodelsEmpty": "No revision registered yet.",
+    "revision": "Revision {{revision}}",
+    "revisionUnknown": "Revision",
+    "submodelId": "Submodel ID",
+    "semanticId": "Semantic ID",
+    "endpoint": "Endpoint",
+    "subprotocol": "Subprotocol",
+    "subprotocolBody": "Access (subprotocolBody)",
+    "registeredAt": "Registered {{at}}",
+    "updatedAt": "Updated {{at}}",
+    "show": "Show technical details",
+    "hide": "Hide technical details",
+    "empty": "No digital twin yet",
+    "emptyDescription": "The digital twin is registered in your registry with the first submission in pull or notification + pull mode.",
+    "loadError": "Digital twin could not be loaded.",
+    "emptyPush": "In push mode no digital twin is registered – the customer receives the complete package as a message."
+  },
+  "targets": {
+    "NOTIFICATION": "Message",
+    "PUBLIC_KEYS": "Partner keys",
+    "DTR": "Supplier's digital twin registry",
+    "SUBMODEL": "PPF package (submodel)",
+    "DOCUMENT": "Document"
   }
 }

@@ -2,6 +2,7 @@ package com.msg.ppap.approval.application;
 
 import com.msg.ppap.approval.CaseExchangeStatus;
 import com.msg.ppap.approval.CaseExchangeStatus.LastOutbound;
+import com.msg.ppap.approval.DocumentTransferStatus;
 import com.msg.ppap.approval.application.port.out.CaseNumberGenerator;
 import com.msg.ppap.approval.application.port.out.CaseQuery;
 import com.msg.ppap.approval.application.port.out.CaseStatistics;
@@ -54,7 +55,9 @@ public class ApprovalCaseService {
     private final ValueValidator validator;
     private final PartMappingRegistry mappingRegistry;
     private final ObjectProvider<CaseExchangeStatus> exchangeStatus;
+    private final ObjectProvider<DocumentTransferStatus> transfers;
 
+    @SuppressWarnings("java:S107")
     public ApprovalCaseService(
             ApprovalContext context,
             MasterdataQueries masterdata,
@@ -63,7 +66,9 @@ public class ApprovalCaseService {
             DocumentRefs documents,
             ValueValidator validator,
             PartMappingRegistry mappingRegistry,
-            ObjectProvider<CaseExchangeStatus> exchangeStatus) {
+            ObjectProvider<CaseExchangeStatus> exchangeStatus,
+            ObjectProvider<DocumentTransferStatus> transfers) {
+        this.transfers = transfers;
         this.mappingRegistry = mappingRegistry;
         this.exchangeStatus = exchangeStatus;
         this.context = context;
@@ -316,7 +321,13 @@ public class ApprovalCaseService {
                 c.allowedActions(actor, context.policy()),
                 context.today(),
                 completeness,
-                lastOutbound(List.of(c.id())).get(c.id()));
+                lastOutbound(List.of(c.id())).get(c.id()),
+                transfers(c.id()));
+    }
+
+    private Map<String, DocumentTransferStatus.Transfer> transfers(UUID caseId) {
+        DocumentTransferStatus status = transfers.getIfAvailable();
+        return status == null ? Map.of() : status.transfers(caseId);
     }
 
     private Map<UUID, LastOutbound> lastOutbound(List<UUID> caseIds) {

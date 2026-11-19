@@ -8,6 +8,7 @@ import {
   captureManualApprovalCase,
   createApprovalCase,
   decideApprovalCase,
+  fetchApprovalCaseDocument,
   getApprovalCase,
   getApprovalCaseStats,
   getListApprovalCasesUrl,
@@ -221,5 +222,12 @@ export const uploadDocument = (file: File, options?: Options) => genUploadDocume
 /** Document content with auth (blob → object URL for previews / downloads). */
 export const getDocumentContent = (id: string, disposition: 'inline' | 'attachment' = 'inline') =>
   genGetDocumentContent(id, { disposition }, { headers: { Accept: '*/*' } })
+
+/** `sha256:<hex>` → `<hex>` (path segment of the document endpoints). */
+export const sha256Segment = (sha256: string) => sha256.replace(/^sha256:/i, '').toLowerCase()
+
+/** Re-triggers the EDC pull of a received document (customer: evidence, supplier: request attachments). */
+export const fetchCaseDocument = (caseId: string, sha256: string) =>
+  fetchApprovalCaseDocument(caseId, sha256Segment(sha256))
 
 export type { ApprovalCase }

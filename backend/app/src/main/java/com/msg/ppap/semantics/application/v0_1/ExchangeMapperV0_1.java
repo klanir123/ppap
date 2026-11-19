@@ -6,6 +6,7 @@ import com.msg.ppap.semantics.api.DocumentReference;
 import com.msg.ppap.semantics.api.ExchangeModels;
 import com.msg.ppap.semantics.api.RequestMessage;
 import com.msg.ppap.semantics.api.StatusUpdateMessage;
+import com.msg.ppap.semantics.api.SubmissionAvailableMessage;
 import com.msg.ppap.semantics.api.SubmissionMessage;
 import com.msg.ppap.semantics.api.WithdrawalMessage;
 import com.msg.ppap.semantics.application.ExchangeMapper;
@@ -215,6 +216,19 @@ public class ExchangeMapperV0_1 implements ExchangeMapper {
         var p = MAPPER.treeToValue(node, PayloadsV0_1.StatusUpdate.class);
         return new StatusUpdateMessage(
                 UUID.fromString(p.exchangeId()), p.status(), p.revision(), Instant.parse(p.at()), p.by());
+    }
+
+    @Override
+    public JsonNode toPayload(SubmissionAvailableMessage m) {
+        return MAPPER.valueToTree(new PayloadsV0_1.SubmissionAvailable(
+                str(m.exchangeId()), m.revision(), m.payloadHash(), m.shellId(), m.submodelId()));
+    }
+
+    @Override
+    public SubmissionAvailableMessage toSubmissionAvailable(JsonNode node) {
+        var p = MAPPER.treeToValue(node, PayloadsV0_1.SubmissionAvailable.class);
+        return new SubmissionAvailableMessage(
+                UUID.fromString(p.exchangeId()), p.revision(), p.payloadHash(), p.shellId(), p.submodelId());
     }
 
     @Override

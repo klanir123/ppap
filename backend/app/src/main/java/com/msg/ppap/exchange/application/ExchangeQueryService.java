@@ -25,13 +25,16 @@ public class ExchangeQueryService {
     private final ProvisioningService provisioning;
     private final OutboundDeliveryService delivery;
     private final InboxService inbox;
+    private final PullJobs pulls;
 
     public ExchangeQueryService(
             ExchangeContext context,
             DataspaceConnector connector,
             ProvisioningService provisioning,
             OutboundDeliveryService delivery,
-            InboxService inbox) {
+            InboxService inbox,
+            PullJobs pulls) {
+        this.pulls = pulls;
         this.context = context;
         this.connector = connector;
         this.provisioning = provisioning;
@@ -45,7 +48,17 @@ public class ExchangeQueryService {
     }
 
     public Page<ExchangeRecord> search(Direction direction, MessageStatus status, String partnerBpnl, Pageable page) {
-        return context.store().search(direction, status, partnerBpnl, page);
+        return search(direction, status, partnerBpnl, List.of(), page);
+    }
+
+    /** Search with message/record types (empty = all). */
+    public Page<ExchangeRecord> search(
+            Direction direction,
+            MessageStatus status,
+            String partnerBpnl,
+            java.util.Collection<String> messageTypes,
+            Pageable page) {
+        return context.store().search(direction, status, partnerBpnl, messageTypes, page);
     }
 
     /** Record with envelope (diagnosis). */
@@ -64,6 +77,8 @@ public class ExchangeQueryService {
         }
         if (record.direction() == Direction.OUTBOUND) {
             delivery.nudge();
+        } else if (record.pull()) {
+            pulls.nudge();
         } else {
             inbox.process(id);
         }

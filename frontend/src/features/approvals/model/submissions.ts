@@ -1,4 +1,11 @@
-import type { ApprovalCaseDetail, CaseRole, CaseStatus, SubmissionSummary } from '../api/types'
+import {
+  EXCHANGE_MODES,
+  type ApprovalCaseDetail,
+  type CaseRole,
+  type CaseStatus,
+  type ExchangeMode,
+  type SubmissionSummary,
+} from '../api/types'
 
 export function latestSubmission(submissions: readonly SubmissionSummary[]): SubmissionSummary | undefined {
   return submissions.reduce<SubmissionSummary | undefined>(
@@ -25,3 +32,9 @@ export function decidedRevision(submissions: readonly SubmissionSummary[]): numb
 }
 
 export const isSupplierEditing = (status: CaseStatus, role: CaseRole) => role === 'SUPPLIER' && status === 'IN_PROGRESS'
+
+/** Effective exchange mode of a submitted revision (`submissions[].exchangeMode`); unknown/absent → undefined. */
+export function revisionExchangeMode(summary: SubmissionSummary | undefined): ExchangeMode | undefined {
+  const mode = summary?.exchangeMode
+  return mode && (EXCHANGE_MODES as readonly string[]).includes(mode) ? mode : undefined
+}

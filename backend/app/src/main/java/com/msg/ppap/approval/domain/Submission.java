@@ -22,6 +22,7 @@ public final class Submission {
     private String submittedBy;
     private Seal seal;
     private Decision decision;
+    private ExchangeMode exchangeMode;
 
     private Submission(
             int revision,
@@ -62,6 +63,36 @@ public final class Submission {
             Seal seal,
             Decision decision) {
         return new Submission(revision, status, basedOnRevision, elements, submittedAt, submittedBy, seal, decision);
+    }
+
+    /** Restores a persisted revision with the exchange mode it was provided/received with. */
+    @SuppressWarnings("java:S107")
+    public static Submission restore(
+            int revision,
+            SubmissionStatus status,
+            Integer basedOnRevision,
+            List<ElementEvidence> elements,
+            Instant submittedAt,
+            String submittedBy,
+            Seal seal,
+            Decision decision,
+            ExchangeMode exchangeMode) {
+        Submission s =
+                new Submission(revision, status, basedOnRevision, elements, submittedAt, submittedBy, seal, decision);
+        s.exchangeMode = exchangeMode;
+        return s;
+    }
+
+    /**
+     * Exchange mode with which a submitted revision was provided to the customer (supplier) or received from the
+     * supplier (customer); {@code null} for drafts and local/migrated cases.
+     */
+    public ExchangeMode exchangeMode() {
+        return exchangeMode;
+    }
+
+    void exchangeMode(ExchangeMode mode) {
+        this.exchangeMode = mode;
     }
 
     public int revision() {

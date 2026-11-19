@@ -9,6 +9,7 @@ import type { CompletenessDto } from './completenessDto'
 import type { DecisionDto } from './decisionDto'
 import type { ElementEvidenceDto } from './elementEvidenceDto'
 import type { SignatureDto } from './signatureDto'
+import type { SubmissionDtoExchangeMode } from './submissionDtoExchangeMode'
 import type { SubmissionDtoStatus } from './submissionDtoStatus'
 
 export interface SubmissionDto {
@@ -16,6 +17,8 @@ export interface SubmissionDto {
   completeness: CompletenessDto
   decision?: DecisionDto
   elements: ElementEvidenceDto[]
+  /** Effective exchange mode of the revision (supplier: how it was provided, customer: how it was received); null for drafts and local cases */
+  exchangeMode?: SubmissionDtoExchangeMode
   /** sha256:<hex> of the canonical payload (SUBMITTED only) */
   payloadHash?: string
   revision: number

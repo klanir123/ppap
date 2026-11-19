@@ -5,6 +5,7 @@ import com.msg.ppap.exchange.application.port.out.CallbackSecretStore;
 import com.msg.ppap.exchange.application.port.out.ContractDefinitionSpec;
 import com.msg.ppap.exchange.application.port.out.DataspaceConnector;
 import com.msg.ppap.exchange.application.port.out.PolicySpec;
+import com.msg.ppap.exchange.config.DtrOfferProperties;
 import com.msg.ppap.exchange.config.EdcProperties;
 import com.msg.ppap.exchange.config.ExchangeProperties;
 import com.msg.ppap.exchange.domain.ProvisioningState;
@@ -46,6 +47,7 @@ public class ProvisioningService {
     private final EdcProperties edc;
     private final ExchangeProperties exchange;
     private final ExchangeContext context;
+    private final DtrOfferProperties dtr;
     private final AtomicReference<ProvisioningState> state = new AtomicReference<>(ProvisioningState.INITIAL);
     private final AtomicBoolean dirty = new AtomicBoolean(true);
 
@@ -55,7 +57,9 @@ public class ProvisioningService {
             MasterdataQueries masterdata,
             EdcProperties edc,
             ExchangeProperties exchange,
-            ExchangeContext context) {
+            ExchangeContext context,
+            DtrOfferProperties dtr) {
+        this.dtr = dtr;
         this.connector = connector;
         this.secrets = secrets;
         this.masterdata = masterdata;
@@ -132,12 +136,11 @@ public class ProvisioningService {
             masterdata.exchangePartners().forEach(p -> partners.add(p.bpnl()));
             Set<String> members =
                     connector.ensureBusinessPartnerGroup(edc.policy().partnerGroup(), partners);
-            ProvisioningState done = new ProvisioningState(
-                    List.of(ExchangeAssets.NOTIFICATION_ASSET, ExchangeAssets.PUBLIC_KEYS_ASSET),
-                    List.copyOf(new TreeSet<>(members)),
-                    true,
-                    now,
-                    null);
+            List<String> assets = new java.util.ArrayList<>(
+                    List.of(ExchangeAssets.NOTIFICATION_ASSET, ExchangeAssets.PUBLIC_KEYS_ASSET));
+            assets.addAll(provisionPullOffers(base, auth, access, usage, partners));
+            ProvisioningState done =
+                    new ProvisioningState(assets, List.copyOf(new TreeSet<>(members)), true, now, null);
             if (!state.get().ok() || !state.get().partners().equals(done.partners())) {
                 LOG.info(
                         "EDC provisioning complete: assets {}, group {} = {}",
@@ -155,6 +158,126 @@ public class ProvisioningService {
             return update(
                     new ProvisioningState(state.get().assets(), state.get().partners(), false, now, ex.getMessage()));
         }
+    }
+
+    /**
+     * Phase 5 (docs/api/pull-api.md, „Angebote“): the own DTR ({@code ppap-dtr}, OAuth2 via the data plane, partner
+     * group), per partner a documents asset and – towards customers, if a DTR is offered – a submodel asset, each
+     * with an access policy for exactly that BPNL. Offers of partners without relation are removed.
+     *
+     * @return provisioned asset ids
+     */
+    private List<String> provisionPullOffers(
+            String base, Map<String, String> auth, PolicySpec access, PolicySpec usage, Set<String> partners) {
+        List<String> assets = new java.util.ArrayList<>();
+        if (dtr.offered()) {
+            connector.ensureAsset(new AssetSpec(
+                    ExchangeAssets.DTR_ASSET,
+                    ExchangeAssets.DTR_TYPE,
+                    ExchangeAssets.DTR_VERSION,
+                    "Digital Twin Registry (msg CX PPAP Connector)",
+                    dtrDataAddress()));
+            connector.ensureContractDefinition(new ContractDefinitionSpec(
+                    ExchangeAssets.DTR_CONTRACT, access.id(), usage.id(), ExchangeAssets.DTR_ASSET));
+            assets.add(ExchangeAssets.DTR_ASSET);
+        }
+        Set<String> desired = new TreeSet<>();
+        for (String bpnl : partners) {
+            PolicySpec bpn = versioned(new PolicySpec(
+                    ExchangeAssets.BPN_ACCESS_POLICY_PREFIX + bpnl,
+                    "access",
+                    List.of(new PolicySpec.Constraint("BusinessPartnerNumber", "isAnyOf", List.of(bpnl)))));
+            connector.ensurePolicy(bpn);
+            String documents = ExchangeAssets.documentsAsset(bpnl);
+            connector.ensureAsset(new AssetSpec(
+                    documents,
+                    ExchangeAssets.DOCUMENTS_TYPE,
+                    ExchangeAssets.ASSET_VERSION,
+                    "PPAP documents shared with " + bpnl + " (msg CX PPAP Connector)",
+                    pathDataAddress(base + ExchangeAssets.DOCUMENTS_PATH, auth)));
+            connector.ensureContractDefinition(new ContractDefinitionSpec(
+                    documents + ExchangeAssets.CONTRACT_SUFFIX, bpn.id(), usage.id(), documents));
+            desired.add(documents);
+            if (dtr.offered() && isCustomer(bpnl)) {
+                String submission = ExchangeAssets.submissionAsset(bpnl);
+                connector.ensureAsset(new AssetSpec(
+                        submission,
+                        ExchangeAssets.SUBMODEL_TYPE,
+                        ExchangeAssets.ASSET_VERSION,
+                        "PPAP submissions (submodel PpapSubmission) for " + bpnl + " (msg CX PPAP Connector)",
+                        pathDataAddress(base + ExchangeAssets.SUBMODELS_PATH, auth)));
+                connector.ensureContractDefinition(new ContractDefinitionSpec(
+                        submission + ExchangeAssets.CONTRACT_SUFFIX, bpn.id(), usage.id(), submission));
+                desired.add(submission);
+            }
+        }
+        assets.addAll(desired);
+        removeStaleOffers(desired);
+        return assets;
+    }
+
+    private void removeStaleOffers(Set<String> desiredAssets) {
+        for (String definition : connector.listContractDefinitionIds()) {
+            boolean perPartner = definition.startsWith(ExchangeAssets.SUBMISSION_PREFIX)
+                    || definition.startsWith(ExchangeAssets.DOCUMENTS_PREFIX);
+            if (!perPartner || !definition.endsWith(ExchangeAssets.CONTRACT_SUFFIX)) {
+                continue;
+            }
+            String asset = definition.substring(0, definition.length() - ExchangeAssets.CONTRACT_SUFFIX.length());
+            if (!desiredAssets.contains(asset)) {
+                LOG.info("EDC: removing offer {} (no relation with exchange anymore)", asset);
+                connector.removeOffer(definition, asset);
+            }
+        }
+    }
+
+    private boolean isCustomer(String bpnl) {
+        return masterdata
+                .findRelation(bpnl, "CUSTOMER")
+                .map(MasterdataQueries.RelationInfo::active)
+                .orElse(false);
+    }
+
+    /**
+     * DataAddress of the DTR: path and query of the consumer are forwarded (lookup, shell descriptors); the data plane
+     * authenticates with OAuth2 client credentials, the client secret is resolved from the vault ({@code
+     * oauth2:clientSecretKey}). The DTR shows a consumer only the twins whose {@code externalSubjectId} matches the
+     * {@code Edc-Bpn} header set by the provider data plane.
+     */
+    private Map<String, String> dtrDataAddress() {
+        var address = new LinkedHashMap<String, String>();
+        address.put("type", "HttpData");
+        address.put("baseUrl", dtr.publicUrl().replaceAll("/+$", ""));
+        address.put("proxyPath", "true");
+        address.put("proxyQueryParams", "true");
+        address.put("proxyMethod", "true");
+        address.put("proxyBody", "false");
+        if (dtr.tokenUrl() != null && !dtr.tokenUrl().isBlank()) {
+            address.put("oauth2:tokenUrl", dtr.tokenUrl());
+            address.put("oauth2:clientId", dtr.edcClientId());
+            if (dtr.edcClientSecret() != null && !dtr.edcClientSecret().isBlank()) {
+                if (secrets.available()) {
+                    secrets.store(dtr.edcClientSecretName(), dtr.edcClientSecret());
+                } else {
+                    LOG.warn("No vault configured: the data plane cannot resolve the DTR client secret");
+                }
+            }
+            address.put("oauth2:clientSecretKey", dtr.edcClientSecretName());
+        }
+        return address;
+    }
+
+    /** DataAddress of a backend endpoint that receives the consumer's path ({@code proxyPath}), GET only. */
+    private static Map<String, String> pathDataAddress(String baseUrl, Map<String, String> auth) {
+        var address = new LinkedHashMap<String, String>();
+        address.put("type", "HttpData");
+        address.put("baseUrl", baseUrl);
+        address.put("proxyMethod", "false");
+        address.put("proxyBody", "false");
+        address.put("proxyPath", "true");
+        address.put("proxyQueryParams", "false");
+        address.putAll(auth);
+        return address;
     }
 
     /** State of the last run. */

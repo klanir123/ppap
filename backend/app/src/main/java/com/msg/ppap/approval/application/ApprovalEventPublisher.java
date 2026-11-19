@@ -110,7 +110,8 @@ public class ApprovalEventPublisher {
                         from,
                         to,
                         ch.revision(),
-                        hashOf(c.submission(ch.revision()).seal()));
+                        hashOf(c.submission(ch.revision()).seal()),
+                        modeOf(c.submission(ch.revision()).exchangeMode()));
             case START_REVIEW ->
                 new ReviewStarted(
                         t,
@@ -170,5 +171,9 @@ public class ApprovalEventPublisher {
 
     private static String hashOf(Seal seal) {
         return seal == null ? null : seal.payloadHash();
+    }
+
+    private static String modeOf(com.msg.ppap.approval.domain.ExchangeMode mode) {
+        return mode == null ? null : mode.name();
     }
 }

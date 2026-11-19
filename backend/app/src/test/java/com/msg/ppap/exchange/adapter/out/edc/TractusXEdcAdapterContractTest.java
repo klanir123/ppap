@@ -366,4 +366,49 @@ class TractusXEdcAdapterContractTest {
                 .isEqualTo(5);
         assertThat(StepStatus.values()).isNotEmpty();
     }
+
+    @Test
+    void findsTheDtrOfferByTaxonomyTypeAndNegotiatesItWithoutSecondCatalog() throws IOException {
+        on("POST /management/v3/catalog/request", 200, fixture("catalog-dtr-response.json"));
+        var offers = adapter.requestCatalogByType(TIER1, "cx-taxo:DigitalTwinRegistry");
+        assertThat(offers).hasSize(1);
+        assertThat(offers.getFirst().assetId()).isEqualTo("ppap-dtr");
+        JsonNode filter = request("POST", "/management/v3/catalog/request")
+                .body()
+                .path("querySpec")
+                .path("filterExpression")
+                .path(0);
+        assertThat(filter.path("operandLeft").asString()).isEqualTo("'http://purl.org/dc/terms/type'.'@id'");
+        assertThat(filter.path("operandRight").asString())
+                .isEqualTo("https://w3id.org/catenax/taxonomy#DigitalTwinRegistry");
+        assertThat(TractusXEdcAdapter.expandTaxonomy("cx-taxo:Submodel"))
+                .isEqualTo("https://w3id.org/catenax/taxonomy#Submodel");
+
+        // a stored EDR of the DTR asset is reused (no negotiation)
+        on("POST /management/v3/edrs/request", 200, fixture("edrs-response.json"));
+        on("GET /management/v3/edrs/tp-1/dataaddress", 200, fixture("dataaddress-response.json"));
+        var steps = new ArrayList<String>();
+        EndpointDataReference edr = adapter.obtainEndpoint(
+                TIER1, offers.getFirst(), (step, status, duration, details) -> steps.add(step + ":" + status));
+        assertThat(edr.cached()).isTrue();
+        assertThat(steps).contains("CATALOG:SKIPPED", "EDR:OK");
+    }
+
+    @Test
+    void resolvesDataPlanePathsAndListsAndRemovesOffers() {
+        var edr = new EndpointDataReference("tp", "ag", URI.create("http://dp/api/public/"), "tok", false);
+        assertThat(TractusXEdcAdapter.resolve(edr, "/lookup/shells?assetIds=x").toString())
+                .isEqualTo("http://dp/api/public/lookup/shells?assetIds=x");
+        assertThat(TractusXEdcAdapter.resolve(edr, "a/b").toString()).isEqualTo("http://dp/api/public/a/b");
+        assertThat(TractusXEdcAdapter.resolve(edr, "")).isEqualTo(edr.endpoint());
+        on(
+                "POST /management/v3/contractdefinitions/request",
+                200,
+                "[{\"@id\":\"ppap-documents-X-cd\"},{\"@id\":\"other\"}]");
+        assertThat(adapter.listContractDefinitionIds()).containsExactly("ppap-documents-X-cd", "other");
+        on("DELETE /management/v3/contractdefinitions/ppap-documents-X-cd", 204, "");
+        on("DELETE /management/v3/assets/ppap-documents-X", 409, "[]");
+        adapter.removeOffer("ppap-documents-X-cd", "ppap-documents-X");
+        assertThat(request("DELETE", "/management/v3/assets/ppap-documents-X")).isNotNull();
+    }
 }

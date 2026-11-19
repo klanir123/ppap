@@ -6,6 +6,7 @@ import com.msg.ppap.exchange.domain.ExchangeStep;
 import com.msg.ppap.exchange.domain.MessageStatus;
 import com.msg.ppap.exchange.domain.StepName;
 import com.msg.ppap.exchange.domain.StepStatus;
+import com.msg.ppap.exchange.domain.StepTarget;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.time.Instant;
 import java.util.List;
@@ -41,6 +42,14 @@ final class ExchangeDtos {
 
             @Schema(requiredMode = Schema.RequiredMode.REQUIRED, description = "Delivery attempt / processing run")
             int attempt,
+
+            @Schema(
+                    requiredMode = Schema.RequiredMode.REQUIRED,
+                    description = "What the step works on; repeated EDC steps of a pull belong to different targets")
+            StepTarget target,
+
+            @Schema(description = "Reference within the target, e.g. sha256 of a document or the submodel id")
+            String targetRef,
 
             @Schema(
                     requiredMode = Schema.RequiredMode.REQUIRED,
@@ -200,6 +209,16 @@ final class ExchangeDtos {
     }
 
     static ExchangeStepDto step(ExchangeStep s) {
-        return new ExchangeStepDto(s.step(), s.status(), s.at(), s.durationMs(), s.attempt(), s.details());
+        Object target = s.details().get(StepTarget.KEY);
+        Object ref = s.details().get(StepTarget.REF_KEY);
+        return new ExchangeStepDto(
+                s.step(),
+                s.status(),
+                s.at(),
+                s.durationMs(),
+                s.attempt(),
+                target == null ? StepTarget.NOTIFICATION : StepTarget.valueOf(String.valueOf(target)),
+                ref == null ? null : String.valueOf(ref),
+                s.details());
     }
 }

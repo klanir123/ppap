@@ -23,6 +23,8 @@ export type Permission =
   | 'partners:write'
   | 'cockpit:view'
   | 'exchange:retry'
+  | 'documents:fetch'
+  | 'twins:view'
   | 'dataspace:view'
   | 'system:view'
 
@@ -51,6 +53,10 @@ const PERMISSION_ROLES: Record<Permission, readonly Role[]> = {
   'cockpit:view': ['CONNECTOR_ADMIN'],
   // resend failed / reprocess rejected EDC messages
   'exchange:retry': ['CONNECTOR_ADMIN'],
+  // re-trigger a failed EDC document pull (customer: evidence, supplier: request attachments)
+  'documents:fetch': ['CUSTOMER_QUALITY_ENGINEER', 'SUPPLIER_QUALITY_MANAGER', 'CONNECTOR_ADMIN'],
+  // diagnostics of the own Digital Twin per case (GET /twins/{exchangeId}, supplier side)
+  'twins:view': ['SUPPLIER_QUALITY_MANAGER', 'CONNECTOR_ADMIN'],
   'dataspace:view': ALL_HUMAN_ROLES,
   'system:view': ALL_HUMAN_ROLES,
 }

@@ -1,4 +1,4 @@
-import { approvalsApi, type DocumentDto } from '../api'
+import { approvalsApi, type DocumentDto, type TransferStatus } from '../api'
 
 /** Upload whitelist (server checks magic bytes; this only avoids pointless uploads). */
 export const ACCEPTED_DOCUMENT_TYPES = '.pdf,.png,.jpg,.jpeg,.webp,.xlsx,.docx,.csv,.txt,.zip'
@@ -43,4 +43,14 @@ export function saveBlob(blob: Blob, fileName: string) {
 export async function downloadDocument(doc: DocumentDto) {
   if (!doc.id) return
   saveBlob(await approvalsApi.getDocumentContent(doc.id, 'attachment'), doc.fileName)
+}
+
+/** Transfer state; references without one (older payloads) are LOCAL when stored, otherwise NOT_AVAILABLE. */
+export function transferStatusOf(doc: Pick<DocumentDto, 'id' | 'transferStatus'>): TransferStatus {
+  return doc.transferStatus ?? (doc.id ? 'LOCAL' : 'NOT_AVAILABLE')
+}
+
+/** Content is stored locally → preview and download work (contract: `id` set once available). */
+export function isStored(doc: Pick<DocumentDto, 'id'>): boolean {
+  return Boolean(doc.id)
 }

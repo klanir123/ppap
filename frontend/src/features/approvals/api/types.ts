@@ -17,6 +17,7 @@ import type {
   DecisionDto,
   DecisionDtoResult,
   DocumentRefDto,
+  DocumentRefDtoTransferStatus,
   ElementEvidenceDto,
   ElementEvidenceDtoSelfAssessment,
   ElementSnapshotDto,
@@ -33,6 +34,7 @@ import type {
   SubmissionDto,
   SubmissionDtoStatus,
   SubmissionSummaryDto,
+  SubmissionSummaryDtoExchangeMode,
   TimelineEntryDto,
 } from '@/api/generated/model'
 import type { PageData } from '@/components/data-table'
@@ -92,8 +94,29 @@ export type ApprovalCaseDetail = ApprovalCaseDetailDto
 export type ApprovalRequest = CaseRequestDto
 export type RequestElement = RequestedElementDto
 export type ElementSnapshot = ElementSnapshotDto
-/** Document reference (`id` is null for documents of received payloads until they are pulled, phase 5). */
-export type DocumentDto = DocumentRefDto
+/**
+ * Transfer state of a document reference (docs/api/pull-api.md): own uploads are LOCAL; documents of received
+ * payloads / request attachments are pulled over EDC (PENDING → FETCHED | FAILED; NOT_AVAILABLE = partner offers none).
+ */
+export type TransferStatus = DocumentRefDtoTransferStatus
+export const TRANSFER_STATUSES = [
+  'LOCAL',
+  'PENDING',
+  'FETCHED',
+  'FAILED',
+  'NOT_AVAILABLE',
+] as const satisfies readonly TransferStatus[]
+
+/**
+ * Document reference (`id` is set once the content is stored locally). Transfer fields are optional so that
+ * fresh uploads (`POST /documents`, no transfer state) can be listed with the same components.
+ */
+export type DocumentDto = Omit<DocumentRefDto, 'transferStatus' | 'hashVerified'> &
+  Partial<Pick<DocumentRefDto, 'transferStatus' | 'hashVerified'>>
+
+/** Exchange mode (pull-api.md): effective per revision at the time of submission. */
+export type ExchangeMode = SubmissionSummaryDtoExchangeMode
+export const EXCHANGE_MODES = ['PUSH_NOTIFY_PULL_PAYLOAD', 'PUSH', 'PULL'] as const satisfies readonly ExchangeMode[]
 export type TimelineEntry = TimelineEntryDto
 export type Signature = SignatureDto
 export type Issue = IssueDto

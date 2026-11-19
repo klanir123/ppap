@@ -64,7 +64,7 @@ test.describe('OEM – customer quality engineer', () => {
     const timeline = page.getByRole('list').filter({ hasText: 'Entwurf → Angefordert' })
     await expect(timeline).toBeVisible()
     await page.getByRole('tab', { name: 'Datenaustausch' }).click()
-    await expect(page.getByText(/Jede Nachricht läuft ausschließlich über die Catena-X-Connectoren/)).toBeVisible()
+    await expect(page.getByText(/ausschließlich über die Catena-X-Connectoren beider Partner/)).toBeVisible()
     await page.getByRole('tab', { name: 'Elemente' }).click()
     await shot(page, 'oem-case-requested')
   })

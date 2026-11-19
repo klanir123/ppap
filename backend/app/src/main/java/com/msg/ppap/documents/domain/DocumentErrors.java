@@ -9,6 +9,7 @@ public final class DocumentErrors {
     public static final String UNSUPPORTED_FILE_TYPE = "UNSUPPORTED_FILE_TYPE";
     public static final String EMPTY_FILE = "EMPTY_FILE";
     public static final String MALWARE_DETECTED = "MALWARE_DETECTED";
+    public static final String DOCUMENT_HASH_MISMATCH = "DOCUMENT_HASH_MISMATCH";
 
     private DocumentErrors() {}
 
@@ -25,6 +26,13 @@ public final class DocumentErrors {
                 UNSUPPORTED_FILE_TYPE,
                 "File type '" + detected
                         + "' is not allowed (allowed: PDF, PNG, JPEG, WEBP, XLSX, DOCX, CSV, TXT, ZIP)");
+    }
+
+    public static PpapException hashMismatch(String expected, String actual) {
+        return new PpapException(
+                PpapException.Kind.UNPROCESSABLE,
+                DOCUMENT_HASH_MISMATCH,
+                "Content has SHA-256 " + actual + " but " + expected + " was announced");
     }
 
     public static PpapException empty() {

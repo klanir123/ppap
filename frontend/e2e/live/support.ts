@@ -161,3 +161,100 @@ export async function waitForStatus(page: Page, id: string, status: string, time
     })
     .toBe(status)
 }
+
+// --- phase 5: exchange modes, document pulls ----------------------------------------------------
+
+export type ExchangeMode = 'PUSH' | 'PULL' | 'PUSH_NOTIFY_PULL_PAYLOAD'
+
+interface DocumentRef {
+  fileName: string
+  sha256: string
+  id: string | null
+  transferStatus: string
+  hashVerified: boolean
+}
+
+interface SubmissionDocs {
+  elements: { code: string; documents: DocumentRef[] }[]
+}
+
+/** Polls a received revision until every evidence document is pulled (FETCHED + hash verified). */
+export async function waitForDocumentsFetched(page: Page, id: string, revision: number, timeout = 120_000) {
+  await expect
+    .poll(
+      async () => {
+        const s = await api<SubmissionDocs>(page, `/api/v1/approval-cases/${id}/submissions/${revision}`)
+        const docs = s.elements.flatMap((e) => e.documents)
+        return docs.length > 0 && docs.every((d) => d.transferStatus === 'FETCHED' && d.hashVerified && d.id)
+      },
+      { timeout, intervals: [1000, 2000, 3000] },
+    )
+    .toBe(true)
+}
+
+interface RelationRow {
+  id: string
+  partnerBpnl: string
+  partnerName?: string
+  partnerRole: 'CUSTOMER' | 'SUPPLIER'
+  exchangeMode: ExchangeMode
+  policyProfile: string
+  version: number
+}
+
+/** Relation of the signed-in participant to a partner (matched by name), e.g. Tier-1 → Demo-OEM as CUSTOMER. */
+export async function findRelation(page: Page, partnerName: RegExp, partnerRole: 'CUSTOMER' | 'SUPPLIER') {
+  const list = await api<{ content: RelationRow[] }>(page, '/api/v1/relations?size=200')
+  const relation = list.content.find((r) => r.partnerRole === partnerRole && partnerName.test(r.partnerName ?? ''))
+  expect(relation, `relation (${partnerRole}) to ${partnerName}`).toBeTruthy()
+  return relation!
+}
+
+/** Sets the exchange mode via API (setup/cleanup – the UI path is covered by spec 08). */
+export async function setExchangeMode(page: Page, relationId: string, mode: ExchangeMode) {
+  const r = await api<RelationRow>(page, `/api/v1/relations/${relationId}`)
+  if (r.exchangeMode === mode) return
+  await api(page, `/api/v1/relations/${relationId}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', 'If-Match': `"${r.version}"` },
+    body: JSON.stringify({
+      partnerBpnl: r.partnerBpnl,
+      partnerRole: r.partnerRole,
+      exchangeMode: mode,
+      policyProfile: r.policyProfile,
+    }),
+  })
+}
+
+interface Mapping {
+  relationId: string
+  part: { id: string; partNumber: string }
+  partner: { bpnl: string; name?: string; exchangeReady: boolean }
+}
+
+/** OEM draft for Demo-Tier1 via API (the wizard itself is covered by spec 01). */
+export async function createOemDraft(
+  oem: Page,
+  remarks: string,
+  elements = [
+    { code: 'PPF-01', requirement: 'REQUIRED' },
+    { code: 'PPF-03', requirement: 'REQUIRED' },
+  ],
+): Promise<CaseRow> {
+  const mappings = await api<{ content: Mapping[] }>(oem, '/api/v1/part-mappings?partnerRole=SUPPLIER&size=200')
+  const mapping = mappings.content.find((m) => m.partner.exchangeReady && /Tier1/i.test(m.partner.name ?? ''))
+  expect(mapping, 'exchange-ready part mapping to Demo-Tier1').toBeTruthy()
+  return api<CaseRow>(oem, '/api/v1/approval-cases', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      partId: mapping!.part.id,
+      relationId: mapping!.relationId,
+      reasonCode: 'NEW_PART',
+      levelCode: 'VDA-2',
+      dueDate: inDays(21),
+      remarks,
+      elements,
+    }),
+  })
+}

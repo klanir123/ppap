@@ -121,3 +121,13 @@ Feature `src/features/exchange/` (Vertrag: `docs/api/exchange-api.md`):
 - **Klärungsliste** (`clarification/`): Banner + Dialog „Teil zuordnen“ (`POST …/assign-part`, `If-Match`), Filter „Klärung erforderlich“ (`needsClarification=true`) und Zähler am Navigationspunkt.
 - **Connector-Cockpit** (`cockpit/`, `/cockpit`): Status (EDC, Assets, Outbox, Inbox) und Nachrichtentabelle (Filter in der URL) mit Detail-Drawer (Schritte, Payload-JSON, Retry).
 - Empfangene Dokumente (nur Metadaten, ohne `id`) zeigen statt Vorschau den Hinweis auf den späteren Abruf über Catena-X.
+
+## Pull über DTR und Dokumente (Phase 5)
+
+Vertrag: `docs/api/pull-api.md`.
+
+- **Dokument-Transferstatus** (`approvals/components/DocumentTransfer.tsx`): `DocumentList` zeigt für empfangene Dokumente `PENDING` (Spinner), `FETCHED` (+ „Hash geprüft“ bei `hashVerified`), `FAILED` (Fehlercode + „Erneut abrufen“ → `POST …/documents/{sha256}/fetch`, Recht `documents:fetch`) bzw. `NOT_AVAILABLE`; Vorschau/Download nur mit `id`. Gilt für Prüfung, Revisionen und Anforderungs-Anhänge (Reiter „Elemente“). Aktualisierung über SSE (`case.changed`, abgeschlossene `exchange.changed`).
+- **Datenaustausch**: Record-Arten `PPAP_SUBMISSION_AVAILABLE`, `PULL_SUBMISSION`, `PULL_DOCUMENT`, `TWIN_REGISTRATION` und neue Schritte (DTR-Suche … Twin-Registrierung) mit Erklärung; Soll-Abläufe je Art in `flowTemplate` (`model/steps.ts`, optionale Schritte erscheinen nur, wenn aufgezeichnet). Wirksamer Modus je Revision als `ExchangeModeBadge` (Tooltip).
+- **Digital Twin** (`components/TwinPanel.tsx`): Lieferant mit `twins:view` sieht im Reiter „Datenaustausch“ Shell-ID, `specificAssetIds`, Sichtbarkeit und Submodel-Deskriptoren je Revision (`GET /twins/{exchangeId}`, 404 = noch keiner). `model/twin.ts` normalisiert flache und AAS-3.0-Deskriptoren.
+- **Austauschmodus je Beziehung** (`masterdata/relations/ExchangeModeField.tsx`): erklärte Auswahlkarten (Datenhaltung, Zeitpunkt, Catena-X-Muster), Empfehlung `PUSH_NOTIFY_PULL_PAYLOAD`, Hinweis „gilt ab der nächsten Einreichung“.
+- **Cockpit**: Filter „Art“ (Nachrichten / Abrufe / Lokal) über `messageType`.

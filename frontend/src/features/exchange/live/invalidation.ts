@@ -1,6 +1,6 @@
 import type { QueryKey } from '@tanstack/react-query'
 
-import { CASES_URL, EXCHANGE_URL } from '../api/client'
+import { CASES_URL, EXCHANGE_URL, TWINS_URL } from '../api/client'
 import type { LiveEvent } from '../api/types'
 import type { SseMessage } from './sse'
 
@@ -24,6 +24,10 @@ export function parseLiveEvent(message: SseMessage): LiveEvent | undefined {
   return undefined
 }
 
+function isFinished(status: string | undefined): boolean {
+  return status === 'PROCESSED' || status === 'DELIVERED' || status === 'FAILED' || status === 'REJECTED'
+}
+
 function firstKey(key: QueryKey): string | undefined {
   return typeof key[0] === 'string' ? key[0] : undefined
 }
@@ -31,7 +35,8 @@ function firstKey(key: QueryKey): string | undefined {
 /**
  * Which cached queries an event makes stale:
  * - `case.changed`: case lists (incl. clarification count), stats, the case detail and everything below it, audit trail
- * - `exchange.changed`: exchange records of the case + cockpit queries (messages, status)
+ * - `exchange.changed`: exchange records of the case + cockpit queries (messages, status) + digital twins;
+ *   once a record of the case is finished, also the case and its revisions (document transfer states of pulls)
  */
 export function affectsQuery(event: LiveEvent, queryKey: QueryKey): boolean {
   const key = firstKey(queryKey)
@@ -45,12 +50,23 @@ export function affectsQuery(event: LiveEvent, queryKey: QueryKey): boolean {
       key.startsWith(AUDIT_PREFIX)
     )
   }
-  if (key.startsWith(EXCHANGE_URL)) return true
-  return event.caseId ? key === `${CASES_URL}/${event.caseId}/exchange` : /\/exchange$/.test(key)
+  if (key.startsWith(EXCHANGE_URL) || key.startsWith(TWINS_URL)) return true
+  if (!event.caseId) return /\/exchange$/.test(key)
+  if (key === `${CASES_URL}/${event.caseId}/exchange`) return true
+  return (
+    isFinished(event.status) &&
+    (key === `${CASES_URL}/${event.caseId}` || key.startsWith(`${CASES_URL}/${event.caseId}/submissions`))
+  )
 }
 
 /** After a reconnect events may have been missed: refresh all case and exchange data. */
 export function affectedByResume(queryKey: QueryKey): boolean {
   const key = firstKey(queryKey)
-  return Boolean(key && (key.startsWith(CASES_URL) || key.startsWith(EXCHANGE_URL) || key.startsWith(AUDIT_PREFIX)))
+  return Boolean(
+    key &&
+    (key.startsWith(CASES_URL) ||
+      key.startsWith(EXCHANGE_URL) ||
+      key.startsWith(TWINS_URL) ||
+      key.startsWith(AUDIT_PREFIX)),
+  )
 }

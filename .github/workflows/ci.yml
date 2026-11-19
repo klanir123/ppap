@@ -117,6 +117,8 @@ jobs:
           cache-dependency-path: frontend/package-lock.json
       - name: Start dataspace (OEM, Tier-1, Tier-2)
         run: make up PROFILE=tier2
+        env:
+          APP_PULL_POLL_INTERVAL: 15s # PULL-mode spec (08) waits for the customer's poller
       - name: EDC end-to-end (catalog, negotiation, EDR, data plane)
         run: make smoke PROFILE=tier2
       - name: Install Playwright Chromium

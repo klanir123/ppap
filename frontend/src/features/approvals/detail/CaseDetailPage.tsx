@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { ClarificationBanner } from '@/features/exchange/clarification/ClarificationBanner'
+import { ExchangeModeBadge } from '@/features/exchange/components/ExchangeModeBadge'
 import { ExchangeTab } from '@/features/exchange/components/ExchangeTab'
 import { AuditTrail } from '@/features/masterdata/shared/AuditTrail'
 import { cn } from '@/lib/utils'
@@ -18,7 +19,7 @@ import { DecisionView } from '../components/DecisionView'
 import { useFormat } from '../components/format'
 import { RevisionView } from '../components/RevisionView'
 import { Timeline } from '../components/Timeline'
-import { decidedRevision, latestSubmission } from '../model/submissions'
+import { decidedRevision, latestSubmission, revisionExchangeMode } from '../model/submissions'
 import { CASE_AUDIT_OBJECT_TYPE, CASE_TABS, type CaseTab } from './case-tabs'
 import { CaseHeader } from './CaseHeader'
 import { ElementsTab } from './ElementsTab'
@@ -166,6 +167,7 @@ function RevisionsTab({
         <ul className="flex gap-2 relative overflow-x-auto md:flex-col">
           {revisions.map((r) => {
             const active = r.revision === selectedSummary.revision
+            const mode = revisionExchangeMode(r)
             return (
               <li key={r.revision} className="shrink-0">
                 <button
@@ -185,7 +187,10 @@ function RevisionsTab({
                     {r.status === 'SUBMITTED' ? fmt.dateTime(r.submittedAt) : t('revisions.draft')}
                   </span>
                   {r.status === 'SUBMITTED' ? (
-                    <SignatureBadge status={r.signature?.status ?? 'NOT_SIGNED'} size="sm" />
+                    <span className="flex flex-wrap items-center gap-1.5">
+                      <SignatureBadge status={r.signature?.status ?? 'NOT_SIGNED'} size="sm" />
+                      {mode ? <ExchangeModeBadge mode={mode} interactive={false} /> : null}
+                    </span>
                   ) : null}
                 </button>
               </li>

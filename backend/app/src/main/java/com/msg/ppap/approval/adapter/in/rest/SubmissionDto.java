@@ -1,5 +1,6 @@
 package com.msg.ppap.approval.adapter.in.rest;
 
+import com.msg.ppap.approval.domain.ExchangeMode;
 import com.msg.ppap.approval.domain.SubmissionStatus;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.time.Instant;
@@ -19,4 +20,9 @@ public record SubmissionDto(
 
         SignatureDto signature,
         DecisionDto decision,
-        Integer basedOnRevision) {}
+        Integer basedOnRevision,
+
+        @Schema(
+                description = "Effective exchange mode of the revision (supplier: how it was provided, customer: how"
+                        + " it was received); null for drafts and local cases")
+        ExchangeMode exchangeMode) {}

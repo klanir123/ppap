@@ -1,8 +1,8 @@
 import { expect, test, type Browser, type Page } from '@playwright/test'
 
 import {
-  api,
-  inDays,
+  createOemDraft,
+  findRelation,
   login,
   resolveIssues,
   shot,
@@ -10,25 +10,17 @@ import {
   URLS,
   waitForCase,
   waitForStatus,
-  type CaseRow,
+  setExchangeMode,
+  waitForDocumentsFetched,
 } from './support'
 
 /**
- * Phase 4 – full exchange over Catena-X/EDC between two participants (two browser contexts):
- * OEM requests → Tier-1 receives (source EXCHANGE) → works, submits → OEM receives the signed revision,
- * reviews and rejects → Tier-1 receives the decision with the finding.
+ * Phase 4/5 – full exchange over Catena-X/EDC between two participants (two browser contexts):
+ * OEM requests → Tier-1 receives (source EXCHANGE) → works, submits (default mode PUSH_NOTIFY_PULL_PAYLOAD:
+ * twin + notification) → OEM pulls the signed revision via the DTR and the documents via EDC (hash verified,
+ * PDF preview), reviews and rejects → Tier-1 receives the decision with the finding.
  */
 
-interface Mapping {
-  relationId: string
-  part: { id: string; partNumber: string }
-  partner: { bpnl: string; name?: string; exchangeReady: boolean }
-}
-
-const ELEMENTS = [
-  { code: 'PPF-01', requirement: 'REQUIRED' },
-  { code: 'PPF-03', requirement: 'REQUIRED' },
-]
 const REJECTION = 'E2E: Merkmal 12 außerhalb der Toleranz'
 
 async function participant(browser: Browser, name: keyof typeof URLS, user: string): Promise<Page> {
@@ -38,33 +30,15 @@ async function participant(browser: Browser, name: keyof typeof URLS, user: stri
   return page
 }
 
-/** OEM draft for Demo-Tier1 via API (the wizard itself is covered by spec 01). */
-async function createDraft(oem: Page): Promise<CaseRow> {
-  const mappings = await api<{ content: Mapping[] }>(oem, '/api/v1/part-mappings?partnerRole=SUPPLIER&size=200')
-  const mapping = mappings.content.find((m) => m.partner.exchangeReady && /Tier1/i.test(m.partner.name ?? ''))
-  expect(mapping, 'exchange-ready part mapping to Demo-Tier1').toBeTruthy()
-  return api<CaseRow>(oem, '/api/v1/approval-cases', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      partId: mapping!.part.id,
-      relationId: mapping!.relationId,
-      reasonCode: 'NEW_PART',
-      levelCode: 'VDA-2',
-      dueDate: inDays(21),
-      remarks: 'E2E Phase 4: Austausch über Catena-X',
-      elements: ELEMENTS,
-    }),
-  })
-}
-
 test('OEM ↔ Tier-1 over Catena-X: request, submission, decision', async ({ browser }) => {
   test.setTimeout(420_000)
   const oem = await participant(browser, 'oem', 'oem.quality')
   const tier1 = await participant(browser, 'tier1', 'tier1.quality')
+  // seed default; a previous aborted run of spec 08 could have left another mode
+  await setExchangeMode(tier1, (await findRelation(tier1, /OEM/i, 'CUSTOMER')).id, 'PUSH_NOTIFY_PULL_PAYLOAD')
 
   // --- OEM: create + send ----------------------------------------------------------------------
-  const draft = await createDraft(oem)
+  const draft = await createOemDraft(oem, 'E2E Phase 4: Austausch über Catena-X')
   await oem.goto(`${URLS.oem}/approvals/${draft.id}`)
   await expect(oem.getByRole('status', { name: 'Status: Entwurf' }).first()).toBeVisible()
   await oem.getByRole('button', { name: 'Anfordern', exact: true }).click()
@@ -106,6 +80,7 @@ test('OEM ↔ Tier-1 over Catena-X: request, submission, decision', async ({ bro
   await expect(tier1.getByText('Alle Pflichtangaben sind vollständig.')).toBeVisible()
   await submitPackage(tier1)
   await expect(tier1.getByRole('status', { name: 'Status: Signatur gültig' })).toBeVisible()
+  // default mode: twin registered in the own DTR, customer notified (PPAP_SUBMISSION_AVAILABLE)
   const delivery = tier1.getByRole('region', { name: 'Zustellung an den Kunden' })
   await expect(delivery.getByText('Zugestellt', { exact: true })).toBeVisible({ timeout: 90_000 })
   await shot(tier1, 'p4-tier1-submitted-delivered')
@@ -115,18 +90,35 @@ test('OEM ↔ Tier-1 over Catena-X: request, submission, decision', async ({ bro
   await oem.goto(`${URLS.oem}/approvals/${draft.id}?tab=revisions`)
   await expect(oem.getByRole('status', { name: 'Status: Eingereicht' }).first()).toBeVisible()
   await expect(oem.getByRole('status', { name: 'Status: Signatur gültig' }).first()).toBeVisible()
-  // received documents are metadata only (retrieval via Catena-X follows)
+  await expect(oem.locator('[data-exchange-mode="PUSH_NOTIFY_PULL_PAYLOAD"]').first()).toBeVisible()
+  // documents are pulled over EDC and verified (SHA-256), then previewable like own documents
+  await waitForDocumentsFetched(oem, draft.id, 1)
+  await oem.reload()
   const evidence = oem.locator('details').filter({ hasText: 'PPF-03' })
   await evidence.locator('summary').click()
-  await expect(evidence.getByText('Abruf des Dokuments über Catena-X folgt').first()).toBeVisible()
-  await expect(evidence.getByText('messprotokoll.pdf').first()).toBeVisible()
+  const doc = evidence.locator('li[data-transfer-status="FETCHED"]').filter({ hasText: 'messprotokoll.pdf' }).first()
+  await expect(doc.getByText('Über Catena-X abgerufen')).toBeVisible()
+  await expect(doc.getByText('Hash geprüft')).toBeVisible()
+  await doc.getByRole('button', { name: 'messprotokoll.pdf anzeigen' }).click()
+  const preview = oem.getByRole('dialog', { name: 'messprotokoll.pdf' })
+  await expect(preview.locator('canvas').first()).toBeVisible({ timeout: 30_000 })
+  await expect(preview.getByRole('status').filter({ hasText: 'Hash geprüft' })).toBeVisible()
+  await shot(oem, 'p5-oem-document-preview')
+  await oem.keyboard.press('Escape')
   await shot(oem, 'p4-oem-received-submission')
 
   await oem.getByRole('tab', { name: 'Datenaustausch' }).click()
   const request = oem.getByRole('article', { name: /^Anforderung/ })
   await expect(request.getByRole('status', { name: 'Status: Zugestellt' })).toBeVisible()
-  const submission = oem.getByRole('article', { name: /PPF-Paket/ })
-  await expect(submission.getByRole('status', { name: 'Status: Verarbeitet' })).toBeVisible()
+  const available = oem.getByRole('article', { name: /^Paket bereitgestellt/ })
+  await expect(available.getByRole('status', { name: 'Status: Verarbeitet' })).toBeVisible()
+  const pull = oem.getByRole('article', { name: /^Paketabruf/ })
+  await expect(pull.getByRole('status', { name: 'Status: Verarbeitet' })).toBeVisible()
+  await pull.getByRole('button', { name: /Ablauf anzeigen/ }).click()
+  await expect(pull.getByRole('region', { name: 'Digital Twin Registry des Lieferanten' })).toBeVisible()
+  for (const step of ['Twin-Suche', 'Twin-Beschreibung', 'Paketabruf', 'Hash-Prüfung', 'Signaturprüfung'])
+    await expect(pull.getByRole('listitem').filter({ hasText: step }).first()).toBeVisible()
+  await expect(oem.getByRole('article', { name: /^Dokumentabruf/ }).first()).toBeVisible()
   await request.getByRole('button', { name: /Ablauf anzeigen/ }).click()
   for (const step of ['Katalog', 'Vertragsverhandlung', 'Transfer', 'Zugangsschlüssel', 'Zustellung'])
     await expect(request.getByRole('listitem').filter({ hasText: step }).first()).toBeVisible()

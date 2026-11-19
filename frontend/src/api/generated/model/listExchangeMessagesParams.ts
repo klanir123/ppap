@@ -12,6 +12,8 @@ export type ListExchangeMessagesParams = {
   direction?: ListExchangeMessagesDirection
   status?: ListExchangeMessagesStatus
   partnerBpnl?: string
+  /** Message/record types, comma-separated or repeated (e.g. PPAP_SUBMISSION,PULL_SUBMISSION,PULL_DOCUMENT,TWIN_REGISTRATION) */
+  messageType?: string[]
   page?: number
   size?: number
 }
