@@ -20,6 +20,8 @@ Geprüft am **2026-11-18** gegen offizielle Quellen (Maven Central, npm-Registry
 | Apache POI | 6.0.0 | neue Major-Version |
 | MapStruct | 1.6.3 | |
 | Apache Commons CSV | 1.14.1 | CSV-Import |
+| Apache Tika core | 4.2.0 | Dateityp-Erkennung (Magic Bytes) |
+| java-json-canonicalization (erdtman) | 1.1 | RFC 8785 |
 | Resilience4j | 2.4.0 | Modul `resilience4j-spring-boot4` |
 | AWS SDK v2 (S3) | 2.59.3 | einziger Storage-Client (S3-API) |
 | networknt json-schema-validator | 3.0.9 | 3.x mit API-Änderungen |

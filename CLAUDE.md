@@ -3,7 +3,7 @@
 Kommerzielles Produkt (Closed Source) von msg for automotive: digitaler PPAP/PPF-Datenaustausch zwischen OEM und Zulieferern über Catena-X (Tractus-X EDC, DSP). Prototyp → MVP, kein Wegwerf-PoC.
 
 ## Projektstatus
-- Phase 0–2 abgeschlossen (Plan, Fundament, **Stammdaten UC-01/02**). Nächste Phase: 3 – Freigabevorgang lokal (UC-03/05/07).
+- Phase 0–3 abgeschlossen (Plan, Fundament, Stammdaten, **Freigabevorgang lokal UC-03/05/07**). Nächste Phase: 4 – EDC-Push (UC-04/06/08).
 - Vollständige Aufgabenstellung: siehe `docs/input/` bzw. Erst-Prompt; Phasenplan in `docs/backlog.md` und `docs/ARCHITECTURE.md` §12.
 
 ## Wichtige Dokumente
@@ -34,6 +34,7 @@ Kommerzielles Produkt (Closed Source) von msg for automotive: digitaler PPAP/PPF
 - `make test` – `./mvnw verify` + Frontend lint/typecheck/test/api:check
 - `make smoke` – EDC-Ende-zu-Ende (Katalog, Negotiation, EDR, Data Plane) gegen laufende Umgebung
 - `make demo` – App-Datenbanken zurücksetzen; `make clean` – alles inkl. Volumes löschen
+- `make e2e` – Playwright-Specs (`frontend/e2e/live`) gegen die laufende Umgebung (`make up PROFILE=tier2`); lokal ggf. `E2E_CHROMIUM_PATH=/opt/pw-browsers/chromium-*/chrome-linux64/chrome`
 - Backend allein: `JAVA_HOME=<jdk25> ./mvnw -B verify` (regeneriert `api/openapi.json` → danach `cd frontend && npm run api:generate`)
 - Frontend: `cd frontend && npm run dev|lint|typecheck|test|build`
 
@@ -47,4 +48,9 @@ Kommerzielles Produkt (Closed Source) von msg for automotive: digitaler PPAP/PPF
 - Stammdaten: Vertrag `docs/api/masterdata-api.md`; Tabellen `md_*` mit `tenant_id`; Shared Kernel `platform.domain` (Bpnl, Bpns, Validation, fachliche Exceptions → Fehlercodes). REST, Import und Seed nutzen dieselben Application-Services.
 - Seed: `seed/generate_*.py` erzeugen die Dateien (nicht von Hand editieren), `make seed-check` prüft Spiegelgleichheit/Integrität. Laden beim App-Start (`PPAP_SEED_ENABLED`).
 - Audit: synchroner Listener nach Commit (eigene Transaktion), Hash-Kette je (tenant, objectType, objectId), append-only per Trigger.
-- Frontend-Datenzugriff: generierter orval-Client + dünner Wrapper `features/masterdata/api/` (If-Match/ETag). Fehler über `code` → i18n (`lib/problem-errors.ts`).
+- Frontend-Datenzugriff: generierter orval-Client + dünner Wrapper `features/masterdata/api/` bzw. `features/approvals/api/` (If-Match/ETag; `apiFetch` mit `onResponse` für ETag). Fehler über `code` → i18n (`lib/problem-errors.ts`).
+- Freigabevorgang: Vertrag `docs/api/approval-api.md` (inkl. „Klarstellungen“). Zustandsmaschine als Regeltabelle (Prüfreihenfolge Mandantenrolle → Benutzerrolle → Status → Guards), `allowedActions` vom Server. Je Seite ein Vorgang, verknüpft über `exchangeId`. Phase 3 lokal: Events (`CaseRequested`, `SubmissionSubmitted`, `DecisionMade` …) werden veröffentlicht, Zustellung per Outbox/EDC folgt in Phase 4; Eingang über `Receive*UseCase` (bisher nur Tests).
+- Signatur: Austausch-Payload v0.1 (`semantics`, handgeschriebene JSON-Schemas, später aus SAMM) → RFC 8785 (erdtman) → SHA-256 (`sha256:<hex>`) → JWS ES256 detached, `b64:false` (RFC 7797), `kid` = RFC-7638-Thumbprint; Schlüssel aus OpenBao `secret/ppap-signing-key`; öffentlich `/.well-known/jwks.json`. App startet ohne Schlüssel nicht (außer `PPAP_SIGNING_PROVIDER=generated`).
+- Dokumente: Typprüfung per Magic Bytes (Tika), inhaltsadressiert `<tenant>/<sha256>` in S3.
+- Seed: `seed/generate_*.py` (catalog, participants, documents, forms, cases) – PDFs/XLSX reproduzierbar (unkomprimiert, `lxml` gepinnt, `seed/requirements.txt`).
+- EDC-Healthcheck in Compose nutzt `/api/check/readiness` (liveness liefert direkt nach Start sporadisch 404).

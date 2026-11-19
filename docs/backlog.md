@@ -35,7 +35,10 @@ E1-07 (Katalog-Export/-Import) ebenfalls umgesetzt. Zusätzlich: Audit-Modul mit
 | E1-06 | Seed-Mechanismus (`seed/<teilnehmer>/*.csv|json`), 30–50 Teile je Teilnehmer, fiktive Daten | M | 5 |
 | E1-07 | Katalog-Export/Import JSON | C | 2 |
 
-## Epic E2 – Freigabevorgang lokal (Phase 3, UC-03/05/07)
+## Epic E2 – Freigabevorgang lokal (Phase 3, UC-03/05/07) ✅ abgeschlossen 19.11.2026
+
+Zusätzlich umgesetzt: manuelle Erfassung von Anforderungen nicht angebundener Kunden, Dashboard-Kennzahlen (`/approval-cases/stats`), Playwright-Specs gegen die laufende Umgebung (`make e2e`, nächtlich in CI).
+Offen: Vier-Augen-Freigabe (L-06), Werte-Spalten im Excel-Formblatt, echter Malware-Scanner, UI-Hinweis „Zustellung folgt mit Phase 4“ bei Phase 4 ersetzen.
 
 | ID | Story | Prio | SP |
 |---|---|---|---|

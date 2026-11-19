@@ -2,7 +2,7 @@
 
 Digitaler, strukturierter PPAP/PPF-Datenaustausch zwischen OEMs und Zulieferern über Catena-X (Eclipse Tractus-X EDC, Dataspace Protocol) – Connector mit REST-API für die Systemintegration und vollständiger Oberfläche für kleine Zulieferer.
 
-> **Status: Phase 2 (Stammdaten) abgeschlossen.** Lokaler Datenraum mit echten EDCs; Stammdaten (Teile, Partner, Standorte, Beziehungen inkl. Teilezuordnungen, Elementkatalog mit Stufenmatrix) mit UI, REST-API, CSV/XLSX-Import und Audit-Trail; Seed-Daten je Teilnehmer. Nächste Phase: Freigabevorgang (UC-03/05/07).
+> **Status: Phase 3 (Freigabevorgang lokal) abgeschlossen.** Lokaler Datenraum mit echten EDCs; Stammdaten mit Import und Audit; Freigabevorgänge mit Anforderungs-Assistent, PPF-Paket (Formulare aus JSON-Schema, Nachweise mit SHA-256, Excel-Formblatt), unveränderlichen signierten Revisionen (JWS), Prüfansicht und digital bestätigter Entscheidung, Dashboard-Kennzahlen; Demo-Vorgänge je Teilnehmer. Nächste Phase: Austausch über EDC (UC-04/06/08).
 
 ## Schnellstart
 
@@ -30,7 +30,8 @@ Weitere Kommandos (`make help`):
 | `make smoke` | Ende-zu-Ende-Test über echte EDCs: Katalog → Vertragsverhandlung → EDR → Data-Plane-Abruf |
 | `make test` | Backend (`./mvnw verify`: Unit, Integration mit Testcontainers, Modulith/ArchUnit) + Frontend (Lint, Typen, Tests, API-Drift) |
 | `make demo` | Anwendungsdaten zurücksetzen und Seed-Daten neu laden |
-| `make seed-check` | Seed-Daten prüfen (Generatoren aktuell, Zuordnungen spiegelgleich) |
+| `make seed-check` | Seed-Daten prüfen (Generatoren aktuell, Zuordnungen und Vorgänge spiegelgleich) |
+| `make e2e` | Browser-Ende-zu-Ende-Specs gegen die laufende Umgebung (nach `make up PROFILE=tier2`) |
 | `make build` / `make restart` | Neu bauen / App-Container neu starten |
 | `make ps`, `make logs SERVICE=oem-app`, `make stats` | Status, Logs, Speicherverbrauch |
 | `make down` / `make clean` | Stoppen / Stoppen inkl. Löschen aller Daten |
@@ -58,6 +59,7 @@ docs/               Architektur, ADRs, Use Cases, Backlog, Versionen
 | [docs/use-cases/](docs/use-cases/README.md) | UC-01 … UC-12 inkl. Diagramm und Akzeptanzkriterien |
 | [docs/domain-model.md](docs/domain-model.md) | Datenmodell, Zustandsmaschine, Nachrichtentypen |
 | [docs/api/masterdata-api.md](docs/api/masterdata-api.md) | API-Vertrag Stammdaten inkl. Import und Fehlercodes (auch für ERP/QM-Integration) |
+| [docs/api/approval-api.md](docs/api/approval-api.md) | API-Vertrag Freigabevorgang: Zustandsmaschine, Einreichung, Entscheidung, Signatur, Dokumente, Excel-Formblatt |
 | [seed/README.md](seed/README.md) | Seed-Daten |
 | [docs/backlog.md](docs/backlog.md) | Priorisiertes Backlog (Epics/Stories) |
 | [docs/versions.md](docs/versions.md) · [docs/tractusx-versions.md](docs/tractusx-versions.md) | Verifizierte Versionen |

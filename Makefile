@@ -15,7 +15,7 @@ IMAGE        ?= ppap-connector:local
 APPS         := oem-app tier1-app $(if $(filter tier2,$(PROFILE)),tier2-app,)
 SKIP_BUILD   ?=
 
-.PHONY: help up down clean restart ps logs build build-frontend build-backend image test test-backend test-frontend smoke demo realms stats wait seed-check
+.PHONY: help up down clean restart ps logs build build-frontend build-backend image test test-backend test-frontend smoke demo realms stats wait seed-check e2e
 
 help: ## show this help
 	@grep -hE '^[a-z-]+:.*## ' $(MAKEFILE_LIST) | awk 'BEGIN{FS=":.*## "}{printf "  \033[36m%-16s\033[0m %s\n",$$1,$$2}'
@@ -77,6 +77,9 @@ test-frontend:
 smoke: ## EDC end-to-end check: catalog, negotiation, EDR, data plane (needs `make up`)
 	python3 infra/scripts/edc-smoke.py --provider tier1 --consumer oem
 	$(if $(filter tier2,$(PROFILE)),python3 infra/scripts/edc-smoke.py --provider tier2 --consumer tier1,)
+
+e2e: ## browser end-to-end specs against the running stack (needs `make up PROFILE=tier2`; E2E_CHROMIUM_PATH optional)
+	cd frontend && npm run e2e:live
 
 demo: ## reset application databases to the demo state (EDC/Keycloak untouched)
 	$(COMPOSE) stop $(APPS)

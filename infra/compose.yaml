@@ -54,7 +54,8 @@ x-edc-cp-service: &edc-cp-service
   restart: unless-stopped
   mem_limit: 1g
   healthcheck:
-    test: ["CMD-SHELL", "wget -q -O /dev/null http://localhost:8080/api/check/liveness || curl -sf http://localhost:8080/api/check/liveness"]
+    # readiness instead of liveness: /api/check/liveness sporadically answers 404 right after start (EDC 0.13)
+    test: ["CMD-SHELL", "wget -q -O /dev/null http://localhost:8080/api/check/readiness"]
     interval: 10s
     timeout: 5s
     retries: 30
