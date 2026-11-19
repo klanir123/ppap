@@ -1,8 +1,11 @@
 import type { ColumnDef } from '@tanstack/react-table'
 import type { TFunction } from 'i18next'
 
+import { ClarificationChip } from '@/features/exchange/clarification/ClarificationChip'
+import { LastOutboundBadge } from '@/features/exchange/components/Delivery'
+
 import type { ApprovalCase } from '../api/types'
-import { CaseStatusBadge, DueDate, PartnerText, RoleBadge, SourceBadge } from '../components/badges'
+import { CasePartText, CaseStatusBadge, DueDate, PartnerText, RoleBadge, SourceBadge } from '../components/badges'
 import { CaseNumberLink } from '../components/CaseNumberLink'
 import { localized } from '../components/format'
 
@@ -15,7 +18,10 @@ export function caseColumns(t: TFunction<'approvals'>, lng: string | undefined):
       cell: ({ row }) => (
         <div className="flex flex-col items-start gap-1">
           <CaseNumberLink approvalCase={row.original} />
-          <SourceBadge source={row.original.source} />
+          <span className="flex flex-wrap gap-1">
+            <SourceBadge source={row.original.source} />
+            <ClarificationChip approvalCase={row.original} />
+          </span>
         </div>
       ),
     },
@@ -23,7 +29,12 @@ export function caseColumns(t: TFunction<'approvals'>, lng: string | undefined):
       id: 'status',
       header: t('columns.status'),
       meta: { label: t('columns.status') },
-      cell: ({ row }) => <CaseStatusBadge status={row.original.status} size="sm" />,
+      cell: ({ row }) => (
+        <div className="flex flex-col items-start gap-1">
+          <CaseStatusBadge status={row.original.status} size="sm" />
+          <LastOutboundBadge last={row.original.lastOutbound} />
+        </div>
+      ),
     },
     {
       id: 'part',
@@ -31,10 +42,7 @@ export function caseColumns(t: TFunction<'approvals'>, lng: string | undefined):
       meta: { label: t('columns.part'), sortField: 'part.partNumber' },
       cell: ({ row }) => (
         <span className="flex min-w-0 flex-col">
-          <span className="font-mono text-xs whitespace-nowrap">{row.original.part.partNumber}</span>
-          <span className="max-w-[16rem] truncate text-xs text-muted-foreground">
-            {localized(row.original.part, lng)}
-          </span>
+          <CasePartText approvalCase={row.original} layout="stacked" nameClassName="max-w-[16rem]" />
         </span>
       ),
     },

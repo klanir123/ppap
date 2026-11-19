@@ -17,6 +17,8 @@ export interface CaseStatsDto {
   byPartner: PartnerStatsDto[]
   byStatus: CaseStatsDtoByStatus
   inReview: number
+  /** Received requests to clarify (UC-04 A1) */
+  needsClarification: number
   open: number
   overdue: number
 }

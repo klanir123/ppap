@@ -22,6 +22,7 @@ export type Permission =
   | 'masterdata:write'
   | 'partners:write'
   | 'cockpit:view'
+  | 'exchange:retry'
   | 'dataspace:view'
   | 'system:view'
 
@@ -48,6 +49,8 @@ const PERMISSION_ROLES: Record<Permission, readonly Role[]> = {
   // partners additionally carry connector settings (DSP endpoint, DID)
   'partners:write': ['MASTERDATA_MANAGER', 'CONNECTOR_ADMIN'],
   'cockpit:view': ['CONNECTOR_ADMIN'],
+  // resend failed / reprocess rejected EDC messages
+  'exchange:retry': ['CONNECTOR_ADMIN'],
   'dataspace:view': ALL_HUMAN_ROLES,
   'system:view': ALL_HUMAN_ROLES,
 }

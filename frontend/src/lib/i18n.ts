@@ -7,6 +7,7 @@ import deAuth from '@/locales/de/auth.json'
 import deCommon from '@/locales/de/common.json'
 import deDashboard from '@/locales/de/dashboard.json'
 import deErrors from '@/locales/de/errors.json'
+import deExchange from '@/locales/de/exchange.json'
 import deImport from '@/locales/de/import.json'
 import deForms from '@/locales/de/forms.json'
 import deTable from '@/locales/de/table.json'
@@ -20,6 +21,7 @@ import enAuth from '@/locales/en/auth.json'
 import enCommon from '@/locales/en/common.json'
 import enDashboard from '@/locales/en/dashboard.json'
 import enErrors from '@/locales/en/errors.json'
+import enExchange from '@/locales/en/exchange.json'
 import enImport from '@/locales/en/import.json'
 import enForms from '@/locales/en/forms.json'
 import enTable from '@/locales/en/table.json'
@@ -48,6 +50,7 @@ export const resources = {
     table: deTable,
     masterdata: deMasterdata,
     approvals: deApprovals,
+    exchange: deExchange,
   },
   en: {
     common: enCommon,
@@ -63,6 +66,7 @@ export const resources = {
     table: enTable,
     masterdata: enMasterdata,
     approvals: enApprovals,
+    exchange: enExchange,
   },
 } as const
 

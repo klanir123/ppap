@@ -6,6 +6,7 @@ import { ThemeToggle } from '@/components/ThemeToggle'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
 import { useSidebar } from '@/components/ui/sidebar'
+import { LiveIndicator } from '@/features/exchange/live/LiveIndicator'
 
 import { Breadcrumbs } from './Breadcrumbs'
 import { ParticipantContext } from './ParticipantContext'
@@ -28,6 +29,7 @@ export function TopBar() {
           <Breadcrumbs />
         </div>
         <div className="ml-auto flex min-w-0 items-center gap-1 sm:gap-2">
+          <LiveIndicator />
           <ParticipantContext />
           <Separator orientation="vertical" className="mx-1 hidden h-5! lg:block" />
           <LanguageSwitch />

@@ -150,7 +150,7 @@ export function fromDraft(
       : { ...choice, selected: false }
   })
   return {
-    partId: c.part.id,
+    partId: c.part?.id ?? '',
     relationId: c.relationId ?? '',
     partnerBpnl: c.partner.bpnl,
     reasonCode: c.reason.code,

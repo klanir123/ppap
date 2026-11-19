@@ -109,3 +109,15 @@ Verwendung ausschließlich über `<StatusBadge kind="approval" status="in-review
 - Berechtigungen `approvals:request|supply|decide`; Aktionen werden **immer** mit den serverseitigen `allowedActions` kombiniert.
 - Dokumentvorschau: `react-pdf`/`pdfjs-dist` (lazy Chunk `pdf`), SHA-256 wird im Browser gegen den gespeicherten Hash geprüft.
 - `src/lib/i18n-keys.test.ts` stellt sicher, dass DE und EN dieselben Schlüssel haben.
+
+## Datenaustausch über Catena-X (Phase 4, UC-04/06/08/10)
+
+Feature `src/features/exchange/` (Vertrag: `docs/api/exchange-api.md`):
+
+- **Datenzugriff** (`api/`): dünne, typisierte Schicht (`client.ts`, `hooks.ts`, `types.ts`); Query-Keys beginnen mit der URL (`/api/v1/approval-cases/{id}/exchange` liegt unter dem Vorgang → Präfix-Invalidierung). Bis der generierte Client die Endpunkte kennt, laufen Aufrufe direkt über `apiFetch`; der Wechsel betrifft nur diesen Ordner.
+- **Vorgang › Datenaustausch** (`components/ExchangeTab.tsx`): Nachrichten neueste zuerst, je Karte Richtung, Nachrichtentyp, Partner, Status, Versuche, Payload-Hash, Korrelations-ID, kompakter Ablauf und aufklappbare Schritte (Katalog → Verhandlung → Transfer → EDR → Zustellung bzw. Empfang → Prüfung → Partnerschlüssel → Verarbeitung) mit EDC-IDs. `buildTimeline` (`model/steps.ts`) führt aufgezeichnete Schritte in den Soll-Ablauf zusammen. „Erneut senden/verarbeiten“ nur mit `exchange:retry` (CONNECTOR_ADMIN).
+- **Zustellstatus**: `deriveDelivery` (letzte ausgehende Nachricht) → `DeliveryBadge` im Vorgangskopf und im Einreichungs-Erfolgsdialog.
+- **Live-Updates** (`live/`): eigener fetch-basierter SSE-Client (`sse.ts`, Bearer-Token, Backoff 1 s … 30 s mit Jitter, Heartbeat-Watchdog 60 s, Pause nach 15 s im Hintergrund-Tab, `Last-Event-ID`) statt `@microsoft/fetch-event-source` (2.0.1, seit 2021 ohne Pflege). `LiveEventsProvider` (in der App-Shell, endet mit der Abmeldung) invalidiert gezielt (`invalidation.ts`) und zeigt Toasts für Partner-Ereignisse (neue Anforderung, Einreichung, Entscheidung); Anzeige „Live“ in der Top-Bar. Ohne Live-Verbindung pollt die Austauschliste, solange Nachrichten unterwegs sind.
+- **Klärungsliste** (`clarification/`): Banner + Dialog „Teil zuordnen“ (`POST …/assign-part`, `If-Match`), Filter „Klärung erforderlich“ (`needsClarification=true`) und Zähler am Navigationspunkt.
+- **Connector-Cockpit** (`cockpit/`, `/cockpit`): Status (EDC, Assets, Outbox, Inbox) und Nachrichtentabelle (Filter in der URL) mit Detail-Drawer (Schritte, Payload-JSON, Retry).
+- Empfangene Dokumente (nur Metadaten, ohne `id`) zeigen statt Vorschau den Hinweis auf den späteren Abruf über Catena-X.

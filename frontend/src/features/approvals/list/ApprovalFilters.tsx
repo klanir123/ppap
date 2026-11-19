@@ -1,4 +1,4 @@
-import { AlarmClock, ChevronDown, ListFilter, X } from 'lucide-react'
+import { AlarmClock, ChevronDown, ListFilter, TriangleAlert, X } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
 import { SearchInput } from '@/components/data-table/SearchInput'
@@ -8,12 +8,14 @@ import { Label } from '@/components/ui/label'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Toggle } from '@/components/ui/toggle'
+import { usePermission } from '@/features/auth/current-user'
+import { useClarificationCount } from '@/features/exchange/api/hooks'
 import { partnersApi } from '@/features/masterdata/api'
 import { cn } from '@/lib/utils'
 
 import { CASE_ROLES, CASE_STATUSES, type CaseStatus } from '../api/types'
 import { CaseStatusBadge } from '../components/badges'
-import { hasFilters, type ApprovalsSearch } from './approvals-search'
+import { hasFilters, RESET_FILTERS, type ApprovalsSearch } from './approvals-search'
 
 const ALL = '__all__'
 
@@ -82,21 +84,12 @@ export function ApprovalFilters({ search, onChange, withSearch }: ApprovalFilter
         <AlarmClock aria-hidden="true" />
         {t('filters.overdue')}
       </Toggle>
+      <ClarificationFilter
+        pressed={Boolean(search.clarification)}
+        onChange={(clarification) => onChange({ clarification: clarification || undefined, page: undefined })}
+      />
       {hasFilters(search) ? (
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() =>
-            onChange({
-              q: undefined,
-              status: undefined,
-              role: undefined,
-              partner: undefined,
-              overdue: undefined,
-              page: undefined,
-            })
-          }
-        >
+        <Button variant="ghost" size="sm" onClick={() => onChange(RESET_FILTERS)}>
           <X aria-hidden="true" />
           {t('filters.reset')}
         </Button>
@@ -162,5 +155,30 @@ function StatusFilter({
         ) : null}
       </PopoverContent>
     </Popover>
+  )
+}
+
+/** Chip "Klärung erforderlich" with count (suppliers; shown to others only while active). */
+function ClarificationFilter({ pressed, onChange }: { pressed: boolean; onChange: (pressed: boolean) => void }) {
+  const { t } = useTranslation('exchange')
+  const canSupply = usePermission('approvals:supply')
+  const count = useClarificationCount(canSupply || pressed)
+  if (!canSupply && !pressed) return null
+  return (
+    <Toggle
+      variant="outline"
+      size="sm"
+      pressed={pressed}
+      onPressedChange={onChange}
+      className="data-[state=on]:border-(--status-warning-border) data-[state=on]:bg-(--status-warning-bg) data-[state=on]:text-(--status-warning-fg)"
+    >
+      <TriangleAlert aria-hidden="true" />
+      {t('clarification.filter')}
+      {count.data ? (
+        <span className="rounded-full bg-(--status-warning-solid) px-1.5 text-[11px] font-semibold text-black/80 tabular">
+          {count.data}
+        </span>
+      ) : null}
+    </Toggle>
   )
 }

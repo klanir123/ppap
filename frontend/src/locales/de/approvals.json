@@ -252,11 +252,6 @@
     "finding": "Prüfergebnis",
     "findingComment": "Kommentar"
   },
-  "exchange": {
-    "title": "Datenaustausch folgt mit dem EDC-Austausch (Phase 4)",
-    "description": "Hier werden künftig Katalogabfrage, Vertragsverhandlung, Transfer und Zustellstatus der Nachrichten an den Partner angezeigt.",
-    "exchangeId": "Austausch-ID {{id}}"
-  },
   "timeline": {
     "title": "Verlauf",
     "empty": "Noch keine Statuswechsel.",
@@ -303,7 +298,8 @@
     "hashUnchecked": "Hash nicht prüfbar",
     "hashOk": "Hash geprüft",
     "hashMismatch": "Hash stimmt nicht überein",
-    "meta": "{{size}} · {{type}}"
+    "meta": "{{size}} · {{type}}",
+    "remoteHint": "Abruf des Dokuments über Catena-X folgt"
   },
   "wizard": {
     "title": "Vorlage anfordern",
@@ -384,7 +380,7 @@
       "attachments_one": "{{count}} Anhang",
       "attachments_other": "{{count}} Anhänge",
       "sendBlocked": "Anfordern ist erst möglich, wenn der Lieferant für Catena-X eingerichtet ist. Speichern Sie als Entwurf.",
-      "phaseHint": "„Anfordern“ setzt den Status auf „Angefordert“. Die Zustellung über den EDC folgt mit Phase 4."
+      "sendHint": "„Anfordern“ übermittelt die Anforderung über Catena-X an den Lieferanten."
     },
     "errors": {
       "REQUIRED": "Bitte treffen Sie eine Auswahl.",
@@ -518,7 +514,6 @@
     "confirm": "Ich bestätige die Richtigkeit und Vollständigkeit der Angaben und Nachweise. Mir ist bewusst, dass die Einreichung digital signiert und nicht mehr änderbar ist.",
     "submit": "Verbindlich einreichen",
     "successTitle": "Revision {{revision}} eingereicht",
-    "successDescription": "Die Revision ist unveränderlich gespeichert. Die Zustellung an den Kunden über Catena-X folgt mit Phase 4.",
     "toCase": "Zum Vorgang"
   },
   "review": {
@@ -587,5 +582,8 @@
     "signatureHint": "Die Entscheidung wird kanonisiert, per SHA-256 gehasht und mit dem Mandantenschlüssel (JWS) signiert. Ggf. ist eine erneute Anmeldung erforderlich.",
     "reauth": "Erneute Anmeldung erforderlich – Sie werden weitergeleitet …",
     "submit": "Verbindlich entscheiden"
+  },
+  "part": {
+    "unassigned": "Teil nicht zugeordnet"
   }
 }

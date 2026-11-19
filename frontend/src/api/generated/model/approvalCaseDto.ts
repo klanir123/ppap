@@ -13,11 +13,15 @@ import type { ApprovalCaseDtoStatus } from './approvalCaseDtoStatus'
 import type { CasePartDto } from './casePartDto'
 import type { CasePartnerDto } from './casePartnerDto'
 import type { CatalogRefDto } from './catalogRefDto'
+import type { ClarificationDto } from './clarificationDto'
+import type { LastOutboundDto } from './lastOutboundDto'
 
 export interface ApprovalCaseDto {
   /** Actions the current user may perform */
   allowedActions: ApprovalCaseDtoAllowedActionsItem[]
   caseNumber: string
+  /** Open clarification (UC-04 A1), null if none */
+  clarification?: ClarificationDto
   createdAt?: string
   currentRevision?: number
   customerPartNumber?: string
@@ -28,10 +32,13 @@ export interface ApprovalCaseDto {
   externalReference?: string
   id: string
   lastDecisionResult?: ApprovalCaseDtoLastDecisionResult
+  /** Latest message sent to the partner, null if none */
+  lastOutbound?: LastOutboundDto
   level: CatalogRefDto
   overdue: boolean
   ownRole: ApprovalCaseDtoOwnRole
-  part: CasePartDto
+  /** Own part; null while the part of a received request is not mapped (clarification) */
+  part?: CasePartDto
   partner: CasePartnerDto
   partnerPartNumber?: string
   reason: CatalogRefDto

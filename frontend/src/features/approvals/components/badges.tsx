@@ -1,4 +1,14 @@
-import { AlarmClock, Building2, CalendarClock, Cable, CircleSlash, Factory, History, PenLine } from 'lucide-react'
+import {
+  AlarmClock,
+  Building2,
+  CalendarClock,
+  Cable,
+  CircleSlash,
+  Factory,
+  History,
+  PenLine,
+  TriangleAlert,
+} from 'lucide-react'
 import type { CSSProperties } from 'react'
 import { useTranslation } from 'react-i18next'
 
@@ -7,9 +17,9 @@ import { StatusBadge } from '@/components/StatusBadge'
 import { statusStyle } from '@/lib/status-style'
 import { cn } from '@/lib/utils'
 
-import type { CaseRole, CaseSource, CaseStatus, SignatureStatus } from '../api/types'
+import type { ApprovalCase, CaseRole, CaseSource, CaseStatus, SignatureStatus } from '../api/types'
 import { caseStatusToken, daysUntil, isOpen } from '../model/status'
-import { shortHash, useFormat } from './format'
+import { localized, shortHash, useFormat } from './format'
 
 export function CaseStatusBadge({ status, size }: { status: CaseStatus; size?: 'sm' | 'md' }) {
   return <StatusBadge kind="approval" status={caseStatusToken(status)} size={size} />
@@ -139,5 +149,43 @@ export function ExchangeReadyBadge({ ready }: { ready: boolean }) {
       {ready ? <Cable aria-hidden="true" className="size-3" /> : <CircleSlash aria-hidden="true" className="size-3" />}
       {ready ? t('partnerReady.ready') : t('partnerReady.notReady')}
     </span>
+  )
+}
+
+/**
+ * Own part of a case: part number + name. While a received request awaits clarification (UC-04 A1)
+ * `part` is null – then the partner's part number is shown with "Teil nicht zugeordnet".
+ */
+export function CasePartText({
+  approvalCase: c,
+  layout = 'inline',
+  nameClassName,
+}: {
+  approvalCase: Pick<ApprovalCase, 'part' | 'partnerPartNumber'>
+  layout?: 'inline' | 'stacked' | 'number'
+  nameClassName?: string
+}) {
+  const { t, i18n } = useTranslation('approvals')
+  const number = c.part?.partNumber ?? c.partnerPartNumber ?? '–'
+  const name = c.part ? localized(c.part, i18n.resolvedLanguage) : undefined
+  const unassigned = (
+    <span className="inline-flex items-center gap-1 text-(--status-warning-fg)">
+      <TriangleAlert aria-hidden="true" className="size-3" />
+      {t('part.unassigned')}
+    </span>
+  )
+  if (layout === 'number') return <span className="font-mono">{number}</span>
+  if (layout === 'stacked') {
+    return (
+      <>
+        <span className="block truncate font-mono text-xs">{number}</span>
+        <span className={cn('block truncate text-xs text-muted-foreground', nameClassName)}>{name ?? unassigned}</span>
+      </>
+    )
+  }
+  return (
+    <>
+      <span className="font-mono">{number}</span> · {name ?? unassigned}
+    </>
   )
 }

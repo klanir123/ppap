@@ -1,7 +1,7 @@
 import { expect, test, type Page } from '@playwright/test'
 import path from 'node:path'
 
-import { api, inDays, login, SEED, shot, URLS } from './support'
+import { api, draftOf, inDays, login, resolveIssues, SEED, shot, URLS, type Draft } from './support'
 
 interface CaseRow {
   id: string
@@ -10,9 +10,6 @@ interface CaseRow {
   ownRole: string
   allowedActions: string[]
   version: number
-}
-interface Draft {
-  completeness: { complete: boolean; issues: { elementCode: string; code: string }[] }
 }
 
 /** Existing IN_PROGRESS supplier case – or a fresh one (manual capture + start work) so the spec is re-runnable. */
@@ -50,27 +47,6 @@ async function caseInProgress(page: Page): Promise<CaseRow> {
   return created
 }
 
-const draftOf = (page: Page, id: string) => api<Draft>(page, `/api/v1/approval-cases/${id}/submissions/draft`)
-
-/** Fills every required value input of the open element editor (generic over the schema form). */
-async function fillValues(page: Page) {
-  const form = page.getByTestId('schema-form')
-  if (!(await form.count())) return
-  const add = form.getByRole('button', { name: 'Zeile hinzufügen' })
-  if ((await add.count()) && (await form.getByRole('textbox').count()) === 0) await add.click()
-  for (const input of await form.locator('input[aria-required="true"]').all()) {
-    if ((await input.inputValue()) !== '') continue
-    const type = await input.getAttribute('type')
-    await input.fill(type === 'date' ? inDays(-3) : '12345')
-    await input.blur()
-  }
-  // required/optional yes-no fields without answer
-  for (const group of await form.getByRole('radiogroup').all()) {
-    if ((await group.getByRole('radio', { checked: true }).count()) === 0)
-      await group.getByRole('radio', { name: 'Ja' }).click()
-  }
-}
-
 test('Tier-2 – package: Excel import, documents, values, submit', async ({ page }) => {
   await login(page, 'tier2', 'tier2.quality')
   const c = await caseInProgress(page)
@@ -97,35 +73,7 @@ test('Tier-2 – package: Excel import, documents, values, submit', async ({ pag
   await expect(page.getByText(new RegExp(`${afterImport.completeness.issues.length} offene`))).toBeVisible()
 
   // resolve the remaining issues through the editor
-  const pdf = path.join(SEED, 'documents/messprotokoll.pdf')
-  for (let round = 0; round < 40; round++) {
-    const draft = await draftOf(page, c.id)
-    if (draft.completeness.complete) break
-    const issue = draft.completeness.issues[0]!
-    await page
-      .getByRole('navigation', { name: 'Elemente' })
-      .getByRole('button', { name: new RegExp(`\\b${issue.elementCode}\\b`) })
-      .click()
-    const editor = page.getByLabel('Element bearbeiten')
-    const assessment = editor.getByRole('radiogroup', { name: 'Selbstbeurteilung' })
-    if ((await assessment.getByRole('radio', { checked: true }).count()) === 0)
-      await assessment.getByRole('radio', { name: 'i. O.', exact: true }).click()
-    if (issue.code === 'COMMENT_REQUIRED') await editor.getByLabel(/^Kommentar/).fill('E2E: Begründung')
-    if (issue.code === 'DOCUMENT_REQUIRED') {
-      await editor.locator('input[type=file]').setInputFiles(pdf)
-      await expect(editor.getByRole('button', { name: /messprotokoll\.pdf anzeigen/ }).first()).toBeVisible()
-    }
-    if (issue.code === 'VALUES_REQUIRED' || issue.code === 'VALUE_SCHEMA_VIOLATION') await fillValues(page)
-    // autosave (debounced) has reached the server once this issue is gone
-    await expect
-      .poll(async () =>
-        (await draftOf(page, c.id)).completeness.issues.some(
-          (i) => i.elementCode === issue.elementCode && i.code === issue.code,
-        ),
-      )
-      .toBe(false)
-    if (round === 0) await shot(page, 'tier2-package-editor')
-  }
+  await resolveIssues(page, c.id, () => shot(page, 'tier2-package-editor'))
   await expect.poll(async () => (await draftOf(page, c.id)).completeness.complete).toBe(true)
   await page.reload()
   await expect(page.getByText('Alle Pflichtangaben sind vollständig.')).toBeVisible()

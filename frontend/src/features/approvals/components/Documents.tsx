@@ -1,5 +1,6 @@
 import { useMutation, useQuery } from '@tanstack/react-query'
 import {
+  CloudDownload,
   Download,
   Eye,
   File,
@@ -69,41 +70,59 @@ export function DocumentList({ documents, onPreview, onRemove, removingId, empty
             <li key={doc.id ?? doc.sha256} className="flex flex-wrap items-center gap-x-3 gap-y-1 px-3 py-2">
               <Icon aria-hidden="true" className="size-4 shrink-0 text-muted-foreground" />
               <div className="min-w-0 flex-1">
-                <button
-                  type="button"
-                  className="block max-w-full truncate rounded-sm text-left text-sm font-medium underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-ring"
-                  onClick={() => preview(doc)}
-                  disabled={!stored}
-                  title={doc.fileName}
-                >
-                  {doc.fileName}
-                </button>
+                {stored ? (
+                  <button
+                    type="button"
+                    className="block max-w-full truncate rounded-sm text-left text-sm font-medium underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-ring"
+                    onClick={() => preview(doc)}
+                    title={doc.fileName}
+                  >
+                    {doc.fileName}
+                  </button>
+                ) : (
+                  <span className="block max-w-full truncate text-sm font-medium" title={doc.fileName}>
+                    {doc.fileName}
+                  </span>
+                )}
                 <div className="flex flex-wrap items-center gap-x-2 text-xs text-muted-foreground">
                   <span className="tabular">{fmt.bytes(doc.size)}</span>
+                  {stored ? null : (
+                    <>
+                      <span aria-hidden="true">·</span>
+                      <span>{doc.mediaType}</span>
+                    </>
+                  )}
                   <span aria-hidden="true">·</span>
                   <span className="sr-only">{t('documents.sha256')}: </span>
                   <HashText hash={doc.sha256} label={t('documents.copyHash', { name: doc.fileName })} />
                 </div>
               </div>
               <div className="flex items-center gap-0.5">
-                <Button
-                  variant="ghost"
-                  size="icon-sm"
-                  aria-label={t('documents.preview', { name: doc.fileName })}
-                  disabled={!stored}
-                  onClick={() => preview(doc)}
-                >
-                  <Eye aria-hidden="true" />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="icon-sm"
-                  aria-label={t('documents.download', { name: doc.fileName })}
-                  disabled={!stored}
-                  onClick={() => void downloadDocument(doc)}
-                >
-                  <Download aria-hidden="true" />
-                </Button>
+                {stored ? (
+                  <>
+                    <Button
+                      variant="ghost"
+                      size="icon-sm"
+                      aria-label={t('documents.preview', { name: doc.fileName })}
+                      onClick={() => preview(doc)}
+                    >
+                      <Eye aria-hidden="true" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon-sm"
+                      aria-label={t('documents.download', { name: doc.fileName })}
+                      onClick={() => void downloadDocument(doc)}
+                    >
+                      <Download aria-hidden="true" />
+                    </Button>
+                  </>
+                ) : (
+                  <span className="inline-flex items-center gap-1 rounded-md border border-dashed px-2 py-0.5 text-[11px] text-muted-foreground">
+                    <CloudDownload aria-hidden="true" className="size-3" />
+                    {t('documents.remoteHint')}
+                  </span>
+                )}
                 {onRemove ? (
                   <Button
                     variant="ghost"

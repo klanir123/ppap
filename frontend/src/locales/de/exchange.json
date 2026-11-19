@@ -1,0 +1,224 @@
+{
+  "messageType": {
+    "PPAP_REQUEST": "Anforderung",
+    "PPAP_REQUEST_WITHDRAWN": "Rückzug",
+    "PPAP_STATUS_UPDATE": "Statusmeldung",
+    "PPAP_SUBMISSION": "PPF-Paket",
+    "PPAP_DECISION": "Entscheidung"
+  },
+  "direction": {
+    "OUTBOUND": "Ausgehend",
+    "INBOUND": "Eingehend",
+    "to": "an {{partner}}",
+    "from": "von {{partner}}"
+  },
+  "steps": {
+    "CATALOG": "Katalog",
+    "NEGOTIATION": "Vertragsverhandlung",
+    "TRANSFER": "Transfer",
+    "EDR": "Zugangsschlüssel",
+    "DELIVERY": "Zustellung",
+    "RECEIPT": "Empfang",
+    "VALIDATION": "Prüfung",
+    "KEY_FETCH": "Partnerschlüssel",
+    "PROCESSING": "Verarbeitung"
+  },
+  "stepHints": {
+    "CATALOG": "Angebot des Partners im Katalog seines Connectors finden (DSP).",
+    "NEGOTIATION": "Nutzungsvertrag zum Angebot aushandeln; Policies werden geprüft.",
+    "TRANSFER": "Transferprozess für den Datenaustausch starten.",
+    "EDR": "Kurzlebigen Zugangsschlüssel (EDR) zur Data Plane des Partners erhalten.",
+    "DELIVERY": "Nachricht über die Data Plane an das System des Partners senden.",
+    "RECEIPT": "Nachricht über die eigene Data Plane empfangen und unverändert gespeichert.",
+    "VALIDATION": "Schema, Hash und Absender geprüft.",
+    "KEY_FETCH": "Öffentlichen Signaturschlüssel des Partners über Catena-X abgerufen.",
+    "PROCESSING": "Nachricht im Vorgang übernommen."
+  },
+  "details": {
+    "assetId": "Asset-ID",
+    "offerId": "Angebots-ID",
+    "negotiationId": "Verhandlungs-ID",
+    "agreementId": "Vertrags-ID",
+    "transferProcessId": "Transfer-ID",
+    "httpStatus": "HTTP-Status",
+    "cachedEdr": "EDR aus Cache",
+    "yes": "ja",
+    "no": "nein",
+    "label": "Technische Details zu {{step}}"
+  },
+  "record": {
+    "attempts_one": "{{count}} Versuch",
+    "attempts_other": "{{count}} Versuche",
+    "nextAttempt": "nächster Versuch {{at}}",
+    "payloadHash": "Payload-Hash",
+    "correlationId": "Korrelations-ID",
+    "messageId": "Nachrichten-ID",
+    "createdAt": "Erstellt",
+    "completedAt": "Abgeschlossen",
+    "duration": "Dauer",
+    "totalDuration": "Gesamtdauer {{duration}}",
+    "showSteps": "Ablauf anzeigen",
+    "hideSteps": "Ablauf ausblenden",
+    "progress": "{{done}} von {{total}} Schritten",
+    "lastError": "Zustellung fehlgeschlagen",
+    "lastErrorInbound": "Verarbeitung abgewiesen",
+    "retry": "Erneut senden",
+    "reprocess": "Erneut verarbeiten",
+    "retrySuccess": "Nachricht wird erneut gesendet.",
+    "reprocessSuccess": "Nachricht wird erneut verarbeitet.",
+    "retryFailed": "Erneutes Senden nicht möglich.",
+    "copyHash": "Payload-Hash kopieren",
+    "copyCorrelation": "Korrelations-ID kopieren",
+    "copyMessageId": "Nachrichten-ID kopieren",
+    "copyValue": "{{label}} kopieren",
+    "stepAttempt": "{{count}}. Versuch",
+    "durationMs": "{{value}} ms",
+    "durationS": "{{value}} s",
+    "title": "{{type}} {{direction}}"
+  },
+  "tab": {
+    "intro": "Jede Nachricht läuft ausschließlich über die Catena-X-Connectoren beider Partner: Angebot im Katalog finden, Vertrag aushandeln, Zugangsschlüssel erhalten und zustellen. Jeder Schritt ist hier nachvollziehbar.",
+    "glossary": "Begriffe",
+    "empty": "Noch kein Datenaustausch",
+    "emptyDescription": "Sobald zu diesem Vorgang eine Nachricht gesendet oder empfangen wird, erscheint sie hier mit allen Schritten.",
+    "emptyManual": "Dieser Vorgang wurde manuell erfasst. Der Kunde ist nicht über Catena-X angebunden, daher werden keine Nachrichten ausgetauscht.",
+    "emptyLegacy": "Altvorgang aus einem früheren System – ohne Datenaustausch über Catena-X.",
+    "loadError": "Datenaustausch konnte nicht geladen werden.",
+    "exchangeId": "Austausch-ID",
+    "list": "Nachrichten zum Vorgang"
+  },
+  "glossary": {
+    "EDC": {
+      "term": "EDC",
+      "text": "Eclipse Dataspace Connector – der Connector jedes Teilnehmers. Daten fließen nur über ihn, nie direkt zwischen den Systemen."
+    },
+    "DSP": {
+      "term": "DSP",
+      "text": "Dataspace Protocol – Standard, über den Connectoren Kataloge abfragen und Nutzungsverträge aushandeln."
+    },
+    "EDR": {
+      "term": "EDR",
+      "text": "Endpoint Data Reference – kurzlebiger Zugangsschlüssel zur Data Plane des Partners, ausgestellt nach erfolgreicher Vertragsverhandlung."
+    }
+  },
+  "delivery": {
+    "delivered": "Zugestellt",
+    "pending": "Wird zugestellt …",
+    "failed": "Zustellung fehlgeschlagen",
+    "label": "{{type}}: {{state}}",
+    "open": "Datenaustausch anzeigen"
+  },
+  "submitted": {
+    "description": "Die Revision ist unveränderlich gespeichert und wird über Catena-X an den Kunden übermittelt.",
+    "descriptionManual": "Die Revision ist unveränderlich gespeichert. Der Kunde ist nicht über Catena-X angebunden – übermitteln Sie das Paket auf dem vereinbarten Weg.",
+    "delivery": "Zustellung an den Kunden",
+    "waiting": "Nachricht wird vorbereitet …",
+    "showExchange": "Datenaustausch anzeigen"
+  },
+  "live": {
+    "label": "Live-Aktualisierung: {{state}}",
+    "open": "Live",
+    "openHint": "Live-Aktualisierung aktiv – Änderungen erscheinen ohne Neuladen.",
+    "connecting": "Verbinde …",
+    "connectingHint": "Verbindung für die Live-Aktualisierung wird aufgebaut.",
+    "reconnecting": "Verbinde …",
+    "reconnectingHint": "Verbindung unterbrochen – wird automatisch wiederhergestellt.",
+    "paused": "Pausiert",
+    "pausedHint": "Live-Aktualisierung pausiert, solange der Tab im Hintergrund ist.",
+    "offline": "Offline",
+    "offlineHint": "Keine Live-Aktualisierung.",
+    "toast": {
+      "newRequest": "Neue Anforderung von {{partner}}",
+      "submissionReceived": "Neue Einreichung von {{partner}}",
+      "decisionReceived": "Entscheidung erhalten: {{result}}",
+      "open": "Öffnen"
+    }
+  },
+  "clarification": {
+    "title": "Teil nicht zugeordnet: Kundensachnummer {{number}}",
+    "titleUnknown": "Teil nicht zugeordnet",
+    "description": "Die Anforderung ist eingegangen, die Kundensachnummer ist aber keinem eigenen Teil zugeordnet. Ordnen Sie das Teil zu, um den Vorgang zu bearbeiten.",
+    "readOnly": "Die Zuordnung nehmen Qualitätsverantwortliche des Lieferanten vor.",
+    "action": "Teil zuordnen",
+    "filter": "Klärung erforderlich",
+    "badge": "Klärung",
+    "navCount_one": "{{count}} Vorgang mit Klärungsbedarf",
+    "navCount_other": "{{count}} Vorgänge mit Klärungsbedarf",
+    "dialog": {
+      "title": "Teil zuordnen",
+      "description": "Wählen Sie Ihr Teil zur Kundensachnummer {{number}} von {{partner}}.",
+      "search": "Teile suchen",
+      "searchPlaceholder": "Sachnummer oder Bezeichnung",
+      "parts": "Eigene Teile",
+      "noResults": "Keine passenden Teile gefunden.",
+      "loading": "Teile werden geladen …",
+      "saveMapping": "Zuordnung als Teilezuordnung speichern",
+      "saveMappingHint": "Künftige Anforderungen mit dieser Kundensachnummer werden automatisch zugeordnet.",
+      "submit": "Zuordnen",
+      "success": "Teil {{part}} zugeordnet",
+      "selectRequired": "Bitte ein Teil auswählen.",
+      "mapped": "Zugeordnet zu {{number}}",
+      "mappedWarning": "Für dieses Teil besteht bereits eine Teilezuordnung zu {{partner}} (Kundensachnummer {{number}}). Je Teil und Beziehung ist nur eine Zuordnung möglich – ordnen Sie ohne Speichern zu oder wählen Sie ein anderes Teil.",
+      "duplicate": "Teilezuordnung nicht gespeichert: {{part}} ist bei {{partner}} bereits der Kundensachnummer {{number}} zugeordnet. Ordnen Sie ohne Speichern zu oder wählen Sie ein anderes Teil.",
+      "duplicateUnknown": "Teilezuordnung nicht gespeichert: Für {{part}} besteht bei {{partner}} bereits eine Teilezuordnung. Ordnen Sie ohne Speichern zu oder wählen Sie ein anderes Teil."
+    }
+  },
+  "cockpit": {
+    "title": "Connector-Cockpit",
+    "description": "Status der eigenen EDC-Anbindung und aller über Catena-X ausgetauschten Nachrichten.",
+    "status": {
+      "title": "Status",
+      "edc": "EDC-Connector",
+      "up": "Erreichbar",
+      "down": "Nicht erreichbar",
+      "provisioning": "Angebote im Katalog",
+      "provisioningOk": "Bereitgestellt",
+      "provisioningFailed": "Abgleich fehlgeschlagen",
+      "lastRun": "Abgeglichen {{at}}",
+      "assets_one": "{{count}} Asset",
+      "assets_other": "{{count}} Assets",
+      "outbox": "Ausgang",
+      "inbox": "Eingang",
+      "pending": "wartend",
+      "failed": "fehlgeschlagen",
+      "rejected": "abgewiesen",
+      "loadError": "Status konnte nicht geladen werden."
+    },
+    "messages": {
+      "title": "Nachrichten",
+      "empty": "Noch keine Nachrichten",
+      "emptyDescription": "Gesendete und empfangene Nachrichten erscheinen hier mit Status und Schritten.",
+      "open": "Details anzeigen",
+      "filters": {
+        "direction": "Richtung",
+        "allDirections": "Alle Richtungen",
+        "status": "Status",
+        "allStatuses": "Alle Status",
+        "partner": "Partner",
+        "allPartners": "Alle Partner",
+        "reset": "Filter zurücksetzen"
+      },
+      "columns": {
+        "createdAt": "Zeitpunkt",
+        "direction": "Richtung",
+        "messageType": "Nachricht",
+        "partner": "Partner",
+        "status": "Status",
+        "attempts": "Versuche",
+        "payloadHash": "Payload-Hash",
+        "case": "Vorgang"
+      }
+    },
+    "drawer": {
+      "title": "Nachricht",
+      "description": "Schritte, Kennungen und Payload zur Diagnose.",
+      "steps": "Ablauf",
+      "identifiers": "Kennungen",
+      "payload": "Payload (JSON)",
+      "payloadUnavailable": "Kein Payload verfügbar.",
+      "copyPayload": "Payload kopieren",
+      "openCase": "Zum Vorgang",
+      "loadError": "Nachricht konnte nicht geladen werden."
+    }
+  }
+}

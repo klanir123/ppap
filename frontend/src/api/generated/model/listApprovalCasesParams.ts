@@ -13,6 +13,7 @@ export type ListApprovalCasesParams = {
   ownRole?: ListApprovalCasesOwnRole
   partnerBpnl?: string
   overdue?: boolean
+  needsClarification?: boolean
   page?: number
   size?: number
   sort?: string[]

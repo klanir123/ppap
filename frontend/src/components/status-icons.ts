@@ -14,6 +14,11 @@ import {
   CircleMinus,
   CircleX,
   Clock,
+  CircleCheckBig,
+  Inbox,
+  Loader,
+  SkipForward,
+  Hourglass,
   Eye,
   FileEdit,
   Send,
@@ -25,6 +30,8 @@ import {
 import type {
   ApprovalStatus,
   Assessment,
+  ExchangeState,
+  StepStateValue,
   Finding,
   HealthStatus,
   RequirementLevel,
@@ -67,6 +74,22 @@ export const STATUS_ICONS = {
     NOT_ACCEPTED: CircleX,
     ACCEPTED_WITH_CONDITION: ShieldAlert,
   } satisfies Record<Finding, LucideIcon>,
+  exchange: {
+    PENDING: Hourglass,
+    IN_PROGRESS: Loader,
+    DELIVERED: CircleCheck,
+    FAILED: CircleX,
+    RECEIVED: Inbox,
+    PROCESSED: CircleCheckBig,
+    REJECTED: Ban,
+  } satisfies Record<ExchangeState, LucideIcon>,
+  step: {
+    OK: CircleCheck,
+    FAILED: CircleX,
+    SKIPPED: SkipForward,
+    PENDING: CircleDashed,
+    NOT_REACHED: CircleMinus,
+  } satisfies Record<StepStateValue, LucideIcon>,
 }
 
 export type StatusKind = keyof typeof STATUS_ICONS

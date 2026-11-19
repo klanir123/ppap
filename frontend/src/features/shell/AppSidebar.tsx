@@ -11,6 +11,7 @@ import {
   SidebarGroupLabel,
   SidebarHeader,
   SidebarMenu,
+  SidebarMenuBadge,
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarMenuSub,
@@ -20,6 +21,7 @@ import {
 } from '@/components/ui/sidebar'
 import { useAppConfig } from '@/features/config/config-context'
 import { useCurrentUser } from '@/features/auth/current-user'
+import { useClarificationCount } from '@/features/exchange/api/hooks'
 import { hasPermission } from '@/lib/permissions'
 
 function isActivePath(pathname: string, to: string) {
@@ -27,10 +29,11 @@ function isActivePath(pathname: string, to: string) {
 }
 
 export function AppSidebar() {
-  const { t } = useTranslation(['nav', 'common'])
+  const { t } = useTranslation(['nav', 'common', 'exchange'])
   const { version } = useAppConfig()
   const { roles } = useCurrentUser()
   const pathname = useRouterState({ select: (s) => s.location.pathname })
+  const clarifications = useClarificationCount(hasPermission(roles, 'approvals:supply')).data ?? 0
 
   const visible = (item: NavItem) => hasPermission(roles, item.permission)
   const groups = NAVIGATION.map((group) => ({ ...group, items: group.items.filter(visible) })).filter(
@@ -77,8 +80,22 @@ export function AppSidebar() {
                       <Link to={item.to} aria-current={active && !item.children ? 'page' : undefined}>
                         <item.icon aria-hidden="true" />
                         <span>{label}</span>
+                        {item.labelKey === 'approvals' && clarifications > 0 ? (
+                          <span className="sr-only">
+                            {t('exchange:clarification.navCount', { count: clarifications })}
+                          </span>
+                        ) : null}
                       </Link>
                     </SidebarMenuButton>
+                    {item.labelKey === 'approvals' && clarifications > 0 ? (
+                      <SidebarMenuBadge
+                        aria-hidden="true"
+                        title={t('exchange:clarification.navCount', { count: clarifications })}
+                        className="border border-(--status-warning-border) bg-(--status-warning-bg) text-(--status-warning-fg) peer-hover/menu-button:text-(--status-warning-fg) peer-data-active/menu-button:text-(--status-warning-fg)"
+                      >
+                        {clarifications}
+                      </SidebarMenuBadge>
+                    ) : null}
                     {item.children ? (
                       <SidebarMenuSub>
                         {item.children.filter(visible).map((child) => {

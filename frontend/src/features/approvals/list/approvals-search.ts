@@ -14,6 +14,8 @@ export const approvalsSearchSchema = listSearchSchema.extend({
   role: z.enum(CASE_ROLES).optional().catch(undefined),
   partner: z.string().optional().catch(undefined),
   overdue: z.boolean().optional().catch(undefined),
+  /** UC-04 A1: clarification list (received requests with an unmapped part). */
+  clarification: z.boolean().optional().catch(undefined),
 })
 export type ApprovalsSearch = z.infer<typeof approvalsSearchSchema>
 
@@ -28,6 +30,7 @@ export function toCaseListParams(search: ApprovalsSearch, view: ApprovalView): C
     ownRole: search.role,
     partnerBpnl: search.partner,
     overdue: search.overdue || undefined,
+    needsClarification: search.clarification || undefined,
     page: view === 'board' ? 0 : (search.page ?? 0),
     size: view === 'board' ? BOARD_PAGE_SIZE : (search.size ?? DEFAULT_PAGE_SIZE),
     sort: search.sort ?? DEFAULT_SORT,
@@ -35,5 +38,18 @@ export function toCaseListParams(search: ApprovalsSearch, view: ApprovalView): C
 }
 
 export function hasFilters(search: ApprovalsSearch): boolean {
-  return Boolean(search.q || search.status?.length || search.role || search.partner || search.overdue)
+  return Boolean(
+    search.q || search.status?.length || search.role || search.partner || search.overdue || search.clarification,
+  )
+}
+
+/** Patch that clears all filters (search, status, role, partner, overdue, clarification). */
+export const RESET_FILTERS: Partial<ApprovalsSearch> = {
+  q: undefined,
+  status: undefined,
+  role: undefined,
+  partner: undefined,
+  overdue: undefined,
+  clarification: undefined,
+  page: undefined,
 }
