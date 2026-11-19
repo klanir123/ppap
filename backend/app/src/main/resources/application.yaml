@@ -96,6 +96,19 @@ ppap:
     api-key: ${PPAP_EDC_API_KEY:}
     dsp-url: ${PPAP_EDC_DSP_URL:http://localhost:8084/api/v1/dsp}
     participant-id: ${PPAP_EDC_PARTICIPANT_ID:${ppap.tenant.bpnl}}
+    # base URL under which the own data plane reaches this backend, and the shared secret it sends
+    callback-base-url: ${PPAP_EDC_CALLBACK_BASE_URL:}
+    callback-secret: ${PPAP_EDC_CALLBACK_SECRET:}
+    policy:
+      usage-purpose: ${PPAP_EDC_POLICY_USAGE_PURPOSE:cx.quality.base:1}
+    # the participant's vault, read by the EDC data plane (DataAddress secretName); same as the signing key vault
+    vault:
+      url: ${PPAP_VAULT_URL:}
+      token: ${PPAP_VAULT_TOKEN:}
+      kv-mount: ${PPAP_VAULT_KV_MOUNT:secret}
+  exchange:
+    worker-interval: ${PPAP_EXCHANGE_WORKER_INTERVAL:2s}
+    max-attempts: ${PPAP_EXCHANGE_MAX_ATTEMPTS:20}
   seed:
     enabled: ${PPAP_SEED_ENABLED:false}
     path: ${PPAP_SEED_PATH:}

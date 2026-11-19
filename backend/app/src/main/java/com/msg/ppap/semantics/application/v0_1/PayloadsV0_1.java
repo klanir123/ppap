@@ -2,10 +2,10 @@ package com.msg.ppap.semantics.application.v0_1;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import java.util.List;
-import java.util.Map;
 
 /**
- * Payload structure of exchange format v0.1 ({@code schemas/ppap-*-0.1.0.schema.json}). Optional properties are
+ * Payload structure of exchange format v0.1 (SAMM models {@code urn:samm:com.msg.ppap:0.1.0}, generated JSON Schemas).
+ * Structured values and value schemas are JSON text (SAMM has no type for arbitrary JSON). Optional properties are
  * omitted when absent, so the canonical form never contains {@code null} members.
  */
 final class PayloadsV0_1 {
@@ -37,7 +37,7 @@ final class PayloadsV0_1 {
             String code,
             String requirement,
             String selfAssessment,
-            Object values,
+            String values,
             String comment,
             List<Document> documents) {}
 
@@ -97,5 +97,11 @@ final class PayloadsV0_1 {
     record RequestedElement(String code, String requirement, String note, Snapshot snapshot) {}
 
     @JsonInclude(JsonInclude.Include.NON_NULL)
-    record Snapshot(String nameDe, String nameEn, String evidenceType, Map<String, Object> valueSchema) {}
+    record Snapshot(String nameDe, String nameEn, String evidenceType, String valueSchema) {}
+
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    record StatusUpdate(String exchangeId, String status, int revision, String at, String by) {}
+
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    record Withdrawal(String exchangeId, String reason, String withdrawnAt, String withdrawnBy) {}
 }

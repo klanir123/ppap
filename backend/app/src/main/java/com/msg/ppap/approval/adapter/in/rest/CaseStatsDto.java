@@ -18,4 +18,7 @@ public record CaseStatsDto(
         Double approvalRate,
 
         @Schema(requiredMode = Schema.RequiredMode.REQUIRED) Map<String, Long> byStatus,
-        @Schema(requiredMode = Schema.RequiredMode.REQUIRED) List<PartnerStatsDto> byPartner) {}
+        @Schema(requiredMode = Schema.RequiredMode.REQUIRED) List<PartnerStatsDto> byPartner,
+
+        @Schema(requiredMode = Schema.RequiredMode.REQUIRED, description = "Received requests to clarify (UC-04 A1)")
+        long needsClarification) {}

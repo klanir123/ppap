@@ -1,7 +1,9 @@
 package com.msg.ppap.identity.application;
 
+import com.msg.ppap.identity.PartnerKeys;
 import com.msg.ppap.identity.PayloadSignature;
 import com.msg.ppap.identity.PayloadSigner;
+import com.msg.ppap.identity.PublicKeys;
 import com.msg.ppap.identity.SignatureVerifier;
 import com.msg.ppap.identity.application.port.out.SigningKeyProvider;
 import com.nimbusds.jose.JOSEException;
@@ -19,9 +21,12 @@ import java.nio.charset.StandardCharsets;
 import java.security.interfaces.ECPublicKey;
 import java.text.ParseException;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 /**
@@ -37,20 +42,39 @@ import org.springframework.stereotype.Service;
  * <p>The key is loaded once on startup through {@link SigningKeyProvider}; a failure aborts the startup.
  */
 @Service
-public class JwsTenantKeySigner implements PayloadSigner, SignatureVerifier {
+public class JwsTenantKeySigner implements PayloadSigner, SignatureVerifier, PublicKeys {
 
     /** Signature algorithm. */
     public static final String ALG = "ES256";
 
     private static final Logger LOG = LoggerFactory.getLogger(JwsTenantKeySigner.class);
     private static final Set<String> DEFERRED_CRITICAL = Set.of("b64");
+    private static final ObjectProvider<PartnerKeys> NO_PARTNER_KEYS = new ObjectProvider<>() {
+        @Override
+        public PartnerKeys getObject() {
+            throw new IllegalStateException("no partner keys");
+        }
+
+        @Override
+        public PartnerKeys getIfAvailable() {
+            return null;
+        }
+    };
 
     private final ECKey key;
     private final String kid;
     private final ECDSASigner signer;
     private final ECDSAVerifier verifier;
+    private final ObjectProvider<PartnerKeys> partnerKeys;
 
+    /** Signer without partner keys (own signatures only), e.g. for tests and tools. */
     public JwsTenantKeySigner(SigningKeyProvider provider) {
+        this(provider, NO_PARTNER_KEYS);
+    }
+
+    @Autowired
+    public JwsTenantKeySigner(SigningKeyProvider provider, ObjectProvider<PartnerKeys> partnerKeys) {
+        this.partnerKeys = partnerKeys;
         SigningKeyProvider.SigningKey loaded = provider.load();
         try {
             ECKey publicOnly = new ECKey.Builder(Curve.P_256, loaded.publicKey()).build();
@@ -93,6 +117,11 @@ public class JwsTenantKeySigner implements PayloadSigner, SignatureVerifier {
 
     @Override
     public Result verify(byte[] canonicalPayload, String jws) {
+        return verify(canonicalPayload, jws, null);
+    }
+
+    @Override
+    public Result verify(byte[] canonicalPayload, String jws, String signerBpnl) {
         if (jws == null || jws.isBlank()) {
             return Result.INVALID;
         }
@@ -102,13 +131,39 @@ public class JwsTenantKeySigner implements PayloadSigner, SignatureVerifier {
             if (!JWSAlgorithm.ES256.equals(header.getAlgorithm()) || header.isBase64URLEncodePayload()) {
                 return Result.INVALID;
             }
-            if (!kid.equals(header.getKeyID())) {
-                // TODO(phase-4): resolve the partner's public key (DID document / JWKS) by kid.
+            Optional<ECDSAVerifier> keyVerifier = verifierFor(header.getKeyID(), signerBpnl);
+            if (keyVerifier.isEmpty()) {
                 return Result.UNKNOWN_KEY;
             }
-            return parsed.verify(verifier) ? Result.VALID : Result.INVALID;
+            return parsed.verify(keyVerifier.get()) ? Result.VALID : Result.INVALID;
         } catch (ParseException | JOSEException | IllegalStateException ex) {
             return Result.INVALID;
+        }
+    }
+
+    private Optional<ECDSAVerifier> verifierFor(String keyId, String signerBpnl) throws JOSEException {
+        if (keyId == null) {
+            return Optional.empty();
+        }
+        if (signerBpnl == null) {
+            return kid.equals(keyId) ? Optional.of(verifier) : Optional.empty();
+        }
+        PartnerKeys keys = partnerKeys.getIfAvailable();
+        if (keys == null) {
+            return Optional.empty();
+        }
+        Optional<Map<String, Object>> jwk = keys.find(signerBpnl, keyId);
+        if (jwk.isEmpty()) {
+            return Optional.empty();
+        }
+        try {
+            ECKey partnerKey = ECKey.parse(jwk.get());
+            if (!Curve.P_256.equals(partnerKey.getCurve()) || partnerKey.isPrivate()) {
+                return Optional.empty();
+            }
+            return Optional.of(new ECDSAVerifier(partnerKey.toECPublicKey(), DEFERRED_CRITICAL));
+        } catch (ParseException ex) {
+            return Optional.empty();
         }
     }
 
@@ -136,6 +191,7 @@ public class JwsTenantKeySigner implements PayloadSigner, SignatureVerifier {
     }
 
     /** Public JWK set ({@code {"keys":[…]}}) of the tenant. */
+    @Override
     public Map<String, Object> publicJwkSet() {
         return new JWKSet(key.toPublicJWK()).toJSONObject(true);
     }

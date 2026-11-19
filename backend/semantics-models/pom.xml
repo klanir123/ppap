@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>com.msg.ppap</groupId>
+    <artifactId>ppap-parent</artifactId>
+    <version>0.1.0-SNAPSHOT</version>
+    <relativePath>../../pom.xml</relativePath>
+  </parent>
+  <artifactId>ppap-semantics-models</artifactId>
+  <name>msg CX PPAP Connector - Semantic Models (SAMM)</name>
+  <description>SAMM 2.x aspect models of the PPAP exchange format and the JSON Schemas generated from them (ADR-0003, ADR-0006).</description>
+  <properties>
+    <esmf.version>2.16.2</esmf.version>
+  </properties>
+  <build>
+    <plugins>
+      <!-- SAMM models → JSON Schemas (classpath resource of this artifact, consumed by the semantics module),
+           HTML documentation and example payloads (target/esmf). Requires Maven Central only; no network access
+           at runtime or in the Docker image build (the app jar contains the generated schemas). -->
+      <plugin>
+        <groupId>org.eclipse.esmf</groupId>
+        <artifactId>esmf-aspect-model-maven-plugin</artifactId>
+        <version>${esmf.version}</version>
+        <configuration>
+          <modelsRootDirectory>${project.basedir}/src/main/resources/aspect-models</modelsRootDirectory>
+          <includes>
+            <include>urn:samm:com.msg.ppap:0.1.0#PpapRequest</include>
+            <include>urn:samm:com.msg.ppap:0.1.0#PpapRequestWithdrawn</include>
+            <include>urn:samm:com.msg.ppap:0.1.0#PpapStatusUpdate</include>
+            <include>urn:samm:com.msg.ppap:0.1.0#PpapSubmission</include>
+            <include>urn:samm:com.msg.ppap:0.1.0#PpapDecision</include>
+            <include>urn:samm:com.msg.ppap:0.1.0#PpapNotification</include>
+          </includes>
+        </configuration>
+        <executions>
+          <execution>
+            <id>validate-models</id>
+            <goals>
+              <goal>validate</goal>
+            </goals>
+            <phase>validate</phase>
+          </execution>
+          <execution>
+            <id>json-schema</id>
+            <goals>
+              <goal>generateJsonSchema</goal>
+            </goals>
+            <phase>generate-resources</phase>
+            <configuration>
+              <outputDirectory>${project.build.outputDirectory}/samm/com.msg.ppap/0.1.0</outputDirectory>
+            </configuration>
+          </execution>
+          <execution>
+            <id>html-documentation</id>
+            <goals>
+              <goal>generateDocumentation</goal>
+            </goals>
+            <phase>generate-resources</phase>
+            <configuration>
+              <outputDirectory>${project.build.directory}/esmf/docs</outputDirectory>
+            </configuration>
+          </execution>
+          <execution>
+            <id>example-payloads</id>
+            <goals>
+              <goal>generateJsonPayload</goal>
+            </goals>
+            <phase>generate-resources</phase>
+            <configuration>
+              <outputDirectory>${project.build.directory}/esmf/payloads</outputDirectory>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+</project>

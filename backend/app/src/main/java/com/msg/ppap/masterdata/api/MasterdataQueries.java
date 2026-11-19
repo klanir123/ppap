@@ -36,6 +36,12 @@ public interface MasterdataQueries {
 
     Optional<ReasonInfo> findReason(String code);
 
+    /**
+     * Partners the tenant exchanges PPAP messages with via the dataspace: active, exchange ready (DSP endpoint and
+     * DID) and with at least one active relation. Basis of the EDC access group {@code ppap-partners}.
+     */
+    List<PartnerInfo> exchangePartners();
+
     /** Own part. */
     record PartInfo(UUID id, String partNumber, String nameDe, String nameEn, boolean active) {}
 
@@ -44,11 +50,25 @@ public interface MasterdataQueries {
      *
      * @param roles {@code CUSTOMER} and/or {@code SUPPLIER}
      * @param exchangeReady active with DSP endpoint and DID
+     * @param dspEndpoint DSP endpoint of the partner's connector, if known
+     * @param did decentralized identifier (EDC participant id) of the partner, if known
      */
-    record PartnerInfo(String bpnl, String name, Set<String> roles, boolean active, boolean exchangeReady) {}
+    record PartnerInfo(
+            String bpnl,
+            String name,
+            Set<String> roles,
+            boolean active,
+            boolean exchangeReady,
+            String dspEndpoint,
+            String did) {}
 
-    /** Relation with partner name; {@code partnerRole} is the role of the partner. */
-    record RelationInfo(UUID id, String partnerBpnl, String partnerName, String partnerRole, boolean active) {}
+    /**
+     * Relation with partner name; {@code partnerRole} is the role of the partner.
+     *
+     * @param exchangeMode {@code PUSH}, {@code PULL} or {@code PUSH_NOTIFY_PULL_PAYLOAD}
+     */
+    record RelationInfo(
+            UUID id, String partnerBpnl, String partnerName, String partnerRole, boolean active, String exchangeMode) {}
 
     /** Part mapping. */
     record PartMappingInfo(UUID id, UUID relationId, UUID partId, String partNumber, String partnerPartNumber) {}

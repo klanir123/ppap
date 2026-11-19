@@ -24,7 +24,10 @@ public record ApprovalCaseDto(
         @Schema(requiredMode = Schema.RequiredMode.REQUIRED) CaseStatus status,
         @Schema(requiredMode = Schema.RequiredMode.REQUIRED) CasePartnerDto partner,
         UUID relationId,
-        @Schema(requiredMode = Schema.RequiredMode.REQUIRED) CasePartDto part,
+
+        @Schema(description = "Own part; null while the part of a received request is not mapped (clarification)")
+        CasePartDto part,
+
         String partnerPartNumber,
         String customerPartNumber,
         String supplierPartNumber,
@@ -45,4 +48,10 @@ public record ApprovalCaseDto(
 
         @Schema(requiredMode = Schema.RequiredMode.REQUIRED) long version,
         Instant createdAt,
-        Instant updatedAt) {}
+        Instant updatedAt,
+
+        @Schema(description = "Open clarification (UC-04 A1), null if none")
+        ClarificationDto clarification,
+
+        @Schema(description = "Latest message sent to the partner, null if none")
+        LastOutboundDto lastOutbound) {}

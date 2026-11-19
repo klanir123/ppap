@@ -28,9 +28,17 @@ public record Actor(String name, Set<UserRole> roles, boolean technical, Instant
         return new Actor(name, Set.of(roles), false, null);
     }
 
-    /** Inbound processing of partner messages. */
+    /** Prefix of the actor of transitions triggered by a partner message ({@code partner:<BPNL>}). */
+    public static final String PARTNER_PREFIX = "partner:";
+
+    /** Inbound processing of partner messages (sender unknown). */
     public static Actor exchange() {
         return new Actor(EXCHANGE_ACTOR, Set.of(UserRole.EXCHANGE), true, null);
+    }
+
+    /** Remote transition triggered by a message of the partner. */
+    public static Actor partner(String bpnl) {
+        return new Actor(PARTNER_PREFIX + Objects.requireNonNull(bpnl, "bpnl"), Set.of(UserRole.EXCHANGE), true, null);
     }
 
     public boolean has(UserRole role) {

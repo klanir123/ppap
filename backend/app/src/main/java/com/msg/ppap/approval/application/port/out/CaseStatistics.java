@@ -16,6 +16,7 @@ import java.util.Map;
  * @param approvalRate share of approvals among all decisions (0..1), {@code null} without decisions
  * @param byStatus number of cases per status
  * @param byPartner open and overdue cases per partner
+ * @param needsClarification received requests waiting for clarification (UC-04 A1)
  */
 public record CaseStatistics(
         long open,
@@ -25,7 +26,8 @@ public record CaseStatistics(
         Double averageLeadTimeDays,
         Double approvalRate,
         Map<String, Long> byStatus,
-        List<PartnerFigures> byPartner) {
+        List<PartnerFigures> byPartner,
+        long needsClarification) {
 
     /** Figures of one partner. */
     public record PartnerFigures(String bpnl, String name, long open, long overdue) {}

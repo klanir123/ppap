@@ -1,0 +1,106 @@
+{
+  "@id": "2b8c2e24-f172-4cbd-a4fb-baaa89d5eb24",
+  "@type": "Catalog",
+  "dataset": [
+    {
+      "@id": "ppap-notification-receive",
+      "@type": "Dataset",
+      "hasPolicy": [
+        {
+          "@id": "cHJvYmUtY2Q=:cHJvYmUtYXNzZXQtdGllcjE=:NDY0YjVjOGQtOTNiMS00NTJiLTgxMmYtODU5NWY5YTk4YWUx",
+          "@type": "Offer",
+          "permission": [
+            {
+              "action": "use",
+              "constraint": [
+                {
+                  "and": [
+                    {
+                      "leftOperand": "FrameworkAgreement",
+                      "operator": "eq",
+                      "rightOperand": "DataExchangeGovernance:1.0"
+                    },
+                    {
+                      "leftOperand": "UsagePurpose",
+                      "operator": "isAnyOf",
+                      "rightOperand": "msg.ppap.productApproval:1"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "distribution": [
+        {
+          "@type": "Distribution",
+          "format": "AzureStorage-PUSH",
+          "accessService": {
+            "@id": "d7b48537-7f73-4b3d-915c-7b73df22c10a",
+            "@type": "DataService",
+            "endpointDescription": "dspace:connector",
+            "endpointURL": "http://tier1-edc-cp:8084/api/v1/dsp/2025-1"
+          }
+        },
+        {
+          "@type": "Distribution",
+          "format": "HttpData-PULL",
+          "accessService": {
+            "@id": "c6d2ac21-9f21-4f82-99f2-94cebca28cb8",
+            "@type": "DataService",
+            "endpointDescription": "dspace:connector",
+            "endpointURL": "http://tier1-edc-cp:8084/api/v1/dsp/2025-1"
+          }
+        },
+        {
+          "@type": "Distribution",
+          "format": "HttpData-PUSH",
+          "accessService": {
+            "@id": "076839db-ea8a-4f0a-b60e-b722c428ec6c",
+            "@type": "DataService",
+            "endpointDescription": "dspace:connector",
+            "endpointURL": "http://tier1-edc-cp:8084/api/v1/dsp/2025-1"
+          }
+        },
+        {
+          "@type": "Distribution",
+          "format": "AmazonS3-PUSH",
+          "accessService": {
+            "@id": "0f23f27c-2485-4b80-8fff-e8880b7e408c",
+            "@type": "DataService",
+            "endpointDescription": "dspace:connector",
+            "endpointURL": "http://tier1-edc-cp:8084/api/v1/dsp/2025-1"
+          }
+        },
+        {
+          "@type": "Distribution",
+          "format": "ProxyHttpData-PULL",
+          "accessService": {
+            "@id": "c7d11901-a18c-4047-a709-326b828bf5cd",
+            "@type": "DataService",
+            "endpointDescription": "dspace:connector",
+            "endpointURL": "http://tier1-edc-cp:8084/api/v1/dsp/2025-1"
+          }
+        }
+      ],
+      "description": "PPAP connector smoke-test asset",
+      "id": "ppap-notification-receive"
+    }
+  ],
+  "service": [
+    {
+      "@id": "8fa469c7-a490-40e8-ba47-717147a14f4a",
+      "@type": "DataService",
+      "endpointDescription": "dspace:connector",
+      "endpointURL": "http://tier1-edc-cp:8084/api/v1/dsp/2025-1"
+    }
+  ],
+  "participantId": "did:web:wallet-stub:BPNL000000TIER01",
+  "@context": [
+    "https://w3id.org/tractusx/auth/v1.0.0",
+    "https://w3id.org/catenax/2025/9/policy/context.jsonld",
+    "https://w3id.org/dspace/2025/1/context.jsonld",
+    "https://w3id.org/edc/dspace/v0.0.1"
+  ]
+}

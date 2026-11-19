@@ -129,6 +129,25 @@ public class MasterdataQueryService implements MasterdataQueries {
                         reason.active()));
     }
 
+    @Override
+    public List<PartnerInfo> exchangePartners() {
+        var related = relations
+                .search(null, true, null, null, org.springframework.data.domain.Pageable.unpaged())
+                .getContent()
+                .stream()
+                .map(r -> r.values().partnerBpnl())
+                .distinct()
+                .toList();
+        if (related.isEmpty()) {
+            return List.of();
+        }
+        return partners.findAllByBpnl(related).stream()
+                .filter(Partner::exchangeReady)
+                .map(MasterdataQueryService::partner)
+                .sorted(java.util.Comparator.comparing(PartnerInfo::bpnl))
+                .toList();
+    }
+
     private static PartInfo part(Part part) {
         var v = part.values();
         return new PartInfo(part.id(), v.partNumber().value(), v.nameDe(), v.nameEn(), part.active());
@@ -141,7 +160,9 @@ public class MasterdataQueryService implements MasterdataQueries {
                 v.name(),
                 v.roles().stream().map(Enum::name).collect(Collectors.toUnmodifiableSet()),
                 partner.active(),
-                partner.exchangeReady());
+                partner.exchangeReady(),
+                v.dspEndpoint() == null ? null : v.dspEndpoint().toString(),
+                v.did());
     }
 
     private RelationInfo relation(Relation relation) {
@@ -150,7 +171,12 @@ public class MasterdataQueryService implements MasterdataQueries {
                 .map(p -> p.values().name())
                 .orElse(v.partnerBpnl().value());
         return new RelationInfo(
-                relation.id(), v.partnerBpnl().value(), name, v.partnerRole().name(), relation.active());
+                relation.id(),
+                v.partnerBpnl().value(),
+                name,
+                v.partnerRole().name(),
+                relation.active(),
+                v.exchangeMode().name());
     }
 
     private PartMappingInfo mapping(PartMapping mapping) {

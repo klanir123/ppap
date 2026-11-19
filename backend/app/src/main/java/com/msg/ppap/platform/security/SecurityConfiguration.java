@@ -1,6 +1,7 @@
 package com.msg.ppap.platform.security;
 
 import com.msg.ppap.platform.web.SpaRoutes;
+import jakarta.servlet.DispatcherType;
 import java.time.Duration;
 import java.util.List;
 import org.springframework.context.annotation.Bean;
@@ -53,8 +54,11 @@ public class SecurityConfiguration {
                         .permitAll()
                         .requestMatchers("/error")
                         .permitAll()
-                        // TODO(phase-4): protect EDC data plane callbacks with a shared secret (ARCHITECTURE §8);
-                        // no handler exists yet, so requests end in 404.
+                        // async dispatches of already authorized requests (SSE stream /api/v1/events)
+                        .dispatcherTypeMatchers(DispatcherType.ASYNC)
+                        .permitAll()
+                        // EDC data plane callbacks: no Keycloak token, the handler checks the shared secret
+                        // (PPAP_EDC_CALLBACK_SECRET, constant-time compare) – docs/api/exchange-api.md
                         .requestMatchers("/internal/edc/**")
                         .permitAll()
                         // API

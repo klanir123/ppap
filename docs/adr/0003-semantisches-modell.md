@@ -28,3 +28,7 @@ Für PPAP/PPF existiert noch kein Catena-X-Standard; die Expert Group „Product
 + Austausch heute validierbar, Modelle als Diskussionsbeitrag für die Expert Group nutzbar.
 + Standardwechsel = neuer Mapper + neue Schemas, Domäne bleibt.
 − Pflegeaufwand für SAMM-Modelle; ESMF-Plugin im Build (Java-basiert, unkritisch).
+
+## Umsetzung (Phase 4)
+- Maven-Modul `backend/semantics-models` mit SAMM-2.2-Modellen (`PpapRequest`, `PpapRequestWithdrawn`, `PpapStatusUpdate`, `PpapSubmission`, `PpapDecision`, `PpapNotification`); ESMF 2.16.2 generiert JSON Schemas (Klassenpfad, im App-Jar), HTML-Doku und Beispielnutzlasten. Das Modul `semantics` validiert ausschließlich gegen die generierten Schemas (draft 4, geschlossen um `additionalProperties: false` ergänzt); die handgeschriebenen Schemas sind entfernt.
+- Von SAMM erzwungen: beliebige JSON-Strukturen (`values`, `valueSchema`, Umschlag-`payload`) als kanonischer JSON-Text; optionale Felder werden weggelassen statt `null`. Details und `TODO(EG)`: `backend/semantics-models/README.md`.

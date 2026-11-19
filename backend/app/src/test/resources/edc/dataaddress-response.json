@@ -1,0 +1,25 @@
+{
+  "@type": "DataAddress",
+  "transferType": "HttpData-PULL",
+  "https://w3id.org/catenax/credentials/bpn": "BPNL00000000OEM1",
+  "flowType": "PULL",
+  "endpointType": "https://w3id.org/idsa/v4.1/HTTP",
+  "tx-auth:refreshEndpoint": "http://tier1-edc-dp:8081/api/public/token",
+  "transferTypeDestination": "HttpData",
+  "tx-auth:audience": "did:web:wallet-stub:BPNL00000000OEM1",
+  "type": "https://w3id.org/idsa/v4.1/HTTP",
+  "endpoint": "http://tier1-edc-dp:8081/api/public",
+  "tx-auth:refreshToken": "recorded-refresh",
+  "tx-auth:expiresIn": "300",
+  "authorization": "recorded-token",
+  "tx-auth:refreshAudience": "did:web:wallet-stub:BPNL00000000OEM1",
+  "@context": [
+    "https://w3id.org/catenax/2025/9/policy/context.jsonld",
+    {
+      "tx-auth": "https://w3id.org/tractusx/auth/",
+      "@vocab": "https://w3id.org/edc/v0.0.1/ns/",
+      "edc": "https://w3id.org/edc/v0.0.1/ns/",
+      "odrl": "http://www.w3.org/ns/odrl/2/"
+    }
+  ]
+}

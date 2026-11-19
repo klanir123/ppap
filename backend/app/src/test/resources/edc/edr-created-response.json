@@ -1,0 +1,14 @@
+{
+  "@type": "IdResponse",
+  "@id": "neg-1",
+  "createdAt": 1795081632146,
+  "@context": [
+    "https://w3id.org/catenax/2025/9/policy/context.jsonld",
+    {
+      "tx-auth": "https://w3id.org/tractusx/auth/",
+      "@vocab": "https://w3id.org/edc/v0.0.1/ns/",
+      "edc": "https://w3id.org/edc/v0.0.1/ns/",
+      "odrl": "http://www.w3.org/ns/odrl/2/"
+    }
+  ]
+}

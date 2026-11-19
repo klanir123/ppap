@@ -9,7 +9,7 @@ public interface SignatureVerifier {
         VALID,
         /** Malformed JWS, wrong algorithm or signature does not match the payload. */
         INVALID,
-        /** Signed with a key that cannot be resolved (yet). TODO(phase-4): resolve partner keys via DID. */
+        /** Signed with a key that cannot be resolved (neither own nor a known key of the signer). */
         UNKNOWN_KEY
     }
 
@@ -20,6 +20,14 @@ public interface SignatureVerifier {
      * @param jws detached compact JWS
      */
     Result verify(byte[] canonicalPayload, String jws);
+
+    /**
+     * Verifies the detached JWS of a partner: the key is looked up among the known keys of the signer ({@link
+     * PartnerKeys}); the own tenant key is accepted only if {@code signerBpnl} is {@code null}.
+     *
+     * @param signerBpnl BPNL of the expected signer, {@code null} for own payloads
+     */
+    Result verify(byte[] canonicalPayload, String jws, String signerBpnl);
 
     /** Key id ({@code kid}) of the JWS header, or {@code null} if unparsable. */
     String keyId(String jws);

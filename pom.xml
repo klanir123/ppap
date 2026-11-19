@@ -23,6 +23,7 @@
   </organization>
 
   <modules>
+    <module>backend/semantics-models</module>
     <module>backend/app</module>
   </modules>
 
@@ -64,6 +65,11 @@
 
   <dependencyManagement>
     <dependencies>
+      <dependency>
+        <groupId>com.msg.ppap</groupId>
+        <artifactId>ppap-semantics-models</artifactId>
+        <version>${project.version}</version>
+      </dependency>
       <dependency>
         <groupId>org.springframework.modulith</groupId>
         <artifactId>spring-modulith-bom</artifactId>

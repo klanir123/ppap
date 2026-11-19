@@ -1,13 +1,15 @@
 package com.msg.ppap.approval.application;
 
+import com.msg.ppap.approval.CaseExchangeStatus;
+import com.msg.ppap.approval.CaseExchangeStatus.LastOutbound;
 import com.msg.ppap.approval.application.port.out.CaseNumberGenerator;
 import com.msg.ppap.approval.application.port.out.CaseQuery;
 import com.msg.ppap.approval.application.port.out.CaseStatistics;
+import com.msg.ppap.approval.application.port.out.CaseSummary;
 import com.msg.ppap.approval.domain.Actor;
 import com.msg.ppap.approval.domain.ApprovalCase;
 import com.msg.ppap.approval.domain.CaseHeader;
 import com.msg.ppap.approval.domain.CaseRole;
-import com.msg.ppap.approval.domain.CaseStateMachine;
 import com.msg.ppap.approval.domain.CatalogRef;
 import com.msg.ppap.approval.domain.Completeness;
 import com.msg.ppap.approval.domain.PartRef;
@@ -20,14 +22,17 @@ import com.msg.ppap.masterdata.api.MasterdataQueries.LevelInfo;
 import com.msg.ppap.masterdata.api.MasterdataQueries.PartInfo;
 import com.msg.ppap.masterdata.api.MasterdataQueries.PartMappingInfo;
 import com.msg.ppap.masterdata.api.MasterdataQueries.RelationInfo;
+import com.msg.ppap.masterdata.api.PartMappingRegistry;
 import com.msg.ppap.platform.domain.Validation;
 import com.msg.ppap.platform.domain.ValidationException;
 import com.msg.ppap.platform.domain.ViolationCodes;
 import java.time.Duration;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -47,6 +52,8 @@ public class ApprovalCaseService {
     private final CaseNumberGenerator caseNumbers;
     private final DocumentRefs documents;
     private final ValueValidator validator;
+    private final PartMappingRegistry mappingRegistry;
+    private final ObjectProvider<CaseExchangeStatus> exchangeStatus;
 
     public ApprovalCaseService(
             ApprovalContext context,
@@ -54,7 +61,11 @@ public class ApprovalCaseService {
             RequestElementFactory elements,
             CaseNumberGenerator caseNumbers,
             DocumentRefs documents,
-            ValueValidator validator) {
+            ValueValidator validator,
+            PartMappingRegistry mappingRegistry,
+            ObjectProvider<CaseExchangeStatus> exchangeStatus) {
+        this.mappingRegistry = mappingRegistry;
+        this.exchangeStatus = exchangeStatus;
         this.context = context;
         this.masterdata = masterdata;
         this.elements = elements;
@@ -244,6 +255,25 @@ public class ApprovalCaseService {
         return view(context.save(c), actor);
     }
 
+    /**
+     * Supplier clarifies a received request whose part could not be mapped (UC-04 A1): assigns the own part and
+     * optionally saves the part mapping for future requests.
+     */
+    public CaseView assignPart(UUID id, UUID partId, boolean saveMapping, Long expectedVersion) {
+        Actor actor = context.actor();
+        ApprovalCase c = loadChecked(id, expectedVersion);
+        var v = new Validation();
+        PartInfo part = part(v, partId);
+        v.throwIfInvalid();
+        String partnerPartNumber =
+                c.clarification() == null ? null : c.clarification().partnerPartNumber();
+        c.assignPart(partRef(part), actor, context.now());
+        if (saveMapping && partnerPartNumber != null && c.header().relationId() != null) {
+            mappingRegistry.registerMapping(c.header().relationId(), part.id(), partnerPartNumber);
+        }
+        return view(context.save(c), actor);
+    }
+
     @Transactional(readOnly = true)
     public CaseView get(UUID id) {
         return view(context.load(id), context.actor());
@@ -253,12 +283,15 @@ public class ApprovalCaseService {
     public Page<SummaryView> search(CaseQuery query, Pageable pageable) {
         Actor actor = context.actor();
         LocalDate today = context.today();
-        return context.repository()
-                .search(query, pageable)
-                .map(s -> new SummaryView(
-                        s,
-                        CaseStateMachine.allowedActions(s.ownRole(), s.source(), s.status(), actor, context.policy()),
-                        today));
+        Page<CaseSummary> page = context.repository().search(query, pageable);
+        Map<UUID, LastOutbound> outbound =
+                lastOutbound(page.getContent().stream().map(CaseSummary::id).toList());
+        return page.map(s -> new SummaryView(
+                s,
+                ApprovalCase.allowedActions(
+                        s.ownRole(), s.source(), s.status(), s.clarification(), actor, context.policy()),
+                today,
+                outbound.get(s.id())));
     }
 
     @Transactional(readOnly = true)
@@ -278,7 +311,17 @@ public class ApprovalCaseService {
                 .filter(Submission::draft)
                 .map(s -> c.completeness(s, validator))
                 .orElse(null);
-        return new CaseView(c, c.allowedActions(actor, context.policy()), context.today(), completeness);
+        return new CaseView(
+                c,
+                c.allowedActions(actor, context.policy()),
+                context.today(),
+                completeness,
+                lastOutbound(List.of(c.id())).get(c.id()));
+    }
+
+    private Map<UUID, LastOutbound> lastOutbound(List<UUID> caseIds) {
+        CaseExchangeStatus status = exchangeStatus.getIfAvailable();
+        return status == null || caseIds.isEmpty() ? Map.of() : status.lastOutbound(caseIds);
     }
 
     private ApprovalCase loadChecked(UUID id, Long expectedVersion) {

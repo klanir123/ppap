@@ -9,7 +9,9 @@ import com.msg.ppap.semantics.api.ExchangeModels;
 import com.msg.ppap.semantics.api.PayloadHash;
 import com.msg.ppap.semantics.api.PayloadValidationException;
 import com.msg.ppap.semantics.api.RequestMessage;
+import com.msg.ppap.semantics.api.StatusUpdateMessage;
 import com.msg.ppap.semantics.api.SubmissionMessage;
+import com.msg.ppap.semantics.api.WithdrawalMessage;
 import com.msg.ppap.semantics.application.port.out.PayloadSchemaValidator;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
@@ -54,6 +56,26 @@ public class ExchangeCodecService implements ExchangeCodec {
     @Override
     public EncodedPayload encodeDecision(DecisionMessage message) {
         return encode(ExchangeModels.PPAP_DECISION, mapper.toPayload(message));
+    }
+
+    @Override
+    public EncodedPayload encodeStatusUpdate(StatusUpdateMessage message) {
+        return encode(ExchangeModels.PPAP_STATUS_UPDATE, mapper.toPayload(message));
+    }
+
+    @Override
+    public EncodedPayload encodeWithdrawal(WithdrawalMessage message) {
+        return encode(ExchangeModels.PPAP_REQUEST_WITHDRAWN, mapper.toPayload(message));
+    }
+
+    @Override
+    public Decoded<StatusUpdateMessage> decodeStatusUpdate(byte[] payload) {
+        return decode(ExchangeModels.PPAP_STATUS_UPDATE, payload, mapper::toStatusUpdate);
+    }
+
+    @Override
+    public Decoded<WithdrawalMessage> decodeWithdrawal(byte[] payload) {
+        return decode(ExchangeModels.PPAP_REQUEST_WITHDRAWN, payload, mapper::toWithdrawal);
     }
 
     @Override

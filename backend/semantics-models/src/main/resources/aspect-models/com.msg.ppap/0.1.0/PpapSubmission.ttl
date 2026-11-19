@@ -1,0 +1,290 @@
+# Copyright (c) 2026 msg for automotive GmbH. Draft contribution to the Catena-X Expert Group "Product Approval" (TODO(EG)).
+# SPDX-License-Identifier: CC-BY-4.0
+@prefix samm: <urn:samm:org.eclipse.esmf.samm:meta-model:2.2.0#> .
+@prefix samm-c: <urn:samm:org.eclipse.esmf.samm:characteristic:2.2.0#> .
+@prefix samm-e: <urn:samm:org.eclipse.esmf.samm:entity:2.2.0#> .
+@prefix unit: <urn:samm:org.eclipse.esmf.samm:unit:2.2.0#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix : <urn:samm:com.msg.ppap:0.1.0#> .
+
+:PpapSubmission a samm:Aspect ;
+   samm:preferredName "PpapSubmission"@en ;
+   samm:preferredName "PPAP-Einreichung"@de ;
+   samm:description "Submission of a revision of the PPF package by the supplier; signed as detached JWS (RFC 7797) over the RFC 8785 canonical JSON."@en ;
+   samm:properties ( :header :elements :subSupplierReferences :submittedAt :submittedBy ) ;
+   samm:operations ( ) ;
+   samm:events ( ) .
+
+:header a samm:Property ;
+   samm:characteristic :SubmissionHeaderCharacteristic .
+
+:SubmissionHeaderCharacteristic a samm:Characteristic ;
+   samm:dataType :SubmissionHeader .
+
+:SubmissionHeader a samm:Entity ;
+   samm:description "Identification of the submission."@en ;
+   samm:properties ( :exchangeId :caseNumber :revision :customerBpnl :supplierBpnl :customerPartNumber :supplierPartNumber :reasonCode :levelCode ) .
+
+:reasonCode a samm:Property ;
+   samm:characteristic :CatalogCodeCharacteristic ;
+   samm:exampleValue "NEW_PART" .
+
+:levelCode a samm:Property ;
+   samm:characteristic :CatalogCodeCharacteristic ;
+   samm:exampleValue "VDA-2" .
+
+:elements a samm:Property ;
+   samm:description "Evidence per element."@en ;
+   samm:characteristic :ElementEvidenceList .
+
+:ElementEvidenceList a samm-c:List ;
+   samm:dataType :ElementEvidence .
+
+:ElementEvidence a samm:Entity ;
+   samm:description "Evidence of one PPF element."@en ;
+   samm:properties ( :code :requirement [ samm:property :selfAssessment ; samm:optional true ] [ samm:property :values ; samm:optional true ] [ samm:property :comment ; samm:optional true ] :documents ) .
+
+:selfAssessment a samm:Property ;
+   samm:description "Self assessment of the supplier."@en ;
+   samm:characteristic :SelfAssessment ;
+   samm:exampleValue "OK" .
+
+:SelfAssessment a samm-c:Enumeration ;
+   samm:dataType xsd:string ;
+   samm-c:values ( "OK" "NOK" "NA" ) .
+
+:values a samm:Property ;
+   samm:description "Structured values serialized as JSON text, validated against the valueSchema of the requested element."@en ;
+   samm:characteristic :JsonText ;
+   samm:exampleValue "{\"quantity\":5}" .
+
+:subSupplierReferences a samm:Property ;
+   samm:description "Approvals of sub-suppliers the submission relies on (UC-09)."@en ;
+   samm:characteristic :SubSupplierReferenceList .
+
+:SubSupplierReferenceList a samm-c:List ;
+   samm:dataType :SubSupplierReference .
+
+:SubSupplierReference a samm:Entity ;
+   samm:description "Reference to the approval of a sub-supplier."@en ;
+   samm:properties ( :subSupplierBpnl :partNumber :exchangeId :revision :subSupplierResult :hash ) .
+
+:subSupplierBpnl a samm:Property ;
+   samm:characteristic :BpnlCharacteristic ;
+   samm:exampleValue "BPNL000000TIER02" .
+
+:partNumber a samm:Property ;
+   samm:characteristic :PartNumberCharacteristic ;
+   samm:exampleValue "T2-1000" .
+
+:subSupplierResult a samm:Property ;
+   samm:characteristic :SubSupplierResult ;
+   samm:exampleValue "APPROVED" ;
+   samm:payloadName "result" .
+
+:SubSupplierResult a samm-c:Enumeration ;
+   samm:dataType xsd:string ;
+   samm-c:values ( "APPROVED" "CONDITIONALLY_APPROVED" "REJECTED" ) .
+
+:hash a samm:Property ;
+   samm:description "Hash of the referenced decision payload."@en ;
+   samm:characteristic :PayloadHashCharacteristic ;
+   samm:exampleValue "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc" .
+
+:submittedAt a samm:Property ;
+   samm:characteristic samm-c:Timestamp ;
+   samm:exampleValue "2026-11-19T10:15:30.123Z"^^xsd:dateTime .
+
+:submittedBy a samm:Property ;
+   samm:description "Submitting user (digital confirmation)."@en ;
+   samm:characteristic :UserIdCharacteristic ;
+   samm:exampleValue "tier1.quality" .
+
+:UuidCharacteristic a samm-c:Trait ;
+   samm-c:baseCharacteristic samm-c:Text ;
+   samm-c:constraint :UuidConstraint .
+
+:UuidConstraint a samm-c:RegularExpressionConstraint ;
+   samm:description "UUID (RFC 9562)"@en ;
+   samm:value "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$" .
+
+:BpnlCharacteristic a samm-c:Trait ;
+   samm-c:baseCharacteristic samm-c:Text ;
+   samm-c:constraint :BpnlConstraint .
+
+:BpnlConstraint a samm-c:RegularExpressionConstraint ;
+   samm:description "Catena-X business partner number of a legal entity (BPNL)"@en ;
+   samm:value "^BPNL[0-9A-Z]{12}$" .
+
+:CaseNumberCharacteristic a samm-c:Trait ;
+   samm-c:baseCharacteristic samm-c:Text ;
+   samm-c:constraint :CaseNumberLength .
+
+:CaseNumberLength a samm-c:LengthConstraint ;
+   samm-c:minValue "1"^^xsd:nonNegativeInteger ;
+   samm-c:maxValue "64"^^xsd:nonNegativeInteger .
+
+:PartNumberCharacteristic a samm-c:Trait ;
+   samm-c:baseCharacteristic samm-c:Text ;
+   samm-c:constraint :PartNumberLength .
+
+:PartNumberLength a samm-c:LengthConstraint ;
+   samm-c:minValue "1"^^xsd:nonNegativeInteger ;
+   samm-c:maxValue "64"^^xsd:nonNegativeInteger .
+
+:CatalogCodeCharacteristic a samm-c:Trait ;
+   samm-c:baseCharacteristic samm-c:Text ;
+   samm-c:constraint :CatalogCodeConstraint .
+
+:CatalogCodeConstraint a samm-c:RegularExpressionConstraint ;
+   samm:description "Code of a catalogue entry (element, reason, level), e.g. PPF-11"@en ;
+   samm:value "^[A-Z0-9][A-Z0-9_\\-]{1,31}$" .
+
+:RevisionCharacteristic a samm-c:Trait ;
+   samm-c:baseCharacteristic :RevisionNumber ;
+   samm-c:constraint :RevisionRange .
+
+:RevisionNumber a samm:Characteristic ;
+   samm:dataType xsd:int .
+
+:RevisionRange a samm-c:RangeConstraint ;
+   samm-c:minValue "1"^^xsd:int ;
+   samm-c:lowerBoundDefinition samm-c:AT_LEAST .
+
+:LongTextCharacteristic a samm-c:Trait ;
+   samm-c:baseCharacteristic samm-c:Text ;
+   samm-c:constraint :LongTextLength .
+
+:LongTextLength a samm-c:LengthConstraint ;
+   samm-c:maxValue "4000"^^xsd:nonNegativeInteger .
+
+:UserIdCharacteristic a samm-c:Trait ;
+   samm-c:baseCharacteristic samm-c:Text ;
+   samm-c:constraint :UserIdLength .
+
+:UserIdLength a samm-c:LengthConstraint ;
+   samm-c:minValue "1"^^xsd:nonNegativeInteger ;
+   samm-c:maxValue "255"^^xsd:nonNegativeInteger .
+
+:RequirementEnumeration a samm-c:Enumeration ;
+   samm:description "Whether the customer requires the element or may request it"@en ;
+   samm:dataType xsd:string ;
+   samm-c:values ( "REQUIRED" "ON_REQUEST" ) .
+
+:JsonText a samm:Characteristic ;
+   samm:description "JSON value serialized as text (RFC 8259). SAMM has no type for arbitrary JSON structures; the content is validated against the JSON Schema it refers to."@en ;
+   samm:dataType xsd:string .
+
+:DocumentReference a samm:Entity ;
+   samm:description "Metadata of an evidence document; the content is exchanged separately (pull) and identified by its SHA-256."@en ;
+   samm:properties ( :fileName :mediaType :size :sha256 ) .
+
+:fileName a samm:Property ;
+   samm:characteristic :FileNameCharacteristic ;
+   samm:exampleValue "messprotokoll.pdf" .
+
+:FileNameCharacteristic a samm-c:Trait ;
+   samm-c:baseCharacteristic samm-c:Text ;
+   samm-c:constraint :FileNameLength .
+
+:FileNameLength a samm-c:LengthConstraint ;
+   samm-c:minValue "1"^^xsd:nonNegativeInteger ;
+   samm-c:maxValue "255"^^xsd:nonNegativeInteger .
+
+:mediaType a samm:Property ;
+   samm:description "Media type detected from the content"@en ;
+   samm:characteristic :FileNameCharacteristic ;
+   samm:exampleValue "application/pdf" .
+
+:size a samm:Property ;
+   samm:description "Size in bytes"@en ;
+   samm:characteristic :SizeCharacteristic ;
+   samm:exampleValue "12345"^^xsd:long .
+
+:SizeCharacteristic a samm-c:Trait ;
+   samm-c:baseCharacteristic :ByteCount ;
+   samm-c:constraint :SizeRange .
+
+:ByteCount a samm-c:Measurement ;
+   samm:dataType xsd:long ;
+   samm-c:unit unit:byte .
+
+:SizeRange a samm-c:RangeConstraint ;
+   samm-c:minValue "0"^^xsd:long ;
+   samm-c:lowerBoundDefinition samm-c:AT_LEAST .
+
+:sha256 a samm:Property ;
+   samm:characteristic :Sha256Characteristic ;
+   samm:exampleValue "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" .
+
+:DocumentList a samm-c:List ;
+   samm:dataType :DocumentReference .
+
+:Sha256Characteristic a samm-c:Trait ;
+   samm-c:baseCharacteristic samm-c:Text ;
+   samm-c:constraint :Sha256Constraint .
+
+:Sha256Constraint a samm-c:RegularExpressionConstraint ;
+   samm:description "Lower-case hex SHA-256 of a document"@en ;
+   samm:value "^[0-9a-f]{64}$" .
+
+:PayloadHashCharacteristic a samm-c:Trait ;
+   samm-c:baseCharacteristic samm-c:Text ;
+   samm-c:constraint :PayloadHashConstraint .
+
+:PayloadHashConstraint a samm-c:RegularExpressionConstraint ;
+   samm:description "SHA-256 over the RFC 8785 canonical JSON, prefixed with sha256:"@en ;
+   samm:value "^sha256:[0-9a-f]{64}$" .
+
+:exchangeId a samm:Property ;
+   samm:preferredName "Exchange ID"@en ;
+   samm:description "Identifier generated by the customer and shared by the approval cases of customer and supplier."@en ;
+   samm:characteristic :UuidCharacteristic ;
+   samm:exampleValue "4a8ca33e-609f-55f1-9a79-77031bf2c0a4" .
+
+:caseNumber a samm:Property ;
+   samm:description "Case number of the sending partner (local to the partner)."@en ;
+   samm:characteristic :CaseNumberCharacteristic ;
+   samm:exampleValue "PPF-2026-00017" .
+
+:revision a samm:Property ;
+   samm:description "Revision of the submission (1, 2, ...)."@en ;
+   samm:characteristic :RevisionCharacteristic ;
+   samm:exampleValue "1"^^xsd:int .
+
+:customerBpnl a samm:Property ;
+   samm:description "BPNL of the customer requesting the approval."@en ;
+   samm:characteristic :BpnlCharacteristic ;
+   samm:exampleValue "BPNL00000000OEM1" .
+
+:supplierBpnl a samm:Property ;
+   samm:description "BPNL of the supplier."@en ;
+   samm:characteristic :BpnlCharacteristic ;
+   samm:exampleValue "BPNL000000TIER01" .
+
+:customerPartNumber a samm:Property ;
+   samm:description "Part number of the customer (customerPartId)."@en ;
+   samm:characteristic :PartNumberCharacteristic ;
+   samm:exampleValue "D10-04711-01" .
+
+:supplierPartNumber a samm:Property ;
+   samm:description "Part number of the supplier (manufacturerPartId)."@en ;
+   samm:characteristic :PartNumberCharacteristic ;
+   samm:exampleValue "T1-310000-01" .
+
+:code a samm:Property ;
+   samm:description "Code of the PPF element or catalogue entry (VDA Band 2 / AIAG PPAP)."@en ;
+   samm:characteristic :CatalogCodeCharacteristic ;
+   samm:exampleValue "PPF-11" .
+
+:requirement a samm:Property ;
+   samm:characteristic :RequirementEnumeration ;
+   samm:exampleValue "REQUIRED" .
+
+:comment a samm:Property ;
+   samm:characteristic :LongTextCharacteristic ;
+   samm:exampleValue "Merkmal 12 außerhalb der Toleranz" .
+
+:documents a samm:Property ;
+   samm:description "Evidence documents (metadata only)."@en ;
+   samm:characteristic :DocumentList .

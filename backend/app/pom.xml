@@ -11,6 +11,10 @@
 
   <artifactId>ppap-connector-app</artifactId>
   <name>msg CX PPAP Connector - Backend</name>
+  <properties>
+    <surefire.excludedGroups>live</surefire.excludedGroups>
+    <surefire.groups/>
+  </properties>
 
   <dependencies>
     <!-- Web / API -->
@@ -103,6 +107,11 @@
       <artifactId>json-schema-validator</artifactId>
     </dependency>
 
+    <!-- Exchange format: JSON Schemas generated from the SAMM models (backend/semantics-models) -->
+    <dependency>
+      <groupId>com.msg.ppap</groupId>
+      <artifactId>ppap-semantics-models</artifactId>
+    </dependency>
     <!-- Exchange format: RFC 8785 canonicalization (semantics), JWS signatures (identity), content detection
          (documents) -->
     <dependency>
@@ -218,6 +227,9 @@
         <configuration>
           <!-- @{argLine} carries the JaCoCo agent -->
           <argLine>@{argLine} -javaagent:${org.mockito:mockito-core:jar} --enable-native-access=ALL-UNNAMED</argLine>
+          <!-- tests against the running docker compose stack: ./mvnw -pl backend/app -am -Plive verify -->
+          <excludedGroups>${surefire.excludedGroups}</excludedGroups>
+          <groups>${surefire.groups}</groups>
         </configuration>
       </plugin>
       <plugin>
@@ -234,4 +246,16 @@
       </plugin>
     </plugins>
   </build>
+  <profiles>
+    <!-- End-to-end tests against the running stack (make up PROFILE=tier2); only tests tagged "live". -->
+    <profile>
+      <id>live</id>
+      <properties>
+        <surefire.excludedGroups/>
+        <surefire.groups>live</surefire.groups>
+        <jacoco.skip>true</jacoco.skip>
+        <spotless.check.skip>true</spotless.check.skip>
+      </properties>
+    </profile>
+  </profiles>
 </project>

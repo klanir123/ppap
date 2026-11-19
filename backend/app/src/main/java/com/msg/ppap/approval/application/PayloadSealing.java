@@ -55,21 +55,33 @@ public class PayloadSealing {
         return new Seal(payload.text(), payload.hash(), SignatureInfo.NOT_SIGNED);
     }
 
-    /** Seal of a received payload with the verification result of its signature. */
-    public Seal received(EncodedPayload payload, String jws) {
+    /**
+     * Seal of a payload received from a partner with the verification result of its signature against the
+     * partner's keys.
+     */
+    public Seal received(EncodedPayload payload, String jws, String signerBpnl) {
         if (jws == null || jws.isBlank()) {
             return new Seal(payload.text(), payload.hash(), SignatureInfo.NOT_SIGNED);
         }
-        SignatureStatus status = status(verifier.verify(payload.canonical(), jws));
+        SignatureStatus status = status(verifier.verify(payload.canonical(), jws, signerBpnl));
         return new Seal(payload.text(), payload.hash(), new SignatureInfo("ES256", verifier.keyId(jws), jws, status));
     }
 
-    /** Verifies the signature of a stored seal. */
+    /** Verifies the signature of an own stored seal. */
     public SignatureStatus verify(Seal seal) {
+        return verify(seal, null);
+    }
+
+    /**
+     * Verifies the signature of a stored seal.
+     *
+     * @param signerBpnl BPNL of the partner who signed, {@code null} for own seals
+     */
+    public SignatureStatus verify(Seal seal, String signerBpnl) {
         if (seal.signature().jws() == null) {
             return SignatureStatus.NOT_SIGNED;
         }
-        return status(verifier.verify(seal.payloadBytes(), seal.signature().jws()));
+        return status(verifier.verify(seal.payloadBytes(), seal.signature().jws(), signerBpnl));
     }
 
     private Seal signed(EncodedPayload payload) {

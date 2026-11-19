@@ -37,9 +37,12 @@ interface ApCaseJpaRepository extends JpaRepository<ApCaseEntity, UUID> {
               and (:overdue is null
                    or (:overdue = true and c.status in :open and c.dueDate < :today)
                    or (:overdue = false and not (c.status in :open and c.dueDate < :today)))
+              and (:needsClarification is null
+                   or (:needsClarification = true and c.clarificationReason is not null)
+                   or (:needsClarification = false and c.clarificationReason is null))
               and (:text is null
                    or lower(c.caseNumber) like :text escape '\\'
-                   or lower(c.partNumber) like :text escape '\\'
+                   or lower(coalesce(c.partNumber, '')) like :text escape '\\'
                    or lower(coalesce(c.partnerPartNumber, '')) like :text escape '\\'
                    or lower(coalesce(c.partNameDe, '')) like :text escape '\\'
                    or lower(c.partnerName) like :text escape '\\'
@@ -55,5 +58,6 @@ interface ApCaseJpaRepository extends JpaRepository<ApCaseEntity, UUID> {
             @Param("open") Collection<String> open,
             @Param("today") LocalDate today,
             @Param("text") String text,
+            @Param("needsClarification") Boolean needsClarification,
             Pageable pageable);
 }

@@ -7,5 +7,11 @@ import java.util.UUID;
  *
  * @param caseId affected case
  * @param applied {@code false} if the message had already been processed (idempotent duplicate)
+ * @param caseNumber case number of the affected case
  */
-public record InboundResult(UUID caseId, boolean applied) {}
+public record InboundResult(UUID caseId, boolean applied, String caseNumber) {
+
+    public InboundResult(UUID caseId, boolean applied) {
+        this(caseId, applied, null);
+    }
+}

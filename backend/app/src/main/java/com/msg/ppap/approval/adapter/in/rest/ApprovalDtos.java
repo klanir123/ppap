@@ -13,6 +13,7 @@ import com.msg.ppap.approval.domain.Decision;
 import com.msg.ppap.approval.domain.DocumentRef;
 import com.msg.ppap.approval.domain.ElementFinding;
 import com.msg.ppap.approval.domain.FormTemplate;
+import com.msg.ppap.approval.domain.PartRef;
 import com.msg.ppap.approval.domain.Seal;
 import com.msg.ppap.approval.domain.Submission;
 import java.util.LinkedHashMap;
@@ -36,11 +37,7 @@ final class ApprovalDtos {
                 s.status(),
                 new CasePartnerDto(s.partner().bpnl(), s.partner().name()),
                 s.relationId(),
-                new CasePartDto(
-                        s.part().id(),
-                        s.part().partNumber(),
-                        s.part().nameDe(),
-                        s.part().nameEn()),
+                part(s.part()),
                 s.partnerPartNumber(),
                 s.customerPartNumber(),
                 s.supplierPartNumber(),
@@ -58,7 +55,9 @@ final class ApprovalDtos {
                 view.allowedActions(),
                 s.version(),
                 s.createdAt(),
-                s.updatedAt());
+                s.updatedAt(),
+                ClarificationDto.of(s.clarification()),
+                LastOutboundDto.of(view.lastOutbound()));
     }
 
     static ApprovalCaseDetailDto detail(CaseView view) {
@@ -80,11 +79,7 @@ final class ApprovalDtos {
                 c.status(),
                 new CasePartnerDto(h.partner().bpnl(), h.partner().name()),
                 h.relationId(),
-                new CasePartDto(
-                        h.part().id(),
-                        h.part().partNumber(),
-                        h.part().nameDe(),
-                        h.part().nameEn()),
+                part(h.part()),
                 h.partnerPartNumber(),
                 c.customerPartNumber(),
                 c.supplierPartNumber(),
@@ -123,7 +118,16 @@ final class ApprovalDtos {
                 c.timeline().stream()
                         .map(t -> new TimelineEntryDto(t.at(), t.actor(), t.from(), t.to(), t.action(), t.comment()))
                         .toList(),
-                view.draftCompleteness() == null ? null : completeness(view.draftCompleteness()));
+                view.draftCompleteness() == null ? null : completeness(view.draftCompleteness()),
+                ClarificationDto.of(c.clarification()),
+                LastOutboundDto.of(view.lastOutbound()));
+    }
+
+    /** Own part, {@code null} while not mapped. */
+    static CasePartDto part(PartRef part) {
+        return part == null || !part.mapped()
+                ? null
+                : new CasePartDto(part.id(), part.partNumber(), part.nameDe(), part.nameEn());
     }
 
     static SubmissionSummaryDto submissionSummary(Submission s) {
@@ -247,7 +251,8 @@ final class ApprovalDtos {
                 new TreeMap<>(s.byStatus()),
                 s.byPartner().stream()
                         .map(p -> new PartnerStatsDto(p.bpnl(), p.name(), p.open(), p.overdue()))
-                        .toList());
+                        .toList(),
+                s.needsClarification());
     }
 
     static FormTemplateDto template(FormTemplate t) {

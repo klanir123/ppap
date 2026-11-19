@@ -6,4 +6,13 @@ import java.time.LocalDate;
 import java.util.List;
 
 /** List entry with the actions allowed for the current actor. */
-public record SummaryView(CaseSummary summary, List<CaseAction> allowedActions, LocalDate today) {}
+public record SummaryView(
+        CaseSummary summary,
+        List<CaseAction> allowedActions,
+        LocalDate today,
+        com.msg.ppap.approval.CaseExchangeStatus.LastOutbound lastOutbound) {
+
+    public SummaryView(CaseSummary summary, List<CaseAction> allowedActions, LocalDate today) {
+        this(summary, allowedActions, today, null);
+    }
+}

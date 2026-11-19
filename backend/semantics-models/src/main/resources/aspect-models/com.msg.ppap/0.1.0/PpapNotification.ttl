@@ -1,0 +1,158 @@
+# Copyright (c) 2026 msg for automotive GmbH. Draft contribution to the Catena-X Expert Group "Product Approval" (TODO(EG)).
+# SPDX-License-Identifier: CC-BY-4.0
+@prefix samm: <urn:samm:org.eclipse.esmf.samm:meta-model:2.2.0#> .
+@prefix samm-c: <urn:samm:org.eclipse.esmf.samm:characteristic:2.2.0#> .
+@prefix samm-e: <urn:samm:org.eclipse.esmf.samm:entity:2.2.0#> .
+@prefix unit: <urn:samm:org.eclipse.esmf.samm:unit:2.2.0#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix : <urn:samm:com.msg.ppap:0.1.0#> .
+
+:PpapNotification a samm:Aspect ;
+   samm:preferredName "PpapNotification"@en ;
+   samm:preferredName "PPAP-Nachricht"@de ;
+   samm:description "Envelope of all PPAP messages exchanged via the EDC data plane. The header has the structure of urn:samm:io.catenax.shared.message_header:3.0.0#MessageHeaderAspect (TODO(EG): import the shared model instead of the local copy)."@en ;
+   samm:properties ( :header :content ) ;
+   samm:operations ( ) ;
+   samm:events ( ) .
+
+:header a samm:Property ;
+   samm:characteristic :MessageHeaderCharacteristic .
+
+:MessageHeaderCharacteristic a samm:Characteristic ;
+   samm:dataType :MessageHeader .
+
+:MessageHeader a samm:Entity ;
+   samm:description "Message header (structure of the Catena-X shared message header 3.0.0)."@en ;
+   samm:properties ( :messageId :context :sentDateTime :senderBpn :receiverBpn [ samm:property :expectedResponseBy ; samm:optional true ] [ samm:property :relatedMessageId ; samm:optional true ] :version ) .
+
+:messageId a samm:Property ;
+   samm:description "Unique id of the message (idempotency key of the receiver)."@en ;
+   samm:characteristic :UuidCharacteristic ;
+   samm:exampleValue "0efb5332-4273-452f-ba10-a75670c165fe" .
+
+:context a samm:Property ;
+   samm:description "Semantic model of the payload."@en ;
+   samm:characteristic :ContextCharacteristic ;
+   samm:exampleValue "urn:samm:com.msg.ppap:0.1.0#PpapSubmission" .
+
+:ContextCharacteristic a samm-c:Trait ;
+   samm-c:baseCharacteristic samm-c:Text ;
+   samm-c:constraint :ContextConstraint .
+
+:ContextConstraint a samm-c:RegularExpressionConstraint ;
+   samm:value "^urn:samm:com\\.msg\\.ppap:\\d+\\.\\d+\\.\\d+#Ppap[A-Za-z]+$" .
+
+:sentDateTime a samm:Property ;
+   samm:characteristic samm-c:Timestamp ;
+   samm:exampleValue "2026-11-19T10:15:30.123Z"^^xsd:dateTime .
+
+:senderBpn a samm:Property ;
+   samm:characteristic :BpnlCharacteristic ;
+   samm:exampleValue "BPNL000000TIER01" .
+
+:receiverBpn a samm:Property ;
+   samm:characteristic :BpnlCharacteristic ;
+   samm:exampleValue "BPNL00000000OEM1" .
+
+:expectedResponseBy a samm:Property ;
+   samm:characteristic samm-c:Timestamp ;
+   samm:exampleValue "2026-11-19T10:15:30.123Z"^^xsd:dateTime .
+
+:relatedMessageId a samm:Property ;
+   samm:characteristic :UuidCharacteristic ;
+   samm:exampleValue "0efb5332-4273-452f-ba10-a75670c165fe" .
+
+:version a samm:Property ;
+   samm:description "Version of the message header model."@en ;
+   samm:characteristic :HeaderVersion ;
+   samm:exampleValue "3.0.0" .
+
+:HeaderVersion a samm-c:Enumeration ;
+   samm:dataType xsd:string ;
+   samm-c:values ( "3.0.0" ) .
+
+:content a samm:Property ;
+   samm:characteristic :ContentCharacteristic .
+
+:ContentCharacteristic a samm:Characteristic ;
+   samm:dataType :Content .
+
+:Content a samm:Entity ;
+   samm:description "Message content."@en ;
+   samm:properties ( :messageType :exchangeId :correlationId :payload :payloadHash [ samm:property :signature ; samm:optional true ] ) .
+
+:messageType a samm:Property ;
+   samm:characteristic :MessageType ;
+   samm:exampleValue "PPAP_SUBMISSION" .
+
+:MessageType a samm-c:Enumeration ;
+   samm:dataType xsd:string ;
+   samm-c:values ( "PPAP_REQUEST" "PPAP_REQUEST_WITHDRAWN" "PPAP_STATUS_UPDATE" "PPAP_SUBMISSION" "PPAP_DECISION" ) .
+
+:correlationId a samm:Property ;
+   samm:description "Correlation id for logging and tracing across participants."@en ;
+   samm:characteristic :CorrelationIdCharacteristic ;
+   samm:exampleValue "862e7a24-3594-48c8-b7d8-443cf885cf2a" .
+
+:CorrelationIdCharacteristic a samm-c:Trait ;
+   samm-c:baseCharacteristic samm-c:Text ;
+   samm-c:constraint :CorrelationIdConstraint .
+
+:CorrelationIdConstraint a samm-c:RegularExpressionConstraint ;
+   samm:value "^[A-Za-z0-9._:-]{1,128}$" .
+
+:payload a samm:Property ;
+   samm:description "RFC 8785 canonical JSON of the payload (PpapRequest, PpapRequestWithdrawn, PpapStatusUpdate, PpapSubmission or PpapDecision as given by header.context), as text: exactly the bytes that are hashed and signed."@en ;
+   samm:characteristic :JsonText ;
+   samm:exampleValue "{\"exchangeId\":\"4a8ca33e-609f-55f1-9a79-77031bf2c0a4\",\"status\":\"IN_PROGRESS\",\"revision\":1,\"at\":\"2026-11-19T10:15:30.123Z\",\"by\":\"tier1.quality\"}" .
+
+:payloadHash a samm:Property ;
+   samm:description "SHA-256 over the payload text."@en ;
+   samm:characteristic :PayloadHashCharacteristic ;
+   samm:exampleValue "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd" .
+
+:signature a samm:Property ;
+   samm:description "Detached JWS (RFC 7797, b64=false) over the payload; PPAP_SUBMISSION and PPAP_DECISION only."@en ;
+   samm:characteristic :JwsCharacteristic ;
+   samm:exampleValue "eyJhbGciOiJFUzI1NiJ9..c2ln" .
+
+:JwsCharacteristic a samm-c:Trait ;
+   samm-c:baseCharacteristic samm-c:Text ;
+   samm-c:constraint :JwsConstraint .
+
+:JwsConstraint a samm-c:RegularExpressionConstraint ;
+   samm:value "^[A-Za-z0-9_-]+\\.\\.[A-Za-z0-9_-]+$" .
+
+:UuidCharacteristic a samm-c:Trait ;
+   samm-c:baseCharacteristic samm-c:Text ;
+   samm-c:constraint :UuidConstraint .
+
+:UuidConstraint a samm-c:RegularExpressionConstraint ;
+   samm:description "UUID (RFC 9562)"@en ;
+   samm:value "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$" .
+
+:BpnlCharacteristic a samm-c:Trait ;
+   samm-c:baseCharacteristic samm-c:Text ;
+   samm-c:constraint :BpnlConstraint .
+
+:BpnlConstraint a samm-c:RegularExpressionConstraint ;
+   samm:description "Catena-X business partner number of a legal entity (BPNL)"@en ;
+   samm:value "^BPNL[0-9A-Z]{12}$" .
+
+:PayloadHashCharacteristic a samm-c:Trait ;
+   samm-c:baseCharacteristic samm-c:Text ;
+   samm-c:constraint :PayloadHashConstraint .
+
+:PayloadHashConstraint a samm-c:RegularExpressionConstraint ;
+   samm:description "SHA-256 over the RFC 8785 canonical JSON, prefixed with sha256:"@en ;
+   samm:value "^sha256:[0-9a-f]{64}$" .
+
+:JsonText a samm:Characteristic ;
+   samm:description "JSON value serialized as text (RFC 8259). SAMM has no type for arbitrary JSON structures; the content is validated against the JSON Schema it refers to."@en ;
+   samm:dataType xsd:string .
+
+:exchangeId a samm:Property ;
+   samm:preferredName "Exchange ID"@en ;
+   samm:description "Identifier generated by the customer and shared by the approval cases of customer and supplier."@en ;
+   samm:characteristic :UuidCharacteristic ;
+   samm:exampleValue "4a8ca33e-609f-55f1-9a79-77031bf2c0a4" .

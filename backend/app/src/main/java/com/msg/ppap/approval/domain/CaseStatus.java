@@ -24,4 +24,8 @@ public enum CaseStatus {
     public boolean isOpen() {
         return OPEN.contains(this);
     }
+
+    public boolean isDecided() {
+        return DECIDED.contains(this);
+    }
 }
