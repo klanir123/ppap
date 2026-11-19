@@ -2,6 +2,7 @@ import i18n from 'i18next'
 import LanguageDetector from 'i18next-browser-languagedetector'
 import { initReactI18next } from 'react-i18next'
 
+import deApprovals from '@/locales/de/approvals.json'
 import deAuth from '@/locales/de/auth.json'
 import deCommon from '@/locales/de/common.json'
 import deDashboard from '@/locales/de/dashboard.json'
@@ -14,6 +15,7 @@ import deNav from '@/locales/de/nav.json'
 import dePages from '@/locales/de/pages.json'
 import deStatus from '@/locales/de/status.json'
 import deSystem from '@/locales/de/system.json'
+import enApprovals from '@/locales/en/approvals.json'
 import enAuth from '@/locales/en/auth.json'
 import enCommon from '@/locales/en/common.json'
 import enDashboard from '@/locales/en/dashboard.json'
@@ -45,6 +47,7 @@ export const resources = {
     forms: deForms,
     table: deTable,
     masterdata: deMasterdata,
+    approvals: deApprovals,
   },
   en: {
     common: enCommon,
@@ -59,6 +62,7 @@ export const resources = {
     forms: enForms,
     table: enTable,
     masterdata: enMasterdata,
+    approvals: enApprovals,
   },
 } as const
 

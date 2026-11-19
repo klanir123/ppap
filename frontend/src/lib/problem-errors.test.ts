@@ -77,7 +77,7 @@ describe('error code translation', () => {
     expect(translateFieldError('INVALID_FORMAT', 'ownSiteBpns')).toMatch(/Ungültige BPNS/)
     expect(translateFieldError('INVALID_FORMAT', 'name')).toBe('Das Format ist ungültig.')
     expect(translateFieldError('MALFORMED_REQUEST', undefined)).toMatch(/fehlerhaft/)
-    expect(translateFieldError('UNSUPPORTED_FILE_TYPE', undefined)).toMatch(/CSV und XLSX/)
+    expect(translateFieldError('UNSUPPORTED_FILE_TYPE', undefined)).toMatch(/nicht unterstützt/)
   })
 
   it('renders server and client field errors', () => {

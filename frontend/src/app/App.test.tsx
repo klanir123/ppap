@@ -61,6 +61,10 @@ function mockBackend(roles: string[]) {
     if (url.endsWith('/api/v1/config')) return json(config)
     if (url.endsWith('/api/v1/me')) return json(me(roles))
     if (url.endsWith('/api/v1/system/status')) return json(status)
+    if (url.includes('/api/v1/approval-cases/stats'))
+      return json({ open: 0, overdue: 0, inReview: 0, approvedLast30Days: 0, byStatus: {}, byPartner: [] })
+    if (url.includes('/api/v1/approval-cases'))
+      return json({ content: [], page: 0, size: 5, totalElements: 0, totalPages: 0 })
     return new Response(null, { status: 404 })
   })
 }
@@ -100,7 +104,7 @@ describe('App shell', () => {
     renderApp()
 
     expect(await screen.findByRole('heading', { level: 1, name: 'Guten Tag, Erika Mustermann' })).toBeInTheDocument()
-    expect(screen.getByText('Noch keine Freigabevorgänge')).toBeInTheDocument()
+    expect(await screen.findByText('Noch keine Freigabevorgänge')).toBeInTheDocument()
     expect(await screen.findByRole('status', { name: 'Status: Gestört' })).toBeInTheDocument()
     // unknown component names from the backend fall back to the raw name
     expect(screen.getByText('messageBroker')).toBeInTheDocument()

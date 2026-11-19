@@ -3,24 +3,39 @@
   "greeting": "Guten Tag, {{name}}",
   "description": "Überblick über Ihre Freigabevorgänge und den Datenaustausch mit Partnern.",
   "kpi": {
-    "openRequests": "Offene Anforderungen",
     "inReview": "In Prüfung",
-    "approved": "Freigegeben (30 Tage)",
     "overdue": "Überfällig",
-    "noData": "Noch keine Daten"
+    "noData": "Noch keine Daten",
+    "open": "Offene Vorgänge",
+    "approvalRate": "Freigabequote",
+    "overdueHint": "Termin überschritten – bitte nachfassen",
+    "leadTime": "Ø Durchlaufzeit {{days}} Tage",
+    "approved30_one": "{{count}} Freigabe (30 Tage)",
+    "approved30_other": "{{count}} Freigaben (30 Tage)"
   },
   "recent": {
     "title": "Aktuelle Freigabevorgänge",
-    "description": "Zuletzt bearbeitete Vorgänge Ihres Unternehmens"
+    "description": "Zuletzt bearbeitete Vorgänge Ihres Unternehmens",
+    "all": "Alle anzeigen"
   },
   "empty": {
     "title": "Noch keine Freigabevorgänge",
-    "description": "Sobald Sie eine PPF-Vorlage anfordern oder eine Anforderung eines Kunden erhalten, erscheinen die Vorgänge hier.",
-    "cta": "Vorgang anlegen"
+    "description": "Sobald Sie eine PPF-Vorlage anfordern oder eine Anforderung eines Kunden erhalten, erscheinen die Vorgänge hier."
   },
   "systemCard": {
     "title": "Systemzustand",
     "description": "Verbindung zu Datenbank, EDC, Object Storage und DTR",
     "link": "Systemstatus öffnen"
+  },
+  "cta": {
+    "request": "Vorlage anfordern"
+  },
+  "partners": {
+    "title": "Status je Partner",
+    "description": "Offene und überfällige Vorgänge je Geschäftspartner",
+    "empty": "Noch keine Vorgänge mit Partnern.",
+    "partner": "Partner",
+    "open": "Offen",
+    "overdue": "Überfällig"
   }
 }

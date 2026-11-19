@@ -8,7 +8,7 @@
     "approved": "Freigegeben",
     "conditionally-approved": "Bedingt freigegeben",
     "rejected": "Abgelehnt",
-    "cancelled": "Storniert"
+    "cancelled": "Abgebrochen"
   },
   "health": {
     "UP": "Verfügbar",
@@ -29,5 +29,21 @@
   "active": {
     "true": "Aktiv",
     "false": "Inaktiv"
+  },
+  "signature": {
+    "VALID": "Signatur gültig",
+    "INVALID": "Signatur ungültig",
+    "UNVERIFIED": "Signatur nicht prüfbar",
+    "NOT_SIGNED": "Nicht signiert"
+  },
+  "assessment": {
+    "OK": "i. O.",
+    "NOK": "n. i. O.",
+    "NA": "entfällt"
+  },
+  "finding": {
+    "ACCEPTED": "Akzeptiert",
+    "NOT_ACCEPTED": "Nicht akzeptiert",
+    "ACCEPTED_WITH_CONDITION": "Mit Auflage"
   }
 }

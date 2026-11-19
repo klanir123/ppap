@@ -3,7 +3,15 @@ import { useTranslation } from 'react-i18next'
 
 import { STATUS_ICONS, type StatusKind } from '@/components/status-icons'
 
-import type { ApprovalStatus, HealthStatus, RequirementLevel, ValidationStatus } from '@/lib/status'
+import type {
+  ApprovalStatus,
+  Assessment,
+  Finding,
+  HealthStatus,
+  RequirementLevel,
+  SignatureState,
+  ValidationStatus,
+} from '@/lib/status'
 import { statusStyle, statusToken } from '@/lib/status-style'
 import { cn } from '@/lib/utils'
 
@@ -13,6 +21,9 @@ export type StatusBadgeProps = { className?: string; size?: 'sm' | 'md'; kind: S
   | { kind: 'validation'; status: ValidationStatus }
   | { kind: 'requirement'; status: RequirementLevel }
   | { kind: 'active'; status: boolean }
+  | { kind: 'signature'; status: SignatureState }
+  | { kind: 'assessment'; status: Assessment }
+  | { kind: 'finding'; status: Finding }
 )
 
 /**

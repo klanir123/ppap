@@ -197,6 +197,43 @@
   --status-inactive-fg: var(--status-cancelled-fg);
   --status-inactive-border: var(--status-cancelled-border);
   --status-inactive-solid: var(--status-cancelled-solid);
+  /* --- Aliases (signature, self-assessment, review finding) ------------- */
+  --status-valid-bg: var(--status-approved-bg);
+  --status-valid-fg: var(--status-approved-fg);
+  --status-valid-border: var(--status-approved-border);
+  --status-valid-solid: var(--status-approved-solid);
+  --status-invalid-bg: var(--status-rejected-bg);
+  --status-invalid-fg: var(--status-rejected-fg);
+  --status-invalid-border: var(--status-rejected-border);
+  --status-invalid-solid: var(--status-rejected-solid);
+  --status-unverified-bg: var(--status-conditionally-approved-bg);
+  --status-unverified-fg: var(--status-conditionally-approved-fg);
+  --status-unverified-border: var(--status-conditionally-approved-border);
+  --status-unverified-solid: var(--status-conditionally-approved-solid);
+  --status-not-signed-bg: var(--status-cancelled-bg);
+  --status-not-signed-fg: var(--status-cancelled-fg);
+  --status-not-signed-border: var(--status-cancelled-border);
+  --status-not-signed-solid: var(--status-cancelled-solid);
+  --status-nok-bg: var(--status-rejected-bg);
+  --status-nok-fg: var(--status-rejected-fg);
+  --status-nok-border: var(--status-rejected-border);
+  --status-nok-solid: var(--status-rejected-solid);
+  --status-na-bg: var(--status-cancelled-bg);
+  --status-na-fg: var(--status-cancelled-fg);
+  --status-na-border: var(--status-cancelled-border);
+  --status-na-solid: var(--status-cancelled-solid);
+  --status-accepted-bg: var(--status-approved-bg);
+  --status-accepted-fg: var(--status-approved-fg);
+  --status-accepted-border: var(--status-approved-border);
+  --status-accepted-solid: var(--status-approved-solid);
+  --status-not-accepted-bg: var(--status-rejected-bg);
+  --status-not-accepted-fg: var(--status-rejected-fg);
+  --status-not-accepted-border: var(--status-rejected-border);
+  --status-not-accepted-solid: var(--status-rejected-solid);
+  --status-accepted-with-condition-bg: var(--status-conditionally-approved-bg);
+  --status-accepted-with-condition-fg: var(--status-conditionally-approved-fg);
+  --status-accepted-with-condition-border: var(--status-conditionally-approved-border);
+  --status-accepted-with-condition-solid: var(--status-conditionally-approved-solid);
 }
 
 /* ------------------------------------------------------------------------- */

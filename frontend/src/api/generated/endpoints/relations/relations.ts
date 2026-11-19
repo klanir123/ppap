@@ -29,11 +29,13 @@ import type {
   PartMappingDto,
   PartMappingPage,
   PartMappingRequest,
+  PartMappingSearchPage,
   ProblemDetail,
   RelationDto,
   RelationPage,
   RelationRequest,
   ResolvePartMappingParams,
+  SearchPartMappingsParams,
   UpdatePartMappingHeaders,
   UpdateRelationHeaders,
 } from '../../model'
@@ -77,6 +79,146 @@ const withQueryKey = <T extends object, K>(query: T, queryKey: K): T & { queryKe
     })
   }
   return result
+}
+
+export const getSearchPartMappingsUrl = (params?: SearchPartMappingsParams) => {
+  const normalizedParams = new URLSearchParams()
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    const explodeParameters = ['sort']
+
+    if (Array.isArray(value) && explodeParameters.includes(key)) {
+      value.forEach((v) => {
+        normalizedParams.append(key, v === null ? 'null' : String(v))
+      })
+      return
+    }
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  })
+
+  const stringifiedParams = normalizedParams.toString()
+
+  return stringifiedParams.length > 0 ? `/api/v1/part-mappings?${stringifiedParams}` : `/api/v1/part-mappings`
+}
+
+/**
+ * @summary Search part mappings across all active relations (e.g. part → supplier for a request)
+ */
+export const searchPartMappings = async (
+  params?: SearchPartMappingsParams,
+  options?: Parameters<typeof apiFetch>[1],
+): Promise<PartMappingSearchPage> => {
+  return apiFetch<PartMappingSearchPage>(getSearchPartMappingsUrl(params), {
+    ...options,
+    method: 'GET',
+  })
+}
+
+export const getSearchPartMappingsQueryKey = (params?: SearchPartMappingsParams) => {
+  return [`/api/v1/part-mappings`, ...(params ? [params] : [])] as const
+}
+
+export const getSearchPartMappingsQueryOptions = <
+  TData = Awaited<ReturnType<typeof searchPartMappings>>,
+  TError = ErrorType<ProblemDetail>,
+>(
+  params?: SearchPartMappingsParams,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof searchPartMappings>>, TError, TData>>
+    request?: SecondParameter<typeof apiFetch>
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {}
+
+  const queryKey = queryOptions?.queryKey ?? getSearchPartMappingsQueryKey(params)
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof searchPartMappings>>> = ({ signal }) =>
+    searchPartMappings(params, { signal, ...requestOptions })
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof searchPartMappings>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type SearchPartMappingsQueryResult = NonNullable<Awaited<ReturnType<typeof searchPartMappings>>>
+export type SearchPartMappingsQueryError = ErrorType<ProblemDetail>
+
+/** @summary Search part mappings across all active relations (e.g. part → supplier for a request) */
+export function useSearchPartMappings<
+  TData = Awaited<ReturnType<typeof searchPartMappings>>,
+  TError = ErrorType<ProblemDetail>,
+>(
+  params: undefined | SearchPartMappingsParams,
+  options: {
+    query: Partial<UseQueryOptions<Awaited<ReturnType<typeof searchPartMappings>>, TError, TData>> &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof searchPartMappings>>,
+          TError,
+          Awaited<ReturnType<typeof searchPartMappings>>
+        >,
+        'initialData'
+      >
+    request?: SecondParameter<typeof apiFetch>
+  },
+  queryClient?: QueryClient,
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/** @summary Search part mappings across all active relations (e.g. part → supplier for a request) */
+export function useSearchPartMappings<
+  TData = Awaited<ReturnType<typeof searchPartMappings>>,
+  TError = ErrorType<ProblemDetail>,
+>(
+  params?: SearchPartMappingsParams,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof searchPartMappings>>, TError, TData>> &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof searchPartMappings>>,
+          TError,
+          Awaited<ReturnType<typeof searchPartMappings>>
+        >,
+        'initialData'
+      >
+    request?: SecondParameter<typeof apiFetch>
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/** @summary Search part mappings across all active relations (e.g. part → supplier for a request) */
+export function useSearchPartMappings<
+  TData = Awaited<ReturnType<typeof searchPartMappings>>,
+  TError = ErrorType<ProblemDetail>,
+>(
+  params?: SearchPartMappingsParams,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof searchPartMappings>>, TError, TData>>
+    request?: SecondParameter<typeof apiFetch>
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/** @summary Search part mappings across all active relations (e.g. part → supplier for a request) */
+export function useSearchPartMappings<
+  TData = Awaited<ReturnType<typeof searchPartMappings>>,
+  TError = ErrorType<ProblemDetail>,
+>(
+  params?: SearchPartMappingsParams,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof searchPartMappings>>, TError, TData>>
+    request?: SecondParameter<typeof apiFetch>
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+  const queryOptions = getSearchPartMappingsQueryOptions(params, options)
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
+    queryKey: DataTag<QueryKey, TData, TError>
+  }
+
+  return withQueryKey(query, queryOptions.queryKey)
 }
 
 export const getResolvePartMappingUrl = (params: ResolvePartMappingParams) => {
