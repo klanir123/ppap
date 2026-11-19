@@ -39,7 +39,9 @@ public class AuditController {
                                                 "CATALOG_ELEMENT",
                                                 "SUBMISSION_LEVEL",
                                                 "SUBMISSION_REASON",
-                                                "SEED"
+                                                "SEED",
+                                                "APPROVAL_CASE",
+                                                "DOCUMENT"
                                             }))
                     String objectType,
             @RequestParam(required = false) String objectId,

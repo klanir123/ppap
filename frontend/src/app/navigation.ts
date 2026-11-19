@@ -28,6 +28,9 @@ export type NavLabelKey =
   | 'cockpit'
   | 'dataspace'
   | 'system'
+  | 'newRequest'
+  | 'package'
+  | 'review'
 
 export interface NavItem {
   labelKey: NavLabelKey

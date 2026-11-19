@@ -7,13 +7,18 @@ function newCorrelationId(): string {
   return globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random().toString(16).slice(2)}`
 }
 
+/** Extra, non-standard request option: inspect the raw response (e.g. read the `ETag` of a write). */
+export type ApiRequestInit = RequestInit & { onResponse?: (response: Response) => void }
+
 /**
  * Custom fetch mutator used by all orval-generated hooks.
  * Adds the bearer token of the signed-in OIDC user and a correlation id,
  * parses JSON responses and maps error responses (RFC 9457) to {@link ApiError}.
  */
-export async function apiFetch<T>(url: string, options: RequestInit = {}): Promise<T> {
-  const response = await apiFetchResponse(url, options)
+export async function apiFetch<T>(url: string, options: ApiRequestInit = {}): Promise<T> {
+  const { onResponse, ...init } = options
+  const response = await apiFetchResponse(url, init)
+  onResponse?.(response)
   const contentType = response.headers.get('content-type') ?? ''
   if (response.status === 204 || response.headers.get('content-length') === '0') {
     return undefined as T

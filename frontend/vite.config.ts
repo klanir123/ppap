@@ -22,13 +22,23 @@ export default defineConfig(({ mode }) => {
     build: {
       outDir: 'dist',
       sourcemap: true,
+      // the lazy PDF preview chunk (pdf.js) is ~650 kB; everything eager stays well below
+      chunkSizeWarningLimit: 700,
       rolldownOptions: {
         output: {
           codeSplitting: {
             groups: [
               { name: 'react', test: /node_modules[\\/](react|react-dom|scheduler)[\\/]/ },
               { name: 'tanstack', test: /node_modules[\\/]@tanstack[\\/]/ },
-              { name: 'ui', test: /node_modules[\\/](radix-ui|@radix-ui|lucide-react|sonner|next-themes)[\\/]/ },
+              {
+                name: 'ui',
+                test: /node_modules[\\/](radix-ui|@radix-ui|lucide-react|sonner|next-themes|clsx|tailwind-merge|class-variance-authority)[\\/]/,
+              },
+              // PDF preview is lazy-loaded (review/revision views) – keep it out of the eager vendor chunk
+              {
+                name: 'pdf',
+                test: /node_modules[\\/](react-pdf|pdfjs-dist|make-cancellable-promise|make-event-props|merge-refs)[\\/]/,
+              },
               { name: 'vendor', test: /node_modules[\\/]/ },
             ],
           },

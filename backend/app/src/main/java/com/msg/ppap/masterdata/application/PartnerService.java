@@ -29,18 +29,21 @@ public class PartnerService extends MasterdataService<Partner, PartnerValues> {
     private final SiteRepository sites;
     private final RelationRepository relations;
     private final TenantContext tenant;
+    private final MasterdataUsages usages;
 
     public PartnerService(
             PartnerRepository partners,
             SiteRepository sites,
             RelationRepository relations,
             TenantContext tenant,
+            MasterdataUsages usages,
             MasterdataEvents events) {
         super(events);
         this.partners = partners;
         this.sites = sites;
         this.relations = relations;
         this.tenant = tenant;
+        this.usages = usages;
     }
 
     @Override
@@ -131,7 +134,9 @@ public class PartnerService extends MasterdataService<Partner, PartnerValues> {
     @Override
     protected boolean isReferenced(Partner aggregate) {
         var bpnl = aggregate.values().bpnl();
-        return sites.existsByOwner(bpnl) || relations.existsByPartner(bpnl);
+        return sites.existsByOwner(bpnl)
+                || relations.existsByPartner(bpnl)
+                || usages.any(usage -> usage.isPartnerUsed(bpnl.value()));
     }
 
     @Override

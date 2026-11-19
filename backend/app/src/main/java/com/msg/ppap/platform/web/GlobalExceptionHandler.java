@@ -26,6 +26,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
 /**
@@ -53,8 +54,11 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         HttpStatus status = statusOf(ex.kind());
         ProblemDetail problem = ProblemDetail.forStatusAndDetail(status, ex.getMessage());
         problem.setProperty(CODE_PROPERTY, ex.code());
+        ex.properties().forEach(problem::setProperty);
         if (ex instanceof ValidationException validation) {
-            problem.setDetail("Request validation failed.");
+            if (validation.kind() == PpapException.Kind.INVALID) {
+                problem.setDetail("Request validation failed.");
+            }
             problem.setProperty(ERRORS_PROPERTY, errors(validation.violations()));
         }
         return enrich(problem);
@@ -100,6 +104,14 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
             HttpMessageNotReadableException ex, HttpHeaders headers, HttpStatusCode status, WebRequest request) {
         ProblemDetail problem = ProblemDetail.forStatusAndDetail(status, "Malformed request body.");
         problem.setProperty(CODE_PROPERTY, "MALFORMED_REQUEST");
+        return createResponseEntity(problem, headers, status, request);
+    }
+
+    @Override
+    protected @Nullable ResponseEntity<Object> handleMaxUploadSizeExceededException(
+            MaxUploadSizeExceededException ex, HttpHeaders headers, HttpStatusCode status, WebRequest request) {
+        ProblemDetail problem = ProblemDetail.forStatusAndDetail(status, "Uploaded file exceeds the maximum size.");
+        problem.setProperty(CODE_PROPERTY, "FILE_TOO_LARGE");
         return createResponseEntity(problem, headers, status, request);
     }
 
@@ -164,6 +176,8 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
             case UNPROCESSABLE -> HttpStatus.UNPROCESSABLE_CONTENT;
             case TOO_LARGE -> HttpStatus.CONTENT_TOO_LARGE;
             case UNSUPPORTED -> HttpStatus.UNSUPPORTED_MEDIA_TYPE;
+            case FORBIDDEN -> HttpStatus.FORBIDDEN;
+            case UNAUTHORIZED -> HttpStatus.UNAUTHORIZED;
         };
     }
 

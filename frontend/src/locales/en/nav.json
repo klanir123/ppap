@@ -4,7 +4,7 @@
     "operations": "Operations"
   },
   "dashboard": "Dashboard",
-  "approvals": "Approval processes",
+  "approvals": "Approval cases",
   "masterdata": "Master data",
   "parts": "Parts",
   "partners": "Partners",
@@ -15,5 +15,8 @@
   "dataspace": "Data space (demo)",
   "system": "System status",
   "home": "Home",
-  "detail": "Details"
+  "detail": "Details",
+  "newRequest": "Request submission",
+  "package": "PPF package",
+  "review": "Review"
 }

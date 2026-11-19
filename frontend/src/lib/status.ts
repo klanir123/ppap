@@ -33,3 +33,15 @@ export type ValidationStatus = (typeof VALIDATION_STATUSES)[number]
 /** Catalogue matrix cell value; a missing element code means NOT_REQUIRED. */
 export const REQUIREMENT_LEVELS = ['REQUIRED', 'ON_REQUEST', 'NOT_REQUIRED'] as const
 export type RequirementLevel = (typeof REQUIREMENT_LEVELS)[number]
+
+/** Signature verification of a submitted revision / decision. */
+export const SIGNATURE_STATES = ['VALID', 'INVALID', 'UNVERIFIED', 'NOT_SIGNED'] as const
+export type SignatureState = (typeof SIGNATURE_STATES)[number]
+
+/** Supplier self-assessment per element (i. O. / n. i. O. / entfällt). */
+export const ASSESSMENTS = ['OK', 'NOK', 'NA'] as const
+export type Assessment = (typeof ASSESSMENTS)[number]
+
+/** Customer review finding per element. */
+export const FINDINGS = ['ACCEPTED', 'NOT_ACCEPTED', 'ACCEPTED_WITH_CONDITION'] as const
+export type Finding = (typeof FINDINGS)[number]

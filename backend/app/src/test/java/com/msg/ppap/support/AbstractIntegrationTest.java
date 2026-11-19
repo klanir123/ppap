@@ -8,8 +8,9 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 /**
  * Base class for integration tests: full application context, MockMvc, PostgreSQL via Testcontainers and a mocked
- * {@link JwtDecoder} (tokens are injected with spring-security-test's {@code jwt()} post-processor). EDC and object
- * storage point to closed local ports, so their health is DOWN.
+ * {@link JwtDecoder} (tokens are injected with spring-security-test's {@code jwt()} post-processor). Object storage is
+ * a SeaweedFS container (S3 API); EDC points to a closed local port, so its health is DOWN. Payload signatures use a
+ * generated in-memory key.
  */
 @SpringBootTest(
         properties = {
@@ -22,7 +23,9 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
             "ppap.storage.endpoint=http://127.0.0.1:1",
             "ppap.storage.access-key=test",
             "ppap.storage.secret-key=test",
-            "ppap.storage.bucket=test"
+            "ppap.storage.bucket=test",
+            "ppap.signing.provider=generated",
+            "ppap.documents.max-size=2MB"
         })
 @AutoConfigureMockMvc
 @Import(TestcontainersConfiguration.class)

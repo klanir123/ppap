@@ -46,4 +46,13 @@ describe('permissions', () => {
     // every human role may read master data
     expect(hasPermission(['SUPPLIER_QUALITY_MANAGER'], 'masterdata:view')).toBe(true)
   })
+
+  it('approvals: customers request and decide, suppliers supply', () => {
+    expect(hasPermission(['CUSTOMER_QUALITY_ENGINEER'], 'approvals:request')).toBe(true)
+    expect(hasPermission(['CUSTOMER_QUALITY_ENGINEER'], 'approvals:decide')).toBe(true)
+    expect(hasPermission(['CUSTOMER_QUALITY_ENGINEER'], 'approvals:supply')).toBe(false)
+    expect(hasPermission(['SUPPLIER_QUALITY_MANAGER'], 'approvals:supply')).toBe(true)
+    expect(hasPermission(['SUPPLIER_QUALITY_MANAGER'], 'approvals:decide')).toBe(false)
+    expect(hasPermission(['CONNECTOR_ADMIN'], 'approvals:request')).toBe(false)
+  })
 })

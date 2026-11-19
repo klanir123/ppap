@@ -4,9 +4,11 @@ import com.msg.ppap.identity.TenantContext;
 import com.msg.ppap.masterdata.application.port.out.PartMappingRepository;
 import com.msg.ppap.masterdata.domain.PartMapping;
 import com.msg.ppap.masterdata.domain.PartNumber;
+import com.msg.ppap.masterdata.domain.PartnerRole;
 import com.msg.ppap.platform.domain.Bpns;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
@@ -69,6 +71,19 @@ class JpaPartMappingRepository implements PartMappingRepository {
     @Override
     public boolean existsByPart(UUID partId) {
         return jpa.existsByTenantIdAndPartId(tenant.tenantId(), partId);
+    }
+
+    @Override
+    public Page<PartMapping> searchAll(PartnerRole partnerRole, String text, Pageable pageable) {
+        return jpa.searchAll(tenant.tenantId(), partnerRole, Like.contains(text), pageable)
+                .map(PartMappingEntity::toDomain);
+    }
+
+    @Override
+    public List<PartMapping> findByPart(UUID partId) {
+        return jpa.findByTenantIdAndPartId(tenant.tenantId(), partId).stream()
+                .map(PartMappingEntity::toDomain)
+                .toList();
     }
 
     @Override

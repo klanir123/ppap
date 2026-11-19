@@ -103,6 +103,21 @@
       <artifactId>json-schema-validator</artifactId>
     </dependency>
 
+    <!-- Exchange format: RFC 8785 canonicalization (semantics), JWS signatures (identity), content detection
+         (documents) -->
+    <dependency>
+      <groupId>io.github.erdtman</groupId>
+      <artifactId>java-json-canonicalization</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.nimbusds</groupId>
+      <artifactId>nimbus-jose-jwt</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.tika</groupId>
+      <artifactId>tika-core</artifactId>
+    </dependency>
+
     <!-- Test -->
     <dependency>
       <groupId>org.springframework.boot</groupId>

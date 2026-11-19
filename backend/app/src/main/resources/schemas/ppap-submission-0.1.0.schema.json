@@ -1,0 +1,232 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:samm:com.msg.ppap:0.1.0#PpapSubmission",
+  "title": "PpapSubmission",
+  "description": "Submission of a PPAP/PPF revision by the supplier (exchange format v0.1, hand-written; structure identical to the SAMM model planned for phase 4).",
+  "type": "object",
+  "properties": {
+    "header": {
+      "$ref": "#/$defs/SubmissionHeader"
+    },
+    "elements": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/ElementEvidence"
+      }
+    },
+    "subSupplierReferences": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/SubSupplierReference"
+      }
+    },
+    "submittedAt": {
+      "$ref": "#/$defs/Timestamp"
+    },
+    "submittedBy": {
+      "$ref": "#/$defs/UserId"
+    }
+  },
+  "required": [
+    "header",
+    "elements",
+    "subSupplierReferences",
+    "submittedAt",
+    "submittedBy"
+  ],
+  "additionalProperties": false,
+  "$defs": {
+    "SubmissionHeader": {
+      "type": "object",
+      "properties": {
+        "exchangeId": {
+          "$ref": "#/$defs/Uuid"
+        },
+        "caseNumber": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64
+        },
+        "revision": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "customerBpnl": {
+          "$ref": "#/$defs/Bpnl"
+        },
+        "supplierBpnl": {
+          "$ref": "#/$defs/Bpnl"
+        },
+        "customerPartNumber": {
+          "$ref": "#/$defs/PartNumber"
+        },
+        "supplierPartNumber": {
+          "$ref": "#/$defs/PartNumber"
+        },
+        "reasonCode": {
+          "$ref": "#/$defs/CatalogCode"
+        },
+        "levelCode": {
+          "$ref": "#/$defs/CatalogCode"
+        }
+      },
+      "required": [
+        "exchangeId",
+        "caseNumber",
+        "revision",
+        "customerBpnl",
+        "supplierBpnl",
+        "customerPartNumber",
+        "supplierPartNumber",
+        "reasonCode",
+        "levelCode"
+      ],
+      "additionalProperties": false
+    },
+    "ElementEvidence": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "$ref": "#/$defs/CatalogCode"
+        },
+        "requirement": {
+          "type": "string",
+          "enum": [
+            "REQUIRED",
+            "ON_REQUEST"
+          ]
+        },
+        "selfAssessment": {
+          "type": "string",
+          "enum": [
+            "OK",
+            "NOK",
+            "NA"
+          ]
+        },
+        "values": {
+          "description": "Structured values; validated against the value schema of the element snapshot."
+        },
+        "comment": {
+          "type": "string",
+          "maxLength": 4000
+        },
+        "documents": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/DocumentReference"
+          }
+        }
+      },
+      "required": [
+        "code",
+        "requirement",
+        "documents"
+      ],
+      "additionalProperties": false
+    },
+    "SubSupplierReference": {
+      "type": "object",
+      "properties": {
+        "subSupplierBpnl": {
+          "$ref": "#/$defs/Bpnl"
+        },
+        "partNumber": {
+          "$ref": "#/$defs/PartNumber"
+        },
+        "exchangeId": {
+          "$ref": "#/$defs/Uuid"
+        },
+        "revision": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "result": {
+          "type": "string",
+          "enum": [
+            "APPROVED",
+            "CONDITIONALLY_APPROVED",
+            "REJECTED"
+          ]
+        },
+        "hash": {
+          "$ref": "#/$defs/PayloadHash"
+        }
+      },
+      "required": [
+        "subSupplierBpnl",
+        "partNumber",
+        "exchangeId",
+        "revision",
+        "result",
+        "hash"
+      ],
+      "additionalProperties": false
+    },
+    "DocumentReference": {
+      "type": "object",
+      "description": "Metadata of a referenced document; content identified by SHA-256.",
+      "properties": {
+        "fileName": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 255
+        },
+        "mediaType": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 255
+        },
+        "size": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "sha256": {
+          "$ref": "#/$defs/Sha256"
+        }
+      },
+      "required": [
+        "fileName",
+        "mediaType",
+        "size",
+        "sha256"
+      ],
+      "additionalProperties": false
+    },
+    "Bpnl": {
+      "type": "string",
+      "pattern": "^BPNL[0-9A-Z]{12}$"
+    },
+    "CatalogCode": {
+      "type": "string",
+      "pattern": "^[A-Z0-9][A-Z0-9_\\-]{1,31}$"
+    },
+    "PartNumber": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 64
+    },
+    "Uuid": {
+      "type": "string",
+      "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+    },
+    "Timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d{1,9})?Z$"
+    },
+    "UserId": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 255
+    },
+    "Sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "PayloadHash": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    }
+  }
+}

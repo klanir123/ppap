@@ -64,6 +64,24 @@ public class S3DocumentStorage implements DocumentStorage {
         }
     }
 
+    @Override
+    public boolean exists(String key) {
+        try {
+            s3.getObject()
+                    .headObject(request -> request.bucket(properties.bucket()).key(key));
+            return true;
+        } catch (NoSuchKeyException ex) {
+            return false;
+        } catch (S3Exception ex) {
+            if (ex.statusCode() == 404) {
+                return false;
+            }
+            throw new DocumentStorageException("Failed to check object '" + key + "'", ex);
+        } catch (SdkException ex) {
+            throw new DocumentStorageException("Failed to check object '" + key + "'", ex);
+        }
+    }
+
     /** Checks that the tenant bucket is reachable; used by the {@code objectStorage} health indicator. */
     void headBucket() {
         s3.getObject().headBucket(request -> request.bucket(properties.bucket()));

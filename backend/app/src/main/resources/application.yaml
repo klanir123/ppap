@@ -100,6 +100,28 @@ ppap:
     enabled: ${PPAP_SEED_ENABLED:false}
     path: ${PPAP_SEED_PATH:}
     common-path: ${PPAP_SEED_COMMON_PATH:}
+    documents-path: ${PPAP_SEED_DOCUMENTS_PATH:}
+  documents:
+    max-size: ${PPAP_UPLOAD_MAX_SIZE:50MB}
+  # Payload signatures (ADR-0008). Startup fails if the key cannot be loaded; "generated" is for development only.
+  signing:
+    provider: ${PPAP_SIGNING_PROVIDER:vault}
+    key-file: ${PPAP_SIGNING_KEY_FILE:}
+    vault:
+      url: ${PPAP_VAULT_URL:}
+      token: ${PPAP_VAULT_TOKEN:}
+      kv-mount: ${PPAP_VAULT_KV_MOUNT:secret}
+      key-path: ${PPAP_SIGNING_KEY_PATH:ppap-signing-key}
+      field: content
+  decision:
+    allow-technical-clients: ${PPAP_DECISION_ALLOW_TECHNICAL_CLIENTS:false}
+    # unset = no recent-login check; otherwise auth_time must be younger than this many seconds
+    max-auth-age-seconds: ${PPAP_DECISION_MAX_AUTH_AGE_SECONDS:}
+  approval:
+    form-import:
+      max-file-size: 10MB
+      max-rows: 500
+      attach-to-element: ${PPAP_FORM_IMPORT_ATTACH_ELEMENT:PPF-01}
   storage:
     endpoint: ${PPAP_S3_ENDPOINT:http://localhost:8333}
     region: ${PPAP_S3_REGION:us-east-1}

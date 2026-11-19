@@ -29,5 +29,21 @@
   "active": {
     "true": "Active",
     "false": "Inactive"
+  },
+  "signature": {
+    "VALID": "Signature valid",
+    "INVALID": "Signature invalid",
+    "UNVERIFIED": "Signature not verifiable",
+    "NOT_SIGNED": "Not signed"
+  },
+  "assessment": {
+    "OK": "OK",
+    "NOK": "Not OK",
+    "NA": "Not applicable"
+  },
+  "finding": {
+    "ACCEPTED": "Accepted",
+    "NOT_ACCEPTED": "Not accepted",
+    "ACCEPTED_WITH_CONDITION": "With condition"
   }
 }

@@ -64,6 +64,14 @@ export interface DataTableProps<T> {
   toolbar?: ReactNode
   /** Client mode only: hide the pagination footer (e.g. short catalogue lists). */
   hidePagination?: boolean
+  /** Show the search field (default true). */
+  search?: boolean
+  /** Extra filter controls (left side of the toolbar, after search). */
+  filters?: ReactNode
+  /** Custom filters are active (shows "no results" instead of the empty state). */
+  filtered?: boolean
+  /** Resets search + custom filters (default: search and active filter). */
+  onResetFilters?: () => void
 }
 
 const VISIBILITY_KEY = (id: string) => `ppap.table.${id}.columns`
@@ -151,6 +159,9 @@ export function DataTable<T>(props: DataTableProps<T>) {
     activeFilter = true,
     emptyState,
     toolbar,
+    search = true,
+    filters,
+    onResetFilters,
   } = props
   const { t } = useTranslation(['table', 'common'])
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>(() => loadVisibility(id))
@@ -203,7 +214,10 @@ export function DataTable<T>(props: DataTableProps<T>) {
   })
 
   const visibleColumnCount = table.getVisibleLeafColumns().length
-  const filtered = Boolean(state.q) || (activeFilter && state.active !== undefined && state.active !== 'true')
+  const filtered =
+    Boolean(props.filtered) ||
+    Boolean(state.q) ||
+    (activeFilter && state.active !== undefined && state.active !== 'true')
   const showSkeleton = isLoading && !pageData
   const rows = table.getRowModel().rows
   const hideableColumns = table
@@ -213,12 +227,14 @@ export function DataTable<T>(props: DataTableProps<T>) {
   return (
     <div className="flex min-w-0 flex-col gap-3">
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex flex-1 flex-col gap-2 sm:flex-row sm:items-center">
-          <SearchInput
-            value={state.q}
-            placeholder={searchPlaceholder}
-            onCommit={(q) => onStateChange({ q, page: 0 })}
-          />
+        <div className="flex flex-1 flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center">
+          {search ? (
+            <SearchInput
+              value={state.q}
+              placeholder={searchPlaceholder}
+              onCommit={(q) => onStateChange({ q, page: 0 })}
+            />
+          ) : null}
           {activeFilter ? (
             <Select
               value={state.active ?? 'true'}
@@ -236,6 +252,7 @@ export function DataTable<T>(props: DataTableProps<T>) {
               </SelectContent>
             </Select>
           ) : null}
+          {filters}
         </div>
         <div className="flex flex-wrap items-center gap-2">
           {hideableColumns.length > 0 ? (
@@ -267,7 +284,7 @@ export function DataTable<T>(props: DataTableProps<T>) {
       </div>
 
       <div className="relative rounded-lg border bg-card">
-        <div className="max-h-[min(70svh,48rem)] overflow-auto rounded-lg">
+        <div className="relative max-h-[min(70svh,48rem)] overflow-auto rounded-lg">
           <table
             aria-label={label}
             aria-busy={isLoading || isFetching ? true : undefined}
@@ -362,7 +379,11 @@ export function DataTable<T>(props: DataTableProps<T>) {
                           <Button
                             variant="outline"
                             size="sm"
-                            onClick={() => onStateChange({ q: undefined, active: 'true', page: 0 })}
+                            onClick={() =>
+                              onResetFilters
+                                ? onResetFilters()
+                                : onStateChange({ q: undefined, active: 'true', page: 0 })
+                            }
                           >
                             {t('resetFilters')}
                           </Button>

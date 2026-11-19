@@ -6,10 +6,18 @@ import {
   redirect,
   type RouterHistory,
 } from '@tanstack/react-router'
-import { Boxes, Cable, FileCheck2 } from 'lucide-react'
+import { Boxes, Cable } from 'lucide-react'
+import { z } from 'zod'
 
 import { listSearchSchema } from '@/components/data-table'
 import { AppShell } from '@/features/shell/AppShell'
+import { CASE_TABS } from '@/features/approvals/detail/case-tabs'
+import { CaseDetailPage } from '@/features/approvals/detail/CaseDetailPage'
+import { approvalsSearchSchema } from '@/features/approvals/list/approvals-search'
+import { ApprovalsPage } from '@/features/approvals/list/ApprovalsPage'
+import { PackageWorkspace } from '@/features/approvals/package/PackageWorkspace'
+import { RequestWizardPage } from '@/features/approvals/request/RequestWizardPage'
+import { ReviewWorkspace } from '@/features/approvals/review/ReviewWorkspace'
 import { RequirePermission } from '@/features/auth/RequirePermission'
 import { DashboardPage } from '@/features/dashboard/DashboardPage'
 import { catalogSearchSchema } from '@/features/masterdata/catalog/catalog-search'
@@ -52,9 +60,75 @@ const approvalsRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/approvals',
   staticData: { crumb: 'approvals' },
+})
+
+/** List: filters, list state and view (table | board) live in the URL. */
+const approvalsIndexRoute = createRoute({
+  getParentRoute: () => approvalsRoute,
+  path: '/',
+  validateSearch: approvalsSearchSchema,
   component: () => (
     <RequirePermission permission="approvals:view">
-      <ComingSoonPage titleKey="approvals" descriptionKey="approvals.description" icon={FileCheck2} phase={3} />
+      <ApprovalsPage />
+    </RequirePermission>
+  ),
+})
+
+/** Request wizard (UC-03); `caseId` continues an existing draft. */
+const approvalNewRoute = createRoute({
+  getParentRoute: () => approvalsRoute,
+  path: 'new',
+  staticData: { crumb: 'newRequest' },
+  validateSearch: z.object({ caseId: z.string().optional().catch(undefined) }),
+  component: () => (
+    <RequirePermission permission="approvals:request">
+      <RequestWizardPage />
+    </RequirePermission>
+  ),
+})
+
+const approvalCaseRoute = createRoute({
+  getParentRoute: () => approvalsRoute,
+  path: '$caseId',
+  staticData: { crumb: 'detail' },
+})
+
+const approvalCaseIndexRoute = createRoute({
+  getParentRoute: () => approvalCaseRoute,
+  path: '/',
+  validateSearch: z.object({
+    tab: z.enum(CASE_TABS).optional().catch(undefined),
+    revision: z.number().int().min(1).optional().catch(undefined),
+  }),
+  component: () => (
+    <RequirePermission permission="approvals:view">
+      <CaseDetailPage />
+    </RequirePermission>
+  ),
+})
+
+/** Supplier workspace (UC-05). */
+const approvalPackageRoute = createRoute({
+  getParentRoute: () => approvalCaseRoute,
+  path: 'package',
+  staticData: { crumb: 'package' },
+  validateSearch: z.object({ element: z.string().optional().catch(undefined) }),
+  component: () => (
+    <RequirePermission permission="approvals:supply">
+      <PackageWorkspace />
+    </RequirePermission>
+  ),
+})
+
+/** Customer review workspace (UC-07). */
+const approvalReviewRoute = createRoute({
+  getParentRoute: () => approvalCaseRoute,
+  path: 'review',
+  staticData: { crumb: 'review' },
+  validateSearch: z.object({ element: z.string().optional().catch(undefined) }),
+  component: () => (
+    <RequirePermission permission="approvals:decide">
+      <ReviewWorkspace />
     </RequirePermission>
   ),
 })
@@ -172,7 +246,11 @@ const systemRoute = createRoute({
 
 export const routeTree = rootRoute.addChildren([
   dashboardRoute,
-  approvalsRoute,
+  approvalsRoute.addChildren([
+    approvalsIndexRoute,
+    approvalNewRoute,
+    approvalCaseRoute.addChildren([approvalCaseIndexRoute, approvalPackageRoute, approvalReviewRoute]),
+  ]),
   masterdataRoute.addChildren([
     masterdataIndexRoute,
     partsRoute,

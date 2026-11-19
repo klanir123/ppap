@@ -15,5 +15,8 @@
   "dataspace": "Datenraum (Demo)",
   "system": "Systemstatus",
   "home": "Start",
-  "detail": "Details"
+  "detail": "Details",
+  "newRequest": "Vorlage anfordern",
+  "package": "PPF-Paket",
+  "review": "Prüfung"
 }

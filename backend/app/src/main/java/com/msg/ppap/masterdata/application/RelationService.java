@@ -36,16 +36,19 @@ public class RelationService extends MasterdataService<Relation, RelationValues>
     private final RelationRepository relations;
     private final PartnerRepository partners;
     private final PartMappingRepository mappings;
+    private final MasterdataUsages usages;
 
     public RelationService(
             RelationRepository relations,
             PartnerRepository partners,
             PartMappingRepository mappings,
+            MasterdataUsages usages,
             MasterdataEvents events) {
         super(events);
         this.relations = relations;
         this.partners = partners;
         this.mappings = mappings;
+        this.usages = usages;
     }
 
     @Transactional(readOnly = true, noRollbackFor = PpapException.class)
@@ -186,7 +189,7 @@ public class RelationService extends MasterdataService<Relation, RelationValues>
 
     @Override
     protected boolean isReferenced(Relation aggregate) {
-        return mappings.existsByRelation(aggregate.id());
+        return mappings.existsByRelation(aggregate.id()) || usages.any(usage -> usage.isRelationUsed(aggregate.id()));
     }
 
     @Override

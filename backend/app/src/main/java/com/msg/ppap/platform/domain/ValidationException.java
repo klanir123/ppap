@@ -15,7 +15,12 @@ public class ValidationException extends PpapException {
     }
 
     public ValidationException(String code, List<FieldViolation> violations) {
-        super(Kind.INVALID, code, "Validation failed: " + summary(violations));
+        this(Kind.INVALID, code, violations);
+    }
+
+    /** Rule violations with a different category, e.g. {@code UNPROCESSABLE} for business rule failures. */
+    public ValidationException(Kind kind, String code, List<FieldViolation> violations) {
+        super(kind, code, "Validation failed: " + summary(violations));
         this.violations = List.copyOf(violations);
     }
 

@@ -15,6 +15,9 @@ export type Role = (typeof ROLES)[number]
 export type Permission =
   | 'dashboard:view'
   | 'approvals:view'
+  | 'approvals:request'
+  | 'approvals:supply'
+  | 'approvals:decide'
   | 'masterdata:view'
   | 'masterdata:write'
   | 'partners:write'
@@ -33,6 +36,12 @@ const ALL_HUMAN_ROLES: readonly Role[] = [
 const PERMISSION_ROLES: Record<Permission, readonly Role[]> = {
   'dashboard:view': ALL_HUMAN_ROLES,
   'approvals:view': ['CUSTOMER_QUALITY_ENGINEER', 'SUPPLIER_QUALITY_MANAGER', 'CONNECTOR_ADMIN'],
+  // request PPF packages as customer (UC-03), incl. cancelling drafts
+  'approvals:request': ['CUSTOMER_QUALITY_ENGINEER'],
+  // capture manual requests, prepare and submit packages as supplier (UC-05)
+  'approvals:supply': ['SUPPLIER_QUALITY_MANAGER'],
+  // review and decide (UC-07); technical clients only via API
+  'approvals:decide': ['CUSTOMER_QUALITY_ENGINEER'],
   'masterdata:view': ALL_HUMAN_ROLES,
   // SYSTEM_INTEGRATION may write via API, but has no UI
   'masterdata:write': ['MASTERDATA_MANAGER'],

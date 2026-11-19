@@ -89,7 +89,7 @@ Alle Farben sind CSS-Variablen in `src/index.css` (`:root` = hell, `.dark` = dun
 | `approved`                | Freigegeben         | Grün                          |
 | `conditionally-approved`  | Bedingt freigegeben | Amber                         |
 | `rejected`                | Abgelehnt           | Rot                           |
-| `cancelled`               | Storniert           | Warmgrau                      |
+| `cancelled`               | Abgebrochen         | Warmgrau                      |
 | `up` / `down` / `unknown` | Komponentenstatus   | = approved / rejected / draft |
 
 Verwendung ausschließlich über `<StatusBadge kind="approval" status="in-review" />` bzw. `<StatusBadge kind="health" status="UP" />`: Farbe + Icon + Text (nie Farbe allein), `role="status"` und `aria-label` „Status: …“.
@@ -102,3 +102,10 @@ Verwendung ausschließlich über `<StatusBadge kind="approval" status="in-review
 - 401 bei abgelaufenem Token: aktuell Fehlerbildschirm mit Neuanmeldung; später Retry nach Silent Renew.
 - Live-Updates (SSE), TanStack Table, Formulare folgen mit den Fachphasen.
 - Playwright-Smoke mit Keycloak-Login + axe-core (`e2e/smoke.spec.ts`, `test.fixme`).
+
+## Freigabevorgänge (Phase 3, UC-03/05/07)
+
+- **Feature** `src/features/approvals/`: `api/` (einziger Ort mit API-Wissen; Phase A handgeschrieben nach `docs/api/approval-api.md`, Phase B → orval), `model/` (reine Logik: Status-Tokens, `allowedActions` × Berechtigungen, Kanban-Gruppierung, Entscheidungsregeln), `schema-form/` (Formular-Renderer aus dem JSON-Schema-Snapshot: object, Array von Objekten als Tabelle, string/date/number/integer/boolean/enum, required/min/max/Länge/Pattern; Server-`VALUE_SCHEMA_VIOLATION` per JSON-Pointer), `list/` (Tabelle + read-only Board, Zustand in der URL), `detail/`, `request/` (Wizard „Vorlage anfordern“), `manual/`, `package/` (Arbeitsbereich Lieferant: Autosave mit If-Match-Warteschlange, Vollständigkeit, Excel-Import, Einreichen), `review/` (Prüfung, Entscheidung, Re-Login bei `RECENT_AUTH_REQUIRED` mit `max_age=0`).
+- Berechtigungen `approvals:request|supply|decide`; Aktionen werden **immer** mit den serverseitigen `allowedActions` kombiniert.
+- Dokumentvorschau: `react-pdf`/`pdfjs-dist` (lazy Chunk `pdf`), SHA-256 wird im Browser gegen den gespeicherten Hash geprüft.
+- `src/lib/i18n-keys.test.ts` stellt sicher, dass DE und EN dieselben Schlüssel haben.

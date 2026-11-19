@@ -48,6 +48,36 @@ class OpenApiContractTest extends AbstractIntegrationTest {
                 .andExpect(jsonPath(
                         "$.components.schemas.AuditEventDto.properties.objectType.enum",
                         Matchers.hasItem("PART_MAPPING")))
+                .andExpect(jsonPath("$.paths['/api/v1/approval-cases'].post.responses['201'].headers.Location")
+                        .exists())
+                .andExpect(jsonPath("$.paths['/api/v1/approval-cases/{id}/decision'].post.responses['422']")
+                        .exists())
+                .andExpect(jsonPath("$.paths['/api/v1/approval-cases/{id}/send'].post.responses['412']")
+                        .exists())
+                .andExpect(jsonPath("$.paths['/api/v1/documents'].post.responses['415']")
+                        .exists())
+                .andExpect(jsonPath("$.components.schemas.ElementEvidenceDto.properties.values.type")
+                        .doesNotExist())
+                .andExpect(jsonPath(
+                        "$.components.schemas.ApprovalCaseDto.properties.allowedActions.items.enum",
+                        Matchers.hasItems("EDIT", "REVIEW", "NEW_REVISION")))
+                .andExpect(jsonPath(
+                        "$.components.schemas.AuditEventDto.properties.objectType.enum",
+                        Matchers.hasItems("APPROVAL_CASE", "DOCUMENT")))
+                .andExpect(jsonPath(
+                        "$.paths['/api/v1/audit-events'].get.parameters[?(@.name == 'objectType')].schema.enum[*]",
+                        Matchers.hasItems("APPROVAL_CASE", "DOCUMENT")))
+                .andExpect(jsonPath("$.components.schemas.DocumentRefDto.required", Matchers.hasItem("id")))
+                .andExpect(jsonPath("$.components.schemas.CasePartDto.required", Matchers.hasItem("id")))
+                .andExpect(jsonPath("$.components.schemas.DecisionRequest.properties.result.enum")
+                        .exists())
+                .andExpect(jsonPath("$.components.schemas.ElementFindingRequest.properties.result.enum")
+                        .exists())
+                .andExpect(jsonPath("$.components.schemas.RequestedElementInput.properties.requirement.enum")
+                        .exists())
+                .andExpect(jsonPath(
+                        "$.components.schemas.ElementEvidenceRequest.properties.selfAssessment.type",
+                        Matchers.hasItem("null")))
                 .andExpect(jsonPath(
                         "$.components.schemas.ImportPreviewResponse.properties.suggestedMapping.additionalProperties.type",
                         Matchers.hasItem("null")));

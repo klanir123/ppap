@@ -1,5 +1,11 @@
 import {
   Ban,
+  BadgeCheck,
+  CircleSlash,
+  ShieldCheck,
+  ShieldOff,
+  ShieldQuestion,
+  ShieldX,
   CircleAlert,
   CircleCheck,
   CircleDashed,
@@ -16,7 +22,15 @@ import {
   type LucideIcon,
 } from 'lucide-react'
 
-import type { ApprovalStatus, HealthStatus, RequirementLevel, ValidationStatus } from '@/lib/status'
+import type {
+  ApprovalStatus,
+  Assessment,
+  Finding,
+  HealthStatus,
+  RequirementLevel,
+  SignatureState,
+  ValidationStatus,
+} from '@/lib/status'
 
 /** Icon per status – status is never conveyed by colour alone. */
 export const STATUS_ICONS = {
@@ -41,6 +55,18 @@ export const STATUS_ICONS = {
     LucideIcon
   >,
   active: { true: CircleCheck, false: CircleMinus },
+  signature: {
+    VALID: ShieldCheck,
+    INVALID: ShieldX,
+    UNVERIFIED: ShieldQuestion,
+    NOT_SIGNED: ShieldOff,
+  } satisfies Record<SignatureState, LucideIcon>,
+  assessment: { OK: CircleCheck, NOK: CircleX, NA: CircleSlash } satisfies Record<Assessment, LucideIcon>,
+  finding: {
+    ACCEPTED: BadgeCheck,
+    NOT_ACCEPTED: CircleX,
+    ACCEPTED_WITH_CONDITION: ShieldAlert,
+  } satisfies Record<Finding, LucideIcon>,
 }
 
 export type StatusKind = keyof typeof STATUS_ICONS

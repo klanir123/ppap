@@ -3,24 +3,39 @@
   "greeting": "Hello, {{name}}",
   "description": "Overview of your approval processes and data exchange with partners.",
   "kpi": {
-    "openRequests": "Open requests",
     "inReview": "In review",
-    "approved": "Approved (30 days)",
     "overdue": "Overdue",
-    "noData": "No data yet"
+    "noData": "No data yet",
+    "open": "Open cases",
+    "approvalRate": "Approval rate",
+    "overdueHint": "Due date passed – please follow up",
+    "leadTime": "Avg. lead time {{days}} days",
+    "approved30_one": "{{count}} approval (30 days)",
+    "approved30_other": "{{count}} approvals (30 days)"
   },
   "recent": {
     "title": "Recent approval processes",
-    "description": "Recently updated processes of your company"
+    "description": "Recently updated processes of your company",
+    "all": "Show all"
   },
   "empty": {
-    "title": "No approval processes yet",
-    "description": "As soon as you request a PPF submission or receive a request from a customer, the processes will appear here.",
-    "cta": "Create process"
+    "title": "No approval cases yet",
+    "description": "As soon as you request a PPF submission or receive a request from a customer, the cases will appear here."
   },
   "systemCard": {
     "title": "System health",
     "description": "Connection to database, EDC, object storage and DTR",
     "link": "Open system status"
+  },
+  "cta": {
+    "request": "Request submission"
+  },
+  "partners": {
+    "title": "Status per partner",
+    "description": "Open and overdue cases per business partner",
+    "empty": "No cases with partners yet.",
+    "partner": "Partner",
+    "open": "Open",
+    "overdue": "Overdue"
   }
 }

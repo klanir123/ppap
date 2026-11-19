@@ -5,6 +5,7 @@ import com.msg.ppap.masterdata.domain.MasterdataType;
 import com.msg.ppap.masterdata.domain.SubmissionReason;
 import com.msg.ppap.masterdata.domain.SubmissionReasonValues;
 import com.msg.ppap.platform.domain.PpapException;
+import com.msg.ppap.platform.domain.ReferencedException;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -18,10 +19,12 @@ import org.springframework.transaction.annotation.Transactional;
 public class SubmissionReasonService extends MasterdataService<SubmissionReason, SubmissionReasonValues> {
 
     private final CatalogRepository catalog;
+    private final MasterdataUsages usages;
 
-    public SubmissionReasonService(CatalogRepository catalog, MasterdataEvents events) {
+    public SubmissionReasonService(CatalogRepository catalog, MasterdataUsages usages, MasterdataEvents events) {
         super(events);
         this.catalog = catalog;
+        this.usages = usages;
     }
 
     @Override
@@ -95,6 +98,15 @@ public class SubmissionReasonService extends MasterdataService<SubmissionReason,
 
     @Override
     protected boolean isReferenced(SubmissionReason aggregate) {
-        return false; // TODO(phase-3): referenced by approval cases
+        String code = aggregate.values().code().value();
+        return usages.any(usage -> usage.isReasonUsed(code));
+    }
+
+    @Override
+    protected void checkKeyChange(SubmissionReason existing, SubmissionReasonValues newValues) {
+        if (isReferenced(existing)) {
+            throw new ReferencedException(
+                    "Code of reason '" + existing.businessKey() + "' cannot change: used by approval cases");
+        }
     }
 }
