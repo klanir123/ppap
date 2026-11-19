@@ -116,6 +116,8 @@ x-app-env: &app-env
   PPAP_SIGNING_PROVIDER: vault
   PPAP_SIGNING_KEY_PATH: ppap-signing-key
   PPAP_VAULT_TOKEN: ${VAULT_ROOT_TOKEN:-root}
+  # EDC exchange (docs/api/exchange-api.md)
+  PPAP_EDC_POLICY_USAGE_PURPOSE: ${EDC_USAGE_PURPOSE:-cx.quality.base:1}
 
 x-dtr-service: &dtr-service
   image: tractusx/sldt-digital-twin-registry:${DTR_VERSION:-0.13.0}
@@ -281,6 +283,8 @@ services:
       PPAP_S3_SECRET_KEY: oem-local-secret
       PPAP_S3_BUCKET: oem-documents
       PPAP_VAULT_URL: http://oem-vault:8200
+      PPAP_EDC_CALLBACK_BASE_URL: http://oem-app:8080
+      PPAP_EDC_CALLBACK_SECRET: ${OEM_EDC_CALLBACK_SECRET:-oem-callback-local-secret}
     volumes:
       - ../seed/oem:/seed/participant:ro
       - ../seed/common:/seed/common:ro
@@ -291,7 +295,8 @@ services:
       keycloak: { condition: service_healthy }
       oem-edc-cp: { condition: service_healthy }
       oem-vault-seed: { condition: service_completed_successfully }
-    networks: [net-oem, net-shared]
+    # dataspace: outbound to partner data planes (public API), see docs/api/exchange-api.md §6
+    networks: [net-oem, net-shared, dataspace]
 
   # ------------------------------------------------------------------ Tier-1
   tier1-vault:
@@ -361,6 +366,8 @@ services:
       PPAP_S3_SECRET_KEY: tier1-local-secret
       PPAP_S3_BUCKET: tier1-documents
       PPAP_VAULT_URL: http://tier1-vault:8200
+      PPAP_EDC_CALLBACK_BASE_URL: http://tier1-app:8080
+      PPAP_EDC_CALLBACK_SECRET: ${TIER1_EDC_CALLBACK_SECRET:-tier1-callback-local-secret}
       PPAP_DTR_URL: http://tier1-dtr:4243/api/v3
     volumes:
       - ../seed/tier1:/seed/participant:ro
@@ -372,7 +379,8 @@ services:
       keycloak: { condition: service_healthy }
       tier1-edc-cp: { condition: service_healthy }
       tier1-vault-seed: { condition: service_completed_successfully }
-    networks: [net-tier1, net-shared]
+    # dataspace: outbound to partner data planes (public API), see docs/api/exchange-api.md §6
+    networks: [net-tier1, net-shared, dataspace]
   tier1-dtr:
     <<: *dtr-service
     environment:
@@ -459,6 +467,8 @@ services:
       PPAP_S3_SECRET_KEY: tier2-local-secret
       PPAP_S3_BUCKET: tier2-documents
       PPAP_VAULT_URL: http://tier2-vault:8200
+      PPAP_EDC_CALLBACK_BASE_URL: http://tier2-app:8080
+      PPAP_EDC_CALLBACK_SECRET: ${TIER2_EDC_CALLBACK_SECRET:-tier2-callback-local-secret}
       PPAP_DTR_URL: http://tier2-dtr:4243/api/v3
     volumes:
       - ../seed/tier2:/seed/participant:ro
@@ -470,7 +480,8 @@ services:
       keycloak: { condition: service_healthy }
       tier2-edc-cp: { condition: service_healthy }
       tier2-vault-seed: { condition: service_completed_successfully }
-    networks: [net-tier2, net-shared]
+    # dataspace: outbound to partner data planes (public API), see docs/api/exchange-api.md §6
+    networks: [net-tier2, net-shared, dataspace]
   tier2-dtr:
     profiles: [tier2]
     <<: *dtr-service
