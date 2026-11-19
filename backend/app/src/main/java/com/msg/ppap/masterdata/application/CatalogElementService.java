@@ -24,12 +24,17 @@ public class CatalogElementService extends MasterdataService<CatalogElement, Cat
 
     private final CatalogRepository catalog;
     private final ValueSchemaValidator schemaValidator;
+    private final MasterdataUsages usages;
 
     public CatalogElementService(
-            CatalogRepository catalog, ValueSchemaValidator schemaValidator, MasterdataEvents events) {
+            CatalogRepository catalog,
+            ValueSchemaValidator schemaValidator,
+            MasterdataUsages usages,
+            MasterdataEvents events) {
         super(events);
         this.catalog = catalog;
         this.schemaValidator = schemaValidator;
+        this.usages = usages;
     }
 
     @Override
@@ -119,16 +124,18 @@ public class CatalogElementService extends MasterdataService<CatalogElement, Cat
 
     @Override
     protected boolean isReferenced(CatalogElement aggregate) {
-        // TODO(phase-3): approval requests keep snapshots by value; a reference check is not needed there.
+        // Approval requests keep element snapshots by value but reference the code (exchanged with partners).
+        String code = aggregate.values().code().value();
         return catalog.findLevels(null).stream()
-                .anyMatch(level -> level.references(aggregate.values().code()));
+                        .anyMatch(level -> level.references(aggregate.values().code()))
+                || usages.any(usage -> usage.isElementUsed(code));
     }
 
     @Override
     protected void checkKeyChange(CatalogElement existing, CatalogElementValues newValues) {
         if (isReferenced(existing)) {
-            throw new ReferencedException(
-                    "Code of element '" + existing.businessKey() + "' cannot change: used by submission levels");
+            throw new ReferencedException("Code of element '" + existing.businessKey()
+                    + "' cannot change: used by submission levels or approval cases");
         }
     }
 }

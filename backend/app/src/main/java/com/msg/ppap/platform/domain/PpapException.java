@@ -1,5 +1,7 @@
 package com.msg.ppap.platform.domain;
 
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.Objects;
 
 /**
@@ -16,11 +18,14 @@ public class PpapException extends RuntimeException {
         PRECONDITION_FAILED,
         UNPROCESSABLE,
         TOO_LARGE,
-        UNSUPPORTED
+        UNSUPPORTED,
+        FORBIDDEN,
+        UNAUTHORIZED
     }
 
     private final String code;
     private final Kind kind;
+    private final Map<String, Object> properties = new LinkedHashMap<>();
 
     public PpapException(Kind kind, String code, String message) {
         super(message);
@@ -36,5 +41,18 @@ public class PpapException extends RuntimeException {
     /** Failure category. */
     public Kind kind() {
         return kind;
+    }
+
+    /** Additional machine-readable problem properties (e.g. {@code currentStatus}); JSON-serializable values. */
+    public Map<String, Object> properties() {
+        return Map.copyOf(properties);
+    }
+
+    /** Adds a problem property (ignored for {@code null} values). */
+    protected PpapException withProperty(String name, Object value) {
+        if (value != null) {
+            properties.put(name, value);
+        }
+        return this;
     }
 }

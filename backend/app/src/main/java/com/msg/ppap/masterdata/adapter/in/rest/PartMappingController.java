@@ -1,5 +1,6 @@
 package com.msg.ppap.masterdata.adapter.in.rest;
 
+import com.msg.ppap.masterdata.application.PartMappingSearchService;
 import com.msg.ppap.masterdata.application.PartMappingService;
 import com.msg.ppap.masterdata.application.PartMappingView;
 import com.msg.ppap.masterdata.domain.PartnerRole;
@@ -33,9 +34,25 @@ public class PartMappingController {
     private static final Sort DEFAULT_SORT = Sort.by("partnerPartNumber");
 
     private final PartMappingService mappings;
+    private final PartMappingSearchService search;
 
-    public PartMappingController(PartMappingService mappings) {
+    public PartMappingController(PartMappingService mappings, PartMappingSearchService search) {
         this.mappings = mappings;
+        this.search = search;
+    }
+
+    @GetMapping("/api/v1/part-mappings")
+    @Operation(
+            operationId = "searchPartMappings",
+            summary = "Search part mappings across all active relations (e.g. part → supplier for a request)")
+    public PartMappingSearchPage searchAll(
+            @RequestParam(required = false) String partnerRole,
+            @RequestParam(required = false) String q,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "25") int size,
+            @RequestParam(required = false) List<String> sort) {
+        var pageable = RestSupport.pageable(page, size, sort, SORTABLE, DEFAULT_SORT);
+        return PartMappingSearchPage.of(search.search(partnerRole, q, pageable).map(PartMappingSearchDto::from));
     }
 
     @GetMapping(PATH)

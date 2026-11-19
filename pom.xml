@@ -45,6 +45,13 @@
     <commons-csv.version>1.14.1</commons-csv.version>
     <poi.version>6.0.0</poi.version>
     <json-schema-validator.version>3.0.9</json-schema-validator.version>
+    <!-- RFC 8785 JSON canonicalization (Apache-2.0), semantics module -->
+    <java-json-canonicalization.version>1.1</java-json-canonicalization.version>
+    <!-- Content type detection by magic bytes (Apache-2.0), documents module -->
+    <tika.version>4.2.0</tika.version>
+    <!-- JWS (ES256) payload signatures, identity module. Same version as spring-security-oauth2-jose brings
+         (convergence); not managed by Spring Boot. -->
+    <nimbus-jose-jwt.version>10.9.1</nimbus-jose-jwt.version>
     <!-- convergence: POI 6.0.0 needs commons-io 2.22, commons-csv/compress bring 2.20 -->
     <commons-io.version>2.22.0</commons-io.version>
 
@@ -112,6 +119,21 @@
         <groupId>com.networknt</groupId>
         <artifactId>json-schema-validator</artifactId>
         <version>${json-schema-validator.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.github.erdtman</groupId>
+        <artifactId>java-json-canonicalization</artifactId>
+        <version>${java-json-canonicalization.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.nimbusds</groupId>
+        <artifactId>nimbus-jose-jwt</artifactId>
+        <version>${nimbus-jose-jwt.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.tika</groupId>
+        <artifactId>tika-core</artifactId>
+        <version>${tika.version}</version>
       </dependency>
     </dependencies>
   </dependencyManagement>

@@ -104,7 +104,7 @@ class ApplicationIntegrationTest extends AbstractIntegrationTest {
                         .value(Matchers.contains("database", "edc", "objectStorage", "dtr")))
                 .andExpect(jsonPath("$.components[0].status").value("UP"))
                 .andExpect(jsonPath("$.components[1].status").value("DOWN"))
-                .andExpect(jsonPath("$.components[2].status").value("DOWN"))
+                .andExpect(jsonPath("$.components[2].status").value("UP"))
                 .andExpect(jsonPath("$.components[3].status").value("UNKNOWN"));
     }
 

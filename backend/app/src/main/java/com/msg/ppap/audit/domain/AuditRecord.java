@@ -1,5 +1,6 @@
 package com.msg.ppap.audit.domain;
 
+import com.msg.ppap.semantics.api.CanonicalJson;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;

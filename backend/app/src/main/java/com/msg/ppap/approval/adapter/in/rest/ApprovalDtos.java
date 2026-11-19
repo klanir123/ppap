@@ -1,0 +1,297 @@
+package com.msg.ppap.approval.adapter.in.rest;
+
+import com.msg.ppap.approval.application.CaseView;
+import com.msg.ppap.approval.application.ExcelPreview;
+import com.msg.ppap.approval.application.SubmissionView;
+import com.msg.ppap.approval.application.SummaryView;
+import com.msg.ppap.approval.application.port.out.CaseStatistics;
+import com.msg.ppap.approval.application.port.out.CaseSummary;
+import com.msg.ppap.approval.domain.ApprovalCase;
+import com.msg.ppap.approval.domain.CatalogRef;
+import com.msg.ppap.approval.domain.Completeness;
+import com.msg.ppap.approval.domain.Decision;
+import com.msg.ppap.approval.domain.DocumentRef;
+import com.msg.ppap.approval.domain.ElementFinding;
+import com.msg.ppap.approval.domain.FormTemplate;
+import com.msg.ppap.approval.domain.Seal;
+import com.msg.ppap.approval.domain.Submission;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
+
+/** Mapping of application views to REST DTOs. */
+final class ApprovalDtos {
+
+    private ApprovalDtos() {}
+
+    static ApprovalCaseDto summary(SummaryView view) {
+        CaseSummary s = view.summary();
+        return new ApprovalCaseDto(
+                s.id(),
+                s.caseNumber(),
+                s.exchangeId(),
+                s.ownRole(),
+                s.source(),
+                s.status(),
+                new CasePartnerDto(s.partner().bpnl(), s.partner().name()),
+                s.relationId(),
+                new CasePartDto(
+                        s.part().id(),
+                        s.part().partNumber(),
+                        s.part().nameDe(),
+                        s.part().nameEn()),
+                s.partnerPartNumber(),
+                s.customerPartNumber(),
+                s.supplierPartNumber(),
+                ref(s.reason()),
+                ref(s.level()),
+                s.dueDate(),
+                s.overdue(view.today()),
+                s.remarks(),
+                null,
+                s.currentRevision(),
+                s.requestedAt(),
+                s.submittedAt(),
+                s.decidedAt(),
+                s.lastDecision(),
+                view.allowedActions(),
+                s.version(),
+                s.createdAt(),
+                s.updatedAt());
+    }
+
+    static ApprovalCaseDetailDto detail(CaseView view) {
+        ApprovalCase c = view.approvalCase();
+        var h = c.header();
+        var m = c.metadata();
+        var lastSubmitted = c.submissions().stream()
+                .map(Submission::submittedAt)
+                .filter(java.util.Objects::nonNull)
+                .reduce((a, b) -> b)
+                .orElse(null);
+        var last = c.lastDecision();
+        return new ApprovalCaseDetailDto(
+                c.id(),
+                c.caseNumber(),
+                c.exchangeId(),
+                c.ownRole(),
+                c.source(),
+                c.status(),
+                new CasePartnerDto(h.partner().bpnl(), h.partner().name()),
+                h.relationId(),
+                new CasePartDto(
+                        h.part().id(),
+                        h.part().partNumber(),
+                        h.part().nameDe(),
+                        h.part().nameEn()),
+                h.partnerPartNumber(),
+                c.customerPartNumber(),
+                c.supplierPartNumber(),
+                ref(h.reason()),
+                ref(h.level()),
+                h.dueDate(),
+                c.overdue(view.today()),
+                h.remarks(),
+                h.externalReference(),
+                c.currentSubmission().map(Submission::revision).orElse(null),
+                c.request().requestedAt(),
+                lastSubmitted,
+                last.map(Decision::decidedAt).orElse(null),
+                view.allowedActions(),
+                m == null ? 0 : m.version(),
+                m == null ? null : m.createdAt(),
+                m == null ? null : m.updatedAt(),
+                new CaseRequestDto(
+                        c.request().requestedAt(),
+                        c.request().requestedBy(),
+                        c.request().elements().stream()
+                                .map(e -> new RequestedElementDto(
+                                        e.code(),
+                                        e.requirement(),
+                                        e.note(),
+                                        new ElementSnapshotDto(
+                                                e.snapshot().nameDe(),
+                                                e.snapshot().nameEn(),
+                                                e.snapshot().evidenceType(),
+                                                e.snapshot().valueSchema())))
+                                .toList(),
+                        documents(c.request().attachments())),
+                c.submissions().stream().map(ApprovalDtos::submissionSummary).toList(),
+                last.map(ApprovalDtos::decision).orElse(null),
+                findings(c.reviewFindings()),
+                c.timeline().stream()
+                        .map(t -> new TimelineEntryDto(t.at(), t.actor(), t.from(), t.to(), t.action(), t.comment()))
+                        .toList(),
+                view.draftCompleteness() == null ? null : completeness(view.draftCompleteness()));
+    }
+
+    static SubmissionSummaryDto submissionSummary(Submission s) {
+        Seal seal = s.seal();
+        return new SubmissionSummaryDto(
+                s.revision(),
+                s.status(),
+                s.submittedAt(),
+                s.submittedBy(),
+                seal == null ? null : seal.payloadHash(),
+                seal == null ? null : signature(seal),
+                s.decision().map(Decision::result).orElse(null),
+                s.basedOnRevision());
+    }
+
+    static SubmissionDto submission(SubmissionView view) {
+        Submission s = view.submission();
+        Completeness completeness = view.completeness();
+        Seal seal = s.seal();
+        Map<String, ElementFinding> findings = new LinkedHashMap<>();
+        s.decision().ifPresent(d -> d.elementFindings().forEach(f -> findings.put(f.code(), f)));
+        if (s.decision().isEmpty()
+                && view.approvalCase()
+                        .currentSubmission()
+                        .filter(cur -> cur.revision() == s.revision())
+                        .isPresent()) {
+            view.approvalCase().reviewFindings().forEach(f -> findings.put(f.code(), f));
+        }
+        return new SubmissionDto(
+                s.revision(),
+                s.status(),
+                s.submittedAt(),
+                s.submittedBy(),
+                s.elements().stream()
+                        .map(e -> {
+                            var issues = completeness.issues(e.code()).stream()
+                                    .map(i -> new IssueDto(i.code(), i.message(), i.pointer()))
+                                    .toList();
+                            ElementFinding finding = findings.get(e.code());
+                            return new ElementEvidenceDto(
+                                    e.code(),
+                                    e.requirement(),
+                                    e.selfAssessment(),
+                                    e.values(),
+                                    e.comment(),
+                                    documents(e.documents()),
+                                    issues.isEmpty(),
+                                    issues,
+                                    finding == null
+                                            ? null
+                                            : new FindingDto(finding.code(), finding.result(), finding.comment()));
+                        })
+                        .toList(),
+                completeness(completeness),
+                seal == null ? null : seal.payloadHash(),
+                seal == null ? null : signature(seal),
+                s.decision().map(ApprovalDtos::decision).orElse(null),
+                s.basedOnRevision());
+    }
+
+    static CompletenessDto completeness(Completeness c) {
+        return new CompletenessDto(
+                c.complete(),
+                c.requiredTotal(),
+                c.requiredDone(),
+                c.issues().stream()
+                        .map(i -> new CompletenessIssueDto(i.elementCode(), i.code(), i.message(), i.pointer()))
+                        .toList());
+    }
+
+    static DecisionDto decision(Decision d) {
+        return new DecisionDto(
+                d.revision(),
+                d.result(),
+                d.conditions().stream().map(ConditionDto::new).toList(),
+                d.conditionDueDate(),
+                d.comment(),
+                findings(d.elementFindings()),
+                d.decidedAt(),
+                d.decidedBy(),
+                d.seal() == null ? null : d.seal().payloadHash(),
+                d.seal() == null ? null : signature(d.seal()));
+    }
+
+    static List<FindingDto> findings(List<ElementFinding> findings) {
+        return findings.stream()
+                .map(f -> new FindingDto(f.code(), f.result(), f.comment()))
+                .toList();
+    }
+
+    static SignatureDto signature(Seal seal) {
+        var s = seal.signature();
+        return new SignatureDto(s.alg(), s.kid(), s.jws(), s.status());
+    }
+
+    static List<DocumentRefDto> documents(List<DocumentRef> refs) {
+        return refs.stream()
+                .map(d -> new DocumentRefDto(
+                        d.documentId(),
+                        d.fileName(),
+                        d.mediaType(),
+                        d.size(),
+                        d.sha256(),
+                        d.uploadedAt(),
+                        d.uploadedBy()))
+                .toList();
+    }
+
+    static CatalogRefDto ref(CatalogRef ref) {
+        return new CatalogRefDto(ref.code(), ref.nameDe(), ref.nameEn());
+    }
+
+    static CaseStatsDto stats(CaseStatistics s) {
+        return new CaseStatsDto(
+                s.open(),
+                s.overdue(),
+                s.inReview(),
+                s.approvedLast30Days(),
+                s.averageLeadTimeDays(),
+                s.approvalRate(),
+                new TreeMap<>(s.byStatus()),
+                s.byPartner().stream()
+                        .map(p -> new PartnerStatsDto(p.bpnl(), p.name(), p.open(), p.overdue()))
+                        .toList());
+    }
+
+    static FormTemplateDto template(FormTemplate t) {
+        return new FormTemplateDto(
+                t.code(),
+                t.nameDe(),
+                t.nameEn(),
+                new FormTemplateMarkerDto(
+                        t.marker().sheet(), t.marker().cell(), t.marker().value()),
+                t.header().stream()
+                        .map(h -> new FormTemplateHeaderFieldDto(h.field(), h.sheet(), h.cell()))
+                        .toList(),
+                new FormTemplateElementTableDto(
+                        t.elementTable().sheet(),
+                        t.elementTable().firstRow(),
+                        t.elementTable().lastRow(),
+                        new TreeMap<>(t.elementTable().columns())),
+                t.selfAssessmentValues(),
+                t.active());
+    }
+
+    static FormImportPreviewDto preview(ExcelPreview p) {
+        Map<String, FormHeaderCellDto> header = new LinkedHashMap<>();
+        p.header().forEach((field, cell) -> header.put(field, new FormHeaderCellDto(cell.value(), cell.cell())));
+        return new FormImportPreviewDto(
+                p.templateCode(),
+                header,
+                p.elements().stream()
+                        .map(e -> new FormElementDto(
+                                e.code(),
+                                e.selfAssessment(),
+                                e.comment(),
+                                e.values(),
+                                e.cell(),
+                                e.status(),
+                                messages(e.messages())))
+                        .toList(),
+                p.unknownCodes(),
+                messages(p.warnings()));
+    }
+
+    private static List<FormMessageDto> messages(List<ExcelPreview.Message> messages) {
+        return messages.stream()
+                .map(m -> new FormMessageDto(m.code(), m.message()))
+                .toList();
+    }
+}

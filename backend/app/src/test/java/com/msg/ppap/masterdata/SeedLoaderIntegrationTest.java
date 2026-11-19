@@ -32,17 +32,30 @@ class SeedLoaderIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     void loadsSeedThroughImportServicesIdempotently() throws Exception {
-        seedLoader.load(FIXTURE.resolve("common"), FIXTURE.resolve("tier1"));
-        Map<String, Object> second = seedLoader.load(FIXTURE.resolve("common"), FIXTURE.resolve("tier1"));
+        Map<String, Object> first =
+                seedLoader.load(FIXTURE.resolve("common"), FIXTURE.resolve("tier1"), FIXTURE.resolve("documents"));
+        assertThat(first.get("approval-cases.json"))
+                .asInstanceOf(org.assertj.core.api.InstanceOfAssertFactories.MAP)
+                .containsEntry("failed", 0);
+        Map<String, Object> second =
+                seedLoader.load(FIXTURE.resolve("common"), FIXTURE.resolve("tier1"), FIXTURE.resolve("documents"));
 
-        assertThat(second).containsKeys("catalog.json", "partners.csv", "part-mappings.csv");
+        assertThat(second)
+                .containsKeys(
+                        "catalog.json",
+                        "partners.csv",
+                        "part-mappings.csv",
+                        "form-templates.json",
+                        "approval-cases.json");
         assertThat(second.values())
                 .allSatisfy(result -> assertThat(result)
                         .asInstanceOf(org.assertj.core.api.InstanceOfAssertFactories.MAP)
                         .containsEntry("created", 0)
                         .containsEntry("updated", 0)
                         .containsEntry("failed", 0));
-        assertThat(seedLoader.load(null, FIXTURE.resolve("does-not-exist"))).containsEntry("parts.csv", "missing");
+        assertThat(seedLoader.load(null, FIXTURE.resolve("does-not-exist")))
+                .containsEntry("parts.csv", "missing")
+                .containsEntry("approval-cases.json", "missing");
 
         mvc.perform(get("/api/v1/part-mappings/resolve")
                         .with(TestJwts.engineer())

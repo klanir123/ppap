@@ -1,0 +1,98 @@
+{
+  "_comment": "Test fixture (not generated): one active supplier case, one legacy customer case, one draft.",
+  "cases": [
+    {
+      "exchangeId": "11111111-2222-5333-8444-555555555501",
+      "caseNumber": "PPF-2026-00901",
+      "ownRole": "SUPPLIER",
+      "source": "EXCHANGE",
+      "status": "IN_PROGRESS",
+      "partnerBpnl": "BPNLFIXTURE00001",
+      "partNumber": "FX-4711",
+      "partnerPartNumber": "OEM-A-4711",
+      "reasonCode": "FX-NEW",
+      "levelCode": "FX-L2",
+      "dueDate": "+10d",
+      "remarks": "Fixture",
+      "requestedAt": "-3d",
+      "requestedBy": "oem.quality",
+      "elements": [
+        { "code": "FX-01", "requirement": "REQUIRED", "note": "" },
+        { "code": "FX-02", "requirement": "ON_REQUEST", "note": "Cpk" }
+      ],
+      "timeline": [
+        { "at": "-3d", "actor": "oem.quality", "from": "DRAFT", "to": "REQUESTED", "action": "SEND", "comment": "" },
+        { "at": "-2d", "actor": "tier1.quality", "from": "REQUESTED", "to": "IN_PROGRESS", "action": "START_WORK", "comment": "" }
+      ],
+      "submissions": [
+        {
+          "revision": 1,
+          "status": "DRAFT",
+          "elements": [
+            { "code": "FX-01", "selfAssessment": "OK", "comment": "", "values": null, "documents": ["deckblatt.pdf"] }
+          ]
+        }
+      ]
+    },
+    {
+      "exchangeId": "11111111-2222-5333-8444-555555555502",
+      "caseNumber": "PPF-2025-00042",
+      "ownRole": "CUSTOMER",
+      "source": "LEGACY_IMPORT",
+      "status": "CONDITIONALLY_APPROVED",
+      "partnerBpnl": "BPNLFIXTURE00002",
+      "partNumber": "FX-4712",
+      "partnerPartNumber": "T2-4712",
+      "reasonCode": "FX-NEW",
+      "levelCode": "FX-L2",
+      "dueDate": "-100d",
+      "requestedAt": "-150d",
+      "requestedBy": "tier1.quality",
+      "elements": [
+        { "code": "FX-01", "requirement": "REQUIRED", "note": "" },
+        { "code": "FX-02", "requirement": "ON_REQUEST", "note": "" }
+      ],
+      "timeline": [
+        { "at": "-150d", "actor": "tier1.quality", "from": "DRAFT", "to": "REQUESTED", "action": "SEND", "comment": "" },
+        { "at": "-120d", "actor": "tier2.quality", "from": "REQUESTED", "to": "SUBMITTED", "action": "SUBMIT", "comment": "" },
+        { "at": "-110d", "actor": "tier1.quality", "from": "SUBMITTED", "to": "IN_REVIEW", "action": "START_REVIEW", "comment": "" },
+        { "at": "-100d", "actor": "tier1.quality", "from": "IN_REVIEW", "to": "CONDITIONALLY_APPROVED", "action": "DECIDE", "comment": "" }
+      ],
+      "submissions": [
+        {
+          "revision": 1,
+          "status": "SUBMITTED",
+          "submittedAt": "-120d",
+          "submittedBy": "tier2.quality",
+          "elements": [
+            { "code": "FX-01", "selfAssessment": "OK", "comment": "", "values": null, "documents": ["bericht.pdf", "deckblatt.pdf"] },
+            { "code": "FX-02", "selfAssessment": "NOK", "comment": "Cpk 1.2", "values": [{ "cpk": 1.2 }], "documents": ["bericht.pdf"] }
+          ],
+          "decision": {
+            "result": "CONDITIONALLY_APPROVED",
+            "conditions": [{ "text": "Cpk >= 1.33 nachweisen" }],
+            "conditionDueDate": "+30d",
+            "comment": "",
+            "elementFindings": [{ "code": "FX-02", "result": "ACCEPTED_WITH_CONDITION", "comment": "Cpk" }],
+            "decidedAt": "-100d",
+            "decidedBy": "tier1.quality"
+          }
+        }
+      ]
+    },
+    {
+      "exchangeId": "11111111-2222-5333-8444-555555555503",
+      "ownRole": "CUSTOMER",
+      "source": "LOCAL",
+      "status": "DRAFT",
+      "partnerBpnl": "BPNLFIXTURE00002",
+      "partNumber": "FX-4712",
+      "partnerPartNumber": "T2-4712",
+      "reasonCode": "FX-NEW",
+      "levelCode": "FX-L2",
+      "dueDate": "2026-12-24",
+      "elements": [{ "code": "FX-01", "requirement": "REQUIRED", "note": "" }],
+      "timeline": [{ "at": "-1d", "actor": "tier1.quality", "from": null, "to": "DRAFT", "action": "CREATE", "comment": "" }]
+    }
+  ]
+}

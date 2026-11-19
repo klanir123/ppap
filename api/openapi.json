@@ -12,6 +12,2586 @@
     "bearerAuth" : [ ]
   } ],
   "paths" : {
+    "/api/v1/approval-cases" : {
+      "get" : {
+        "operationId" : "listApprovalCases",
+        "parameters" : [ {
+          "in" : "query",
+          "name" : "q",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "in" : "query",
+          "name" : "status",
+          "required" : false,
+          "schema" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string"
+            }
+          }
+        }, {
+          "in" : "query",
+          "name" : "ownRole",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "enum" : [ "CUSTOMER", "SUPPLIER" ]
+          }
+        }, {
+          "in" : "query",
+          "name" : "partnerBpnl",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "in" : "query",
+          "name" : "overdue",
+          "required" : false,
+          "schema" : {
+            "type" : "boolean"
+          }
+        }, {
+          "in" : "query",
+          "name" : "page",
+          "required" : false,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32",
+            "default" : 0
+          }
+        }, {
+          "in" : "query",
+          "name" : "size",
+          "required" : false,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32",
+            "default" : 25
+          }
+        }, {
+          "in" : "query",
+          "name" : "sort",
+          "required" : false,
+          "schema" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string"
+            }
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApprovalCasePage"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "400" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Invalid request (code VALIDATION_FAILED with errors, MALFORMED_REQUEST, …)"
+          },
+          "401" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Not authenticated"
+          }
+        },
+        "summary" : "Search approval cases",
+        "tags" : [ "approval-cases" ]
+      },
+      "post" : {
+        "operationId" : "createApprovalCase",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/CreateApprovalCaseRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "201" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApprovalCaseDetailDto"
+                }
+              }
+            },
+            "description" : "Created",
+            "headers" : {
+              "Location" : {
+                "description" : "URL of the created resource",
+                "schema" : {
+                  "type" : "string"
+                }
+              }
+            }
+          },
+          "400" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Invalid request (code VALIDATION_FAILED with errors, MALFORMED_REQUEST, …)"
+          },
+          "401" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Not authenticated"
+          },
+          "403" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Missing role (code FORBIDDEN)"
+          },
+          "409" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Conflict (code DUPLICATE_KEY or REFERENCED)"
+          }
+        },
+        "summary" : "Create a draft request (customer)",
+        "tags" : [ "approval-cases" ]
+      }
+    },
+    "/api/v1/approval-cases/manual" : {
+      "post" : {
+        "operationId" : "captureManualApprovalCase",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/ManualApprovalCaseRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "201" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApprovalCaseDetailDto"
+                }
+              }
+            },
+            "description" : "Created",
+            "headers" : {
+              "Location" : {
+                "description" : "URL of the created resource",
+                "schema" : {
+                  "type" : "string"
+                }
+              }
+            }
+          },
+          "400" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Invalid request (code VALIDATION_FAILED with errors, MALFORMED_REQUEST, …)"
+          },
+          "401" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Not authenticated"
+          },
+          "403" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Missing role (code FORBIDDEN)"
+          },
+          "409" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Conflict (code DUPLICATE_KEY or REFERENCED)"
+          }
+        },
+        "summary" : "Capture a request received outside the dataspace (supplier, status REQUESTED)",
+        "tags" : [ "approval-cases" ]
+      }
+    },
+    "/api/v1/approval-cases/stats" : {
+      "get" : {
+        "operationId" : "getApprovalCaseStats",
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CaseStatsDto"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "401" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Not authenticated"
+          }
+        },
+        "summary" : "Dashboard figures of the approval cases",
+        "tags" : [ "approval-cases" ]
+      }
+    },
+    "/api/v1/approval-cases/{id}" : {
+      "get" : {
+        "operationId" : "getApprovalCase",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApprovalCaseDetailDto"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "400" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Invalid request (code VALIDATION_FAILED with errors, MALFORMED_REQUEST, …)"
+          },
+          "401" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Not authenticated"
+          },
+          "404" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Not found (code NOT_FOUND)"
+          }
+        },
+        "summary" : "Get an approval case with request, revisions, last decision and timeline",
+        "tags" : [ "approval-cases" ]
+      },
+      "put" : {
+        "operationId" : "updateApprovalCase",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "header",
+          "name" : "If-Match",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/UpdateApprovalCaseRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApprovalCaseDetailDto"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "400" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Invalid request (code VALIDATION_FAILED with errors, MALFORMED_REQUEST, …)"
+          },
+          "401" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Not authenticated"
+          },
+          "403" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Missing role (code FORBIDDEN)"
+          },
+          "404" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Not found (code NOT_FOUND)"
+          },
+          "409" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Conflict (code DUPLICATE_KEY or REFERENCED)"
+          },
+          "412" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "If-Match does not match the current version (code VERSION_CONFLICT)"
+          },
+          "422" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Business rule violated (e.g. INCOMPLETE_SUBMISSION, REJECTION_REASON_REQUIRED, PARTNER_NOT_EXCHANGE_READY)"
+          }
+        },
+        "summary" : "Change the header of a draft (If-Match)",
+        "tags" : [ "approval-cases" ]
+      }
+    },
+    "/api/v1/approval-cases/{id}/cancel" : {
+      "post" : {
+        "operationId" : "cancelApprovalCase",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "header",
+          "name" : "If-Match",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/CancelCaseRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApprovalCaseDetailDto"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "400" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Invalid request (code VALIDATION_FAILED with errors, MALFORMED_REQUEST, …)"
+          },
+          "401" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Not authenticated"
+          },
+          "403" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Missing role (code FORBIDDEN)"
+          },
+          "404" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Not found (code NOT_FOUND)"
+          },
+          "409" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Conflict (code DUPLICATE_KEY or REFERENCED)"
+          },
+          "412" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "If-Match does not match the current version (code VERSION_CONFLICT)"
+          },
+          "422" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Business rule violated (e.g. INCOMPLETE_SUBMISSION, REJECTION_REASON_REQUIRED, PARTNER_NOT_EXCHANGE_READY)"
+          }
+        },
+        "summary" : "Cancel a draft or request (customer; supplier for manually captured requests)",
+        "tags" : [ "approval-cases" ]
+      }
+    },
+    "/api/v1/approval-cases/{id}/decision" : {
+      "post" : {
+        "operationId" : "decideApprovalCase",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "header",
+          "name" : "If-Match",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/DecisionRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/DecisionDto"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "400" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Invalid request (code VALIDATION_FAILED with errors, MALFORMED_REQUEST, …)"
+          },
+          "401" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Not authenticated"
+          },
+          "403" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Missing role (code FORBIDDEN)"
+          },
+          "404" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Not found (code NOT_FOUND)"
+          },
+          "409" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Conflict (code DUPLICATE_KEY or REFERENCED)"
+          },
+          "412" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "If-Match does not match the current version (code VERSION_CONFLICT)"
+          },
+          "422" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Business rule violated (e.g. INCOMPLETE_SUBMISSION, REJECTION_REASON_REQUIRED, PARTNER_NOT_EXCHANGE_READY)"
+          }
+        },
+        "summary" : "Decide (IN_REVIEW → APPROVED | CONDITIONALLY_APPROVED | REJECTED); signed, immutable; 401 RECENT_AUTH_REQUIRED if a fresh login is required",
+        "tags" : [ "approval-cases" ]
+      }
+    },
+    "/api/v1/approval-cases/{id}/request/attachments" : {
+      "post" : {
+        "operationId" : "addRequestAttachment",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "header",
+          "name" : "If-Match",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/DocumentReferenceRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApprovalCaseDetailDto"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "400" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Invalid request (code VALIDATION_FAILED with errors, MALFORMED_REQUEST, …)"
+          },
+          "401" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Not authenticated"
+          },
+          "403" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Missing role (code FORBIDDEN)"
+          },
+          "404" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Not found (code NOT_FOUND)"
+          },
+          "409" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Conflict (code DUPLICATE_KEY or REFERENCED)"
+          },
+          "412" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "If-Match does not match the current version (code VERSION_CONFLICT)"
+          },
+          "422" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Business rule violated (e.g. INCOMPLETE_SUBMISSION, REJECTION_REASON_REQUIRED, PARTNER_NOT_EXCHANGE_READY)"
+          }
+        },
+        "summary" : "Attach an uploaded document to a draft request",
+        "tags" : [ "approval-cases" ]
+      }
+    },
+    "/api/v1/approval-cases/{id}/request/attachments/{documentId}" : {
+      "delete" : {
+        "operationId" : "removeRequestAttachment",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "documentId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "header",
+          "name" : "If-Match",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "204" : {
+            "description" : "Deleted, or deactivated if referenced"
+          },
+          "400" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Invalid request (code VALIDATION_FAILED with errors, MALFORMED_REQUEST, …)"
+          },
+          "401" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Not authenticated"
+          },
+          "403" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Missing role (code FORBIDDEN)"
+          },
+          "404" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Not found (code NOT_FOUND)"
+          },
+          "412" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "If-Match does not match the current version (code VERSION_CONFLICT)"
+          }
+        },
+        "summary" : "Remove an attachment from a draft request",
+        "tags" : [ "approval-cases" ]
+      }
+    },
+    "/api/v1/approval-cases/{id}/request/elements" : {
+      "put" : {
+        "operationId" : "replaceRequestElements",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "header",
+          "name" : "If-Match",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "type" : "array",
+                "items" : {
+                  "$ref" : "#/components/schemas/RequestedElementInput"
+                }
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApprovalCaseDetailDto"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "400" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Invalid request (code VALIDATION_FAILED with errors, MALFORMED_REQUEST, …)"
+          },
+          "401" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Not authenticated"
+          },
+          "403" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Missing role (code FORBIDDEN)"
+          },
+          "404" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Not found (code NOT_FOUND)"
+          },
+          "409" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Conflict (code DUPLICATE_KEY or REFERENCED)"
+          },
+          "412" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "If-Match does not match the current version (code VERSION_CONFLICT)"
+          },
+          "422" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Business rule violated (e.g. INCOMPLETE_SUBMISSION, REJECTION_REASON_REQUIRED, PARTNER_NOT_EXCHANGE_READY)"
+          }
+        },
+        "summary" : "Replace the requested elements of a draft (If-Match)",
+        "tags" : [ "approval-cases" ]
+      }
+    },
+    "/api/v1/approval-cases/{id}/review/elements/{code}" : {
+      "put" : {
+        "operationId" : "recordElementFinding",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "code",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "in" : "header",
+          "name" : "If-Match",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/ElementFindingRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApprovalCaseDetailDto"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "400" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Invalid request (code VALIDATION_FAILED with errors, MALFORMED_REQUEST, …)"
+          },
+          "401" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Not authenticated"
+          },
+          "403" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Missing role (code FORBIDDEN)"
+          },
+          "404" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Not found (code NOT_FOUND)"
+          },
+          "409" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Conflict (code DUPLICATE_KEY or REFERENCED)"
+          },
+          "412" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "If-Match does not match the current version (code VERSION_CONFLICT)"
+          },
+          "422" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Business rule violated (e.g. INCOMPLETE_SUBMISSION, REJECTION_REASON_REQUIRED, PARTNER_NOT_EXCHANGE_READY)"
+          }
+        },
+        "summary" : "Record the review result of an element (IN_REVIEW, intermediate, not signed)",
+        "tags" : [ "approval-cases" ]
+      }
+    },
+    "/api/v1/approval-cases/{id}/send" : {
+      "post" : {
+        "operationId" : "sendApprovalCase",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "header",
+          "name" : "If-Match",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApprovalCaseDetailDto"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "400" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Invalid request (code VALIDATION_FAILED with errors, MALFORMED_REQUEST, …)"
+          },
+          "401" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Not authenticated"
+          },
+          "403" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Missing role (code FORBIDDEN)"
+          },
+          "404" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Not found (code NOT_FOUND)"
+          },
+          "412" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "If-Match does not match the current version (code VERSION_CONFLICT)"
+          },
+          "422" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Business rule violated (e.g. INCOMPLETE_SUBMISSION, REJECTION_REASON_REQUIRED, PARTNER_NOT_EXCHANGE_READY)"
+          }
+        },
+        "summary" : "Send the request (DRAFT → REQUESTED)",
+        "tags" : [ "approval-cases" ]
+      }
+    },
+    "/api/v1/approval-cases/{id}/start-review" : {
+      "post" : {
+        "operationId" : "startReview",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "header",
+          "name" : "If-Match",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApprovalCaseDetailDto"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "400" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Invalid request (code VALIDATION_FAILED with errors, MALFORMED_REQUEST, …)"
+          },
+          "401" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Not authenticated"
+          },
+          "403" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Missing role (code FORBIDDEN)"
+          },
+          "404" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Not found (code NOT_FOUND)"
+          },
+          "412" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "If-Match does not match the current version (code VERSION_CONFLICT)"
+          },
+          "422" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Business rule violated (e.g. INCOMPLETE_SUBMISSION, REJECTION_REASON_REQUIRED, PARTNER_NOT_EXCHANGE_READY)"
+          }
+        },
+        "summary" : "Start the review (SUBMITTED → IN_REVIEW) after verifying hash and signature",
+        "tags" : [ "approval-cases" ]
+      }
+    },
+    "/api/v1/approval-cases/{id}/start-work" : {
+      "post" : {
+        "operationId" : "startWork",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "header",
+          "name" : "If-Match",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApprovalCaseDetailDto"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "400" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Invalid request (code VALIDATION_FAILED with errors, MALFORMED_REQUEST, …)"
+          },
+          "401" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Not authenticated"
+          },
+          "403" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Missing role (code FORBIDDEN)"
+          },
+          "404" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Not found (code NOT_FOUND)"
+          },
+          "412" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "If-Match does not match the current version (code VERSION_CONFLICT)"
+          },
+          "422" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Business rule violated (e.g. INCOMPLETE_SUBMISSION, REJECTION_REASON_REQUIRED, PARTNER_NOT_EXCHANGE_READY)"
+          }
+        },
+        "summary" : "Start working on a request (REQUESTED → IN_PROGRESS, creates draft revision)",
+        "tags" : [ "approval-cases" ]
+      }
+    },
+    "/api/v1/approval-cases/{id}/submissions" : {
+      "get" : {
+        "operationId" : "listSubmissions",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/SubmissionSummaryDto"
+                  }
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "400" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Invalid request (code VALIDATION_FAILED with errors, MALFORMED_REQUEST, …)"
+          },
+          "401" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Not authenticated"
+          },
+          "404" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Not found (code NOT_FOUND)"
+          }
+        },
+        "summary" : "All revisions of a case (short form)",
+        "tags" : [ "submissions" ]
+      },
+      "post" : {
+        "operationId" : "createRevision",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "header",
+          "name" : "If-Match",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "201" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/SubmissionDto"
+                }
+              }
+            },
+            "description" : "Created",
+            "headers" : {
+              "Location" : {
+                "description" : "URL of the created resource",
+                "schema" : {
+                  "type" : "string"
+                }
+              }
+            }
+          },
+          "400" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Invalid request (code VALIDATION_FAILED with errors, MALFORMED_REQUEST, …)"
+          },
+          "401" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Not authenticated"
+          },
+          "403" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Missing role (code FORBIDDEN)"
+          },
+          "404" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Not found (code NOT_FOUND)"
+          },
+          "412" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "If-Match does not match the current version (code VERSION_CONFLICT)"
+          },
+          "422" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Business rule violated (e.g. INCOMPLETE_SUBMISSION, REJECTION_REASON_REQUIRED, PARTNER_NOT_EXCHANGE_READY)"
+          }
+        },
+        "summary" : "New draft revision after rejection or conditional approval (prefilled from the last revision)",
+        "tags" : [ "submissions" ]
+      }
+    },
+    "/api/v1/approval-cases/{id}/submissions/draft" : {
+      "get" : {
+        "operationId" : "getDraftSubmission",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/SubmissionDto"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "400" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Invalid request (code VALIDATION_FAILED with errors, MALFORMED_REQUEST, …)"
+          },
+          "401" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Not authenticated"
+          },
+          "404" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Not found (code NOT_FOUND)"
+          }
+        },
+        "summary" : "The draft revision with completeness",
+        "tags" : [ "submissions" ]
+      }
+    },
+    "/api/v1/approval-cases/{id}/submissions/draft/elements/{code}" : {
+      "put" : {
+        "operationId" : "updateDraftElement",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "code",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "in" : "header",
+          "name" : "If-Match",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/ElementEvidenceRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/SubmissionDto"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "400" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Invalid request (code VALIDATION_FAILED with errors, MALFORMED_REQUEST, …)"
+          },
+          "401" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Not authenticated"
+          },
+          "403" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Missing role (code FORBIDDEN)"
+          },
+          "404" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Not found (code NOT_FOUND)"
+          },
+          "409" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Conflict (code DUPLICATE_KEY or REFERENCED)"
+          },
+          "412" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "If-Match does not match the current version (code VERSION_CONFLICT)"
+          },
+          "422" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Business rule violated (e.g. INCOMPLETE_SUBMISSION, REJECTION_REASON_REQUIRED, PARTNER_NOT_EXCHANGE_READY)"
+          }
+        },
+        "summary" : "Self assessment, values (validated against the value schema) and comment of an element",
+        "tags" : [ "submissions" ]
+      }
+    },
+    "/api/v1/approval-cases/{id}/submissions/draft/elements/{code}/documents" : {
+      "post" : {
+        "operationId" : "attachDraftElementDocument",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "code",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "in" : "header",
+          "name" : "If-Match",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/DocumentReferenceRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/SubmissionDto"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "400" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Invalid request (code VALIDATION_FAILED with errors, MALFORMED_REQUEST, …)"
+          },
+          "401" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Not authenticated"
+          },
+          "403" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Missing role (code FORBIDDEN)"
+          },
+          "404" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Not found (code NOT_FOUND)"
+          },
+          "409" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Conflict (code DUPLICATE_KEY or REFERENCED)"
+          },
+          "412" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "If-Match does not match the current version (code VERSION_CONFLICT)"
+          },
+          "422" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Business rule violated (e.g. INCOMPLETE_SUBMISSION, REJECTION_REASON_REQUIRED, PARTNER_NOT_EXCHANGE_READY)"
+          }
+        },
+        "summary" : "Attach an uploaded document to an element",
+        "tags" : [ "submissions" ]
+      }
+    },
+    "/api/v1/approval-cases/{id}/submissions/draft/elements/{code}/documents/{documentId}" : {
+      "delete" : {
+        "operationId" : "detachDraftElementDocument",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "code",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "in" : "path",
+          "name" : "documentId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "header",
+          "name" : "If-Match",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "204" : {
+            "description" : "Deleted, or deactivated if referenced"
+          },
+          "400" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Invalid request (code VALIDATION_FAILED with errors, MALFORMED_REQUEST, …)"
+          },
+          "401" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Not authenticated"
+          },
+          "403" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Missing role (code FORBIDDEN)"
+          },
+          "404" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Not found (code NOT_FOUND)"
+          },
+          "412" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "If-Match does not match the current version (code VERSION_CONFLICT)"
+          }
+        },
+        "summary" : "Detach a document from an element",
+        "tags" : [ "submissions" ]
+      }
+    },
+    "/api/v1/approval-cases/{id}/submissions/draft/excel-import/apply" : {
+      "post" : {
+        "operationId" : "applyExcelImport",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "query",
+          "name" : "templateCode",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "in" : "header",
+          "name" : "If-Match",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "multipart/form-data" : {
+              "schema" : {
+                "type" : "object",
+                "properties" : {
+                  "file" : {
+                    "type" : "string",
+                    "format" : "binary"
+                  },
+                  "selection" : {
+                    "type" : "string",
+                    "description" : "JSON {\"elementCodes\": [...], \"overwrite\": false}"
+                  }
+                },
+                "required" : [ "file" ]
+              }
+            }
+          }
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/SubmissionDto"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "400" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Invalid request (code VALIDATION_FAILED with errors, MALFORMED_REQUEST, …)"
+          },
+          "401" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Not authenticated"
+          },
+          "403" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Missing role (code FORBIDDEN)"
+          },
+          "404" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Not found (code NOT_FOUND)"
+          },
+          "412" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "If-Match does not match the current version (code VERSION_CONFLICT)"
+          },
+          "413" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "File too large (code FILE_TOO_LARGE)"
+          },
+          "415" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Unsupported file type (code UNSUPPORTED_FILE_TYPE)"
+          },
+          "422" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Business rule violated (e.g. INCOMPLETE_SUBMISSION, REJECTION_REASON_REQUIRED, PARTNER_NOT_EXCHANGE_READY)"
+          }
+        },
+        "summary" : "Apply selected rows of an Excel form to the draft; the file is attached to the cover sheet element",
+        "tags" : [ "submissions" ]
+      }
+    },
+    "/api/v1/approval-cases/{id}/submissions/draft/excel-import/preview" : {
+      "post" : {
+        "operationId" : "previewExcelImport",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "query",
+          "name" : "templateCode",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "multipart/form-data" : {
+              "schema" : {
+                "type" : "object",
+                "properties" : {
+                  "file" : {
+                    "type" : "string",
+                    "format" : "binary"
+                  }
+                },
+                "required" : [ "file" ]
+              }
+            }
+          }
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/FormImportPreviewDto"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "400" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Invalid request (code VALIDATION_FAILED with errors, MALFORMED_REQUEST, …)"
+          },
+          "401" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Not authenticated"
+          },
+          "403" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Missing role (code FORBIDDEN)"
+          },
+          "404" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Not found (code NOT_FOUND)"
+          },
+          "413" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "File too large (code FILE_TOO_LARGE)"
+          },
+          "415" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Unsupported file type (code UNSUPPORTED_FILE_TYPE)"
+          },
+          "422" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Business rule violated (e.g. INCOMPLETE_SUBMISSION, REJECTION_REASON_REQUIRED, PARTNER_NOT_EXCHANGE_READY)"
+          }
+        },
+        "summary" : "Read a filled Excel form (template recognized by its marker cell) against the draft",
+        "tags" : [ "submissions" ]
+      }
+    },
+    "/api/v1/approval-cases/{id}/submissions/draft/submit" : {
+      "post" : {
+        "operationId" : "submitDraft",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "header",
+          "name" : "If-Match",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/SubmitRevisionRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/SubmissionDto"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "400" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Invalid request (code VALIDATION_FAILED with errors, MALFORMED_REQUEST, …)"
+          },
+          "401" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Not authenticated"
+          },
+          "403" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Missing role (code FORBIDDEN)"
+          },
+          "404" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Not found (code NOT_FOUND)"
+          },
+          "409" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Conflict (code DUPLICATE_KEY or REFERENCED)"
+          },
+          "412" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "If-Match does not match the current version (code VERSION_CONFLICT)"
+          },
+          "422" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Business rule violated (e.g. INCOMPLETE_SUBMISSION, REJECTION_REASON_REQUIRED, PARTNER_NOT_EXCHANGE_READY)"
+          }
+        },
+        "summary" : "Submit the draft revision (complete → canonical payload, hash, JWS; immutable)",
+        "tags" : [ "submissions" ]
+      }
+    },
+    "/api/v1/approval-cases/{id}/submissions/{revision}" : {
+      "get" : {
+        "operationId" : "getSubmission",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "revision",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/SubmissionDto"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "400" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Invalid request (code VALIDATION_FAILED with errors, MALFORMED_REQUEST, …)"
+          },
+          "401" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Not authenticated"
+          },
+          "404" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Not found (code NOT_FOUND)"
+          }
+        },
+        "summary" : "A revision with completeness, seal and decision",
+        "tags" : [ "submissions" ]
+      }
+    },
+    "/api/v1/approval-cases/{id}/submissions/{revision}/decision/payload" : {
+      "get" : {
+        "operationId" : "getDecisionPayload",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "revision",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "object"
+                }
+              }
+            },
+            "description" : "Canonical payload",
+            "headers" : {
+              "X-Payload-Hash" : {
+                "description" : "sha256:<hex> of the payload bytes",
+                "schema" : {
+                  "type" : "string"
+                },
+                "style" : "simple"
+              },
+              "X-Signature" : {
+                "description" : "Detached JWS (ES256, b64=false)",
+                "schema" : {
+                  "type" : "string"
+                },
+                "style" : "simple"
+              }
+            }
+          },
+          "400" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Invalid request (code VALIDATION_FAILED with errors, MALFORMED_REQUEST, …)"
+          },
+          "401" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Not authenticated"
+          },
+          "404" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Not found (code NOT_FOUND)"
+          }
+        },
+        "summary" : "Canonical PpapDecision payload (RFC 8785) of a decided revision",
+        "tags" : [ "submissions" ]
+      }
+    },
+    "/api/v1/approval-cases/{id}/submissions/{revision}/payload" : {
+      "get" : {
+        "operationId" : "getSubmissionPayload",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "revision",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "object"
+                }
+              }
+            },
+            "description" : "Canonical payload",
+            "headers" : {
+              "X-Payload-Hash" : {
+                "description" : "sha256:<hex> of the payload bytes",
+                "schema" : {
+                  "type" : "string"
+                },
+                "style" : "simple"
+              },
+              "X-Signature" : {
+                "description" : "Detached JWS (ES256, b64=false)",
+                "schema" : {
+                  "type" : "string"
+                },
+                "style" : "simple"
+              }
+            }
+          },
+          "400" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Invalid request (code VALIDATION_FAILED with errors, MALFORMED_REQUEST, …)"
+          },
+          "401" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Not authenticated"
+          },
+          "404" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Not found (code NOT_FOUND)"
+          }
+        },
+        "summary" : "Canonical PpapSubmission payload (RFC 8785) of a submitted revision",
+        "tags" : [ "submissions" ]
+      }
+    },
     "/api/v1/audit-events" : {
       "get" : {
         "operationId" : "listAuditEvents",
@@ -21,7 +2601,7 @@
           "required" : false,
           "schema" : {
             "type" : "string",
-            "enum" : [ "PART", "PARTNER", "SITE", "RELATION", "PART_MAPPING", "CATALOG_ELEMENT", "SUBMISSION_LEVEL", "SUBMISSION_REASON", "SEED" ]
+            "enum" : [ "PART", "PARTNER", "SITE", "RELATION", "PART_MAPPING", "CATALOG_ELEMENT", "SUBMISSION_LEVEL", "SUBMISSION_REASON", "SEED", "APPROVAL_CASE", "DOCUMENT" ]
           }
         }, {
           "in" : "query",
@@ -1674,6 +4254,257 @@
         "tags" : [ "Identity" ]
       }
     },
+    "/api/v1/documents" : {
+      "post" : {
+        "operationId" : "uploadDocument",
+        "requestBody" : {
+          "content" : {
+            "multipart/form-data" : {
+              "schema" : {
+                "type" : "object",
+                "properties" : {
+                  "file" : {
+                    "type" : "string",
+                    "format" : "binary"
+                  }
+                },
+                "required" : [ "file" ]
+              }
+            }
+          }
+        },
+        "responses" : {
+          "201" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/DocumentDto"
+                }
+              }
+            },
+            "description" : "Created",
+            "headers" : {
+              "Location" : {
+                "description" : "URL of the created resource",
+                "schema" : {
+                  "type" : "string"
+                }
+              }
+            }
+          },
+          "400" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Invalid request (code VALIDATION_FAILED with errors, MALFORMED_REQUEST, …)"
+          },
+          "401" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Not authenticated"
+          },
+          "403" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Missing role (code FORBIDDEN)"
+          },
+          "413" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "File too large (code FILE_TOO_LARGE)"
+          },
+          "415" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Unsupported file type (code UNSUPPORTED_FILE_TYPE)"
+          }
+        },
+        "summary" : "Upload a document (content type checked by magic bytes against the whitelist, max. size PPAP_UPLOAD_MAX_SIZE)",
+        "tags" : [ "documents" ]
+      }
+    },
+    "/api/v1/documents/{id}" : {
+      "get" : {
+        "operationId" : "getDocument",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/DocumentDto"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "400" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Invalid request (code VALIDATION_FAILED with errors, MALFORMED_REQUEST, …)"
+          },
+          "401" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Not authenticated"
+          },
+          "404" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Not found (code NOT_FOUND)"
+          }
+        },
+        "summary" : "Get document metadata",
+        "tags" : [ "documents" ]
+      }
+    },
+    "/api/v1/documents/{id}/content" : {
+      "get" : {
+        "operationId" : "getDocumentContent",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "query",
+          "name" : "disposition",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "default" : "attachment",
+            "enum" : [ "inline", "attachment" ]
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/octet-stream" : {
+                "schema" : {
+                  "type" : "string",
+                  "format" : "binary"
+                }
+              }
+            },
+            "description" : "Document content"
+          },
+          "400" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Invalid request (code VALIDATION_FAILED with errors, MALFORMED_REQUEST, …)"
+          },
+          "401" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Not authenticated"
+          },
+          "404" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Not found (code NOT_FOUND)"
+          }
+        },
+        "summary" : "Download the document content (nosniff, CSP sandbox, RFC 6266 Content-Disposition)",
+        "tags" : [ "documents" ]
+      }
+    },
+    "/api/v1/form-templates" : {
+      "get" : {
+        "operationId" : "listFormTemplates",
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/FormTemplateDto"
+                  }
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "401" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Not authenticated"
+          }
+        },
+        "summary" : "List Excel form templates",
+        "tags" : [ "form-templates" ]
+      }
+    },
     "/api/v1/imports/{entity}/error-report" : {
       "post" : {
         "operationId" : "importErrorReport",
@@ -2042,6 +4873,88 @@
         },
         "summary" : "The authenticated user and tenant",
         "tags" : [ "Identity" ]
+      }
+    },
+    "/api/v1/part-mappings" : {
+      "get" : {
+        "operationId" : "searchPartMappings",
+        "parameters" : [ {
+          "in" : "query",
+          "name" : "partnerRole",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "in" : "query",
+          "name" : "q",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "in" : "query",
+          "name" : "page",
+          "required" : false,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32",
+            "default" : 0
+          }
+        }, {
+          "in" : "query",
+          "name" : "size",
+          "required" : false,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32",
+            "default" : 25
+          }
+        }, {
+          "in" : "query",
+          "name" : "sort",
+          "required" : false,
+          "schema" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string"
+            }
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/PartMappingSearchPage"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "400" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Invalid request (code VALIDATION_FAILED with errors, MALFORMED_REQUEST, …)"
+          },
+          "401" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Not authenticated"
+          }
+        },
+        "summary" : "Search part mappings across all active relations (e.g. part → supplier for a request)",
+        "tags" : [ "relations" ]
       }
     },
     "/api/v1/part-mappings/resolve" : {
@@ -4557,6 +7470,276 @@
   },
   "components" : {
     "schemas" : {
+      "ApprovalCaseDetailDto" : {
+        "type" : "object",
+        "properties" : {
+          "allowedActions" : {
+            "type" : "array",
+            "description" : "Actions the current user may perform",
+            "items" : {
+              "type" : "string",
+              "enum" : [ "CREATE", "CAPTURE_MANUAL", "RECEIVE_REQUEST", "EDIT", "SEND", "CANCEL", "START_WORK", "EDIT_SUBMISSION", "SUBMIT", "RECEIVE_SUBMISSION", "START_REVIEW", "REVIEW", "DECIDE", "RECEIVE_DECISION", "NEW_REVISION" ]
+            }
+          },
+          "caseNumber" : {
+            "type" : "string"
+          },
+          "createdAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "currentRevision" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "customerPartNumber" : {
+            "type" : "string"
+          },
+          "decidedAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "draftCompleteness" : {
+            "$ref" : "#/components/schemas/CompletenessDto",
+            "description" : "Completeness of the draft revision, if any"
+          },
+          "dueDate" : {
+            "type" : "string",
+            "format" : "date"
+          },
+          "exchangeId" : {
+            "type" : "string",
+            "format" : "uuid",
+            "description" : "Exchange id shared with the partner's case"
+          },
+          "externalReference" : {
+            "type" : "string"
+          },
+          "id" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "lastDecision" : {
+            "$ref" : "#/components/schemas/DecisionDto",
+            "description" : "Latest decision (full)"
+          },
+          "level" : {
+            "$ref" : "#/components/schemas/CatalogRefDto"
+          },
+          "overdue" : {
+            "type" : "boolean"
+          },
+          "ownRole" : {
+            "type" : "string",
+            "enum" : [ "CUSTOMER", "SUPPLIER" ]
+          },
+          "part" : {
+            "$ref" : "#/components/schemas/CasePartDto"
+          },
+          "partner" : {
+            "$ref" : "#/components/schemas/CasePartnerDto"
+          },
+          "partnerPartNumber" : {
+            "type" : "string"
+          },
+          "reason" : {
+            "$ref" : "#/components/schemas/CatalogRefDto"
+          },
+          "relationId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "remarks" : {
+            "type" : "string"
+          },
+          "request" : {
+            "$ref" : "#/components/schemas/CaseRequestDto"
+          },
+          "requestedAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "reviewFindings" : {
+            "type" : "array",
+            "description" : "Intermediate review results (IN_REVIEW)",
+            "items" : {
+              "$ref" : "#/components/schemas/FindingDto"
+            }
+          },
+          "source" : {
+            "type" : "string",
+            "enum" : [ "LOCAL", "MANUAL", "EXCHANGE", "LEGACY_IMPORT" ]
+          },
+          "status" : {
+            "type" : "string",
+            "enum" : [ "DRAFT", "REQUESTED", "IN_PROGRESS", "SUBMITTED", "IN_REVIEW", "APPROVED", "CONDITIONALLY_APPROVED", "REJECTED", "CANCELLED" ]
+          },
+          "submissions" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/SubmissionSummaryDto"
+            }
+          },
+          "submittedAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "supplierPartNumber" : {
+            "type" : "string"
+          },
+          "timeline" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/TimelineEntryDto"
+            }
+          },
+          "updatedAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "version" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        },
+        "required" : [ "allowedActions", "caseNumber", "dueDate", "exchangeId", "id", "level", "overdue", "ownRole", "part", "partner", "reason", "request", "reviewFindings", "source", "status", "submissions", "timeline", "version" ]
+      },
+      "ApprovalCaseDto" : {
+        "type" : "object",
+        "properties" : {
+          "allowedActions" : {
+            "type" : "array",
+            "description" : "Actions the current user may perform",
+            "items" : {
+              "type" : "string",
+              "enum" : [ "CREATE", "CAPTURE_MANUAL", "RECEIVE_REQUEST", "EDIT", "SEND", "CANCEL", "START_WORK", "EDIT_SUBMISSION", "SUBMIT", "RECEIVE_SUBMISSION", "START_REVIEW", "REVIEW", "DECIDE", "RECEIVE_DECISION", "NEW_REVISION" ]
+            }
+          },
+          "caseNumber" : {
+            "type" : "string"
+          },
+          "createdAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "currentRevision" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "customerPartNumber" : {
+            "type" : "string"
+          },
+          "decidedAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "dueDate" : {
+            "type" : "string",
+            "format" : "date"
+          },
+          "exchangeId" : {
+            "type" : "string",
+            "format" : "uuid",
+            "description" : "Exchange id shared with the partner's case"
+          },
+          "externalReference" : {
+            "type" : "string"
+          },
+          "id" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "lastDecisionResult" : {
+            "type" : "string",
+            "enum" : [ "APPROVED", "CONDITIONALLY_APPROVED", "REJECTED" ]
+          },
+          "level" : {
+            "$ref" : "#/components/schemas/CatalogRefDto"
+          },
+          "overdue" : {
+            "type" : "boolean"
+          },
+          "ownRole" : {
+            "type" : "string",
+            "enum" : [ "CUSTOMER", "SUPPLIER" ]
+          },
+          "part" : {
+            "$ref" : "#/components/schemas/CasePartDto"
+          },
+          "partner" : {
+            "$ref" : "#/components/schemas/CasePartnerDto"
+          },
+          "partnerPartNumber" : {
+            "type" : "string"
+          },
+          "reason" : {
+            "$ref" : "#/components/schemas/CatalogRefDto"
+          },
+          "relationId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "remarks" : {
+            "type" : "string"
+          },
+          "requestedAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "source" : {
+            "type" : "string",
+            "enum" : [ "LOCAL", "MANUAL", "EXCHANGE", "LEGACY_IMPORT" ]
+          },
+          "status" : {
+            "type" : "string",
+            "enum" : [ "DRAFT", "REQUESTED", "IN_PROGRESS", "SUBMITTED", "IN_REVIEW", "APPROVED", "CONDITIONALLY_APPROVED", "REJECTED", "CANCELLED" ]
+          },
+          "submittedAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "supplierPartNumber" : {
+            "type" : "string"
+          },
+          "updatedAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "version" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        },
+        "required" : [ "allowedActions", "caseNumber", "dueDate", "exchangeId", "id", "level", "overdue", "ownRole", "part", "partner", "reason", "source", "status", "version" ]
+      },
+      "ApprovalCasePage" : {
+        "type" : "object",
+        "properties" : {
+          "content" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/ApprovalCaseDto"
+            }
+          },
+          "page" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "size" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "totalElements" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "totalPages" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        },
+        "required" : [ "content", "page", "size", "totalElements", "totalPages" ]
+      },
       "AuditEventDto" : {
         "type" : "object",
         "properties" : {
@@ -4587,7 +7770,7 @@
           },
           "objectType" : {
             "type" : "string",
-            "enum" : [ "PART", "PARTNER", "SITE", "RELATION", "PART_MAPPING", "CATALOG_ELEMENT", "SUBMISSION_LEVEL", "SUBMISSION_REASON", "SEED" ]
+            "enum" : [ "PART", "PARTNER", "SITE", "RELATION", "PART_MAPPING", "CATALOG_ELEMENT", "SUBMISSION_LEVEL", "SUBMISSION_REASON", "SEED", "APPROVAL_CASE", "DOCUMENT" ]
           },
           "occurredAt" : {
             "type" : "string",
@@ -4627,6 +7810,117 @@
           }
         },
         "required" : [ "content", "page", "size", "totalElements", "totalPages" ]
+      },
+      "CancelCaseRequest" : {
+        "type" : "object",
+        "properties" : {
+          "reason" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "reason" ]
+      },
+      "CasePartDto" : {
+        "type" : "object",
+        "properties" : {
+          "id" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "nameDe" : {
+            "type" : "string"
+          },
+          "nameEn" : {
+            "type" : "string"
+          },
+          "partNumber" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "id", "partNumber" ]
+      },
+      "CasePartnerDto" : {
+        "type" : "object",
+        "properties" : {
+          "bpnl" : {
+            "type" : "string"
+          },
+          "name" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "bpnl", "name" ]
+      },
+      "CaseRequestDto" : {
+        "type" : "object",
+        "properties" : {
+          "attachments" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/DocumentRefDto"
+            }
+          },
+          "elements" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/RequestedElementDto"
+            }
+          },
+          "requestedAt" : {
+            "type" : "string",
+            "format" : "date-time",
+            "description" : "Time of sending, null while DRAFT"
+          },
+          "requestedBy" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "attachments", "elements" ]
+      },
+      "CaseStatsDto" : {
+        "type" : "object",
+        "properties" : {
+          "approvalRate" : {
+            "type" : "number",
+            "format" : "double",
+            "description" : "Share of approvals among decisions (0..1)"
+          },
+          "approvedLast30Days" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "averageLeadTimeDays" : {
+            "type" : "number",
+            "format" : "double",
+            "description" : "Average days from request to approval"
+          },
+          "byPartner" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/PartnerStatsDto"
+            }
+          },
+          "byStatus" : {
+            "type" : "object",
+            "additionalProperties" : {
+              "type" : "integer",
+              "format" : "int64"
+            }
+          },
+          "inReview" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "open" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "overdue" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        },
+        "required" : [ "approvedLast30Days", "byPartner", "byStatus", "inReview", "open", "overdue" ]
       },
       "CatalogElementDto" : {
         "type" : "object",
@@ -4754,6 +8048,63 @@
         },
         "required" : [ "elements", "levels", "reasons" ]
       },
+      "CatalogRefDto" : {
+        "type" : "object",
+        "properties" : {
+          "code" : {
+            "type" : "string"
+          },
+          "nameDe" : {
+            "type" : "string"
+          },
+          "nameEn" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "code", "nameDe", "nameEn" ]
+      },
+      "CompletenessDto" : {
+        "type" : "object",
+        "properties" : {
+          "complete" : {
+            "type" : "boolean"
+          },
+          "issues" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/CompletenessIssueDto"
+            }
+          },
+          "requiredDone" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "requiredTotal" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        },
+        "required" : [ "complete", "issues", "requiredDone", "requiredTotal" ]
+      },
+      "CompletenessIssueDto" : {
+        "type" : "object",
+        "properties" : {
+          "code" : {
+            "type" : "string"
+          },
+          "elementCode" : {
+            "type" : "string"
+          },
+          "field" : {
+            "type" : "string",
+            "description" : "JSON pointer into the values (VALUE_SCHEMA_VIOLATION)"
+          },
+          "message" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "code", "elementCode", "message" ]
+      },
       "ComponentStatus" : {
         "type" : "object",
         "properties" : {
@@ -4770,6 +8121,15 @@
           }
         },
         "required" : [ "details", "name", "status" ]
+      },
+      "ConditionDto" : {
+        "type" : "object",
+        "properties" : {
+          "text" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "text" ]
       },
       "ConfigResponse" : {
         "type" : "object",
@@ -4789,6 +8149,280 @@
         },
         "required" : [ "defaultLocale", "oidc", "participant", "version" ]
       },
+      "CreateApprovalCaseRequest" : {
+        "type" : "object",
+        "properties" : {
+          "dueDate" : {
+            "type" : "string",
+            "format" : "date"
+          },
+          "elements" : {
+            "type" : "array",
+            "description" : "Elements; default: elements REQUIRED at the level",
+            "items" : {
+              "$ref" : "#/components/schemas/RequestedElementInput"
+            }
+          },
+          "levelCode" : {
+            "type" : "string"
+          },
+          "partId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "reasonCode" : {
+            "type" : "string"
+          },
+          "relationId" : {
+            "type" : "string",
+            "format" : "uuid",
+            "description" : "Supplier relation; derived from the part mapping if omitted"
+          },
+          "remarks" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "dueDate", "levelCode", "partId", "reasonCode" ]
+      },
+      "DecisionDto" : {
+        "type" : "object",
+        "properties" : {
+          "comment" : {
+            "type" : "string"
+          },
+          "conditionDueDate" : {
+            "type" : "string",
+            "format" : "date"
+          },
+          "conditions" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/ConditionDto"
+            }
+          },
+          "decidedAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "decidedBy" : {
+            "type" : "string"
+          },
+          "elementFindings" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/FindingDto"
+            }
+          },
+          "payloadHash" : {
+            "type" : "string"
+          },
+          "result" : {
+            "type" : "string",
+            "enum" : [ "APPROVED", "CONDITIONALLY_APPROVED", "REJECTED" ]
+          },
+          "revision" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "signature" : {
+            "$ref" : "#/components/schemas/SignatureDto"
+          }
+        },
+        "required" : [ "conditions", "decidedAt", "decidedBy", "elementFindings", "payloadHash", "result", "revision", "signature" ]
+      },
+      "DecisionRequest" : {
+        "type" : "object",
+        "properties" : {
+          "comment" : {
+            "type" : "string"
+          },
+          "conditionDueDate" : {
+            "type" : "string",
+            "format" : "date"
+          },
+          "conditions" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/ConditionDto"
+            }
+          },
+          "confirmation" : {
+            "type" : "boolean"
+          },
+          "result" : {
+            "type" : "string",
+            "description" : "APPROVED, CONDITIONALLY_APPROVED or REJECTED",
+            "enum" : [ "APPROVED", "CONDITIONALLY_APPROVED", "REJECTED" ]
+          }
+        },
+        "required" : [ "confirmation", "result" ]
+      },
+      "DocumentDto" : {
+        "type" : "object",
+        "properties" : {
+          "fileName" : {
+            "type" : "string"
+          },
+          "id" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "mediaType" : {
+            "type" : "string",
+            "description" : "Detected from the content"
+          },
+          "sha256" : {
+            "type" : "string",
+            "description" : "SHA-256 (hex) of the content"
+          },
+          "size" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "uploadedAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "uploadedBy" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "fileName", "id", "mediaType", "sha256", "size" ]
+      },
+      "DocumentRefDto" : {
+        "type" : "object",
+        "properties" : {
+          "fileName" : {
+            "type" : "string"
+          },
+          "id" : {
+            "type" : [ "string", "null" ],
+            "format" : "uuid",
+            "description" : "Document id; null for documents of received payloads until they are pulled (phase 5)"
+          },
+          "mediaType" : {
+            "type" : "string"
+          },
+          "sha256" : {
+            "type" : "string"
+          },
+          "size" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "uploadedAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "uploadedBy" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "fileName", "id", "mediaType", "sha256", "size" ]
+      },
+      "DocumentReferenceRequest" : {
+        "type" : "object",
+        "properties" : {
+          "documentId" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        },
+        "required" : [ "documentId" ]
+      },
+      "ElementEvidenceDto" : {
+        "type" : "object",
+        "properties" : {
+          "code" : {
+            "type" : "string"
+          },
+          "comment" : {
+            "type" : "string"
+          },
+          "complete" : {
+            "type" : "boolean"
+          },
+          "documents" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/DocumentRefDto"
+            }
+          },
+          "finding" : {
+            "$ref" : "#/components/schemas/FindingDto",
+            "description" : "Review finding of the customer (interim or of the decision), null if none"
+          },
+          "issues" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/IssueDto"
+            }
+          },
+          "requirement" : {
+            "type" : "string",
+            "enum" : [ "REQUIRED", "ON_REQUEST" ]
+          },
+          "selfAssessment" : {
+            "type" : "string",
+            "enum" : [ "OK", "NOK", "NA" ]
+          },
+          "values" : {
+            "description" : "Structured values (any JSON value), validated against the value schema"
+          }
+        },
+        "required" : [ "code", "complete", "documents", "issues", "requirement" ]
+      },
+      "ElementEvidenceRequest" : {
+        "type" : "object",
+        "properties" : {
+          "comment" : {
+            "type" : "string"
+          },
+          "selfAssessment" : {
+            "type" : [ "string", "null" ],
+            "description" : "OK, NOK or NA (NOK/NA require a comment); null clears the assessment",
+            "enum" : [ "OK", "NOK", "NA", null ]
+          },
+          "values" : {
+            "description" : "Structured values (any JSON value), validated against the value schema"
+          }
+        }
+      },
+      "ElementFindingRequest" : {
+        "type" : "object",
+        "properties" : {
+          "comment" : {
+            "type" : "string"
+          },
+          "result" : {
+            "type" : "string",
+            "description" : "ACCEPTED, NOT_ACCEPTED or ACCEPTED_WITH_CONDITION",
+            "enum" : [ "ACCEPTED", "NOT_ACCEPTED", "ACCEPTED_WITH_CONDITION" ]
+          }
+        },
+        "required" : [ "result" ]
+      },
+      "ElementSnapshotDto" : {
+        "type" : "object",
+        "properties" : {
+          "evidenceType" : {
+            "type" : "string",
+            "enum" : [ "DOCUMENT", "VALUES", "DOCUMENT_AND_VALUES" ]
+          },
+          "nameDe" : {
+            "type" : "string"
+          },
+          "nameEn" : {
+            "type" : "string"
+          },
+          "valueSchema" : {
+            "type" : "object",
+            "additionalProperties" : { },
+            "description" : "JSON Schema (draft 2020-12) of the structured values"
+          }
+        },
+        "required" : [ "evidenceType", "nameDe", "nameEn" ]
+      },
       "FieldError" : {
         "type" : "object",
         "properties" : {
@@ -4804,6 +8438,202 @@
           }
         },
         "required" : [ "code", "field", "message" ]
+      },
+      "FindingDto" : {
+        "type" : "object",
+        "properties" : {
+          "code" : {
+            "type" : "string"
+          },
+          "comment" : {
+            "type" : "string"
+          },
+          "result" : {
+            "type" : "string",
+            "enum" : [ "ACCEPTED", "NOT_ACCEPTED", "ACCEPTED_WITH_CONDITION" ]
+          }
+        },
+        "required" : [ "code", "result" ]
+      },
+      "FormElementDto" : {
+        "type" : "object",
+        "properties" : {
+          "cell" : {
+            "type" : "string"
+          },
+          "code" : {
+            "type" : "string"
+          },
+          "comment" : {
+            "type" : "string"
+          },
+          "messages" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/FormMessageDto"
+            }
+          },
+          "selfAssessment" : {
+            "type" : "string",
+            "enum" : [ "OK", "NOK", "NA" ]
+          },
+          "status" : {
+            "type" : "string",
+            "enum" : [ "OK", "WARNING", "ERROR" ]
+          },
+          "values" : {
+            "description" : "Structured values (not read by the current templates)"
+          }
+        },
+        "required" : [ "cell", "code", "messages", "status" ]
+      },
+      "FormHeaderCellDto" : {
+        "type" : "object",
+        "properties" : {
+          "cell" : {
+            "type" : "string"
+          },
+          "value" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "cell" ]
+      },
+      "FormImportPreviewDto" : {
+        "type" : "object",
+        "properties" : {
+          "elements" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/FormElementDto"
+            }
+          },
+          "header" : {
+            "type" : "object",
+            "additionalProperties" : {
+              "$ref" : "#/components/schemas/FormHeaderCellDto"
+            }
+          },
+          "templateCode" : {
+            "type" : "string"
+          },
+          "unknownCodes" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string"
+            }
+          },
+          "warnings" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/FormMessageDto"
+            }
+          }
+        },
+        "required" : [ "elements", "header", "templateCode", "unknownCodes", "warnings" ]
+      },
+      "FormMessageDto" : {
+        "type" : "object",
+        "properties" : {
+          "code" : {
+            "type" : "string"
+          },
+          "message" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "code", "message" ]
+      },
+      "FormTemplateDto" : {
+        "type" : "object",
+        "properties" : {
+          "active" : {
+            "type" : "boolean"
+          },
+          "code" : {
+            "type" : "string"
+          },
+          "elementTable" : {
+            "$ref" : "#/components/schemas/FormTemplateElementTableDto"
+          },
+          "header" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/FormTemplateHeaderFieldDto"
+            }
+          },
+          "marker" : {
+            "$ref" : "#/components/schemas/FormTemplateMarkerDto"
+          },
+          "nameDe" : {
+            "type" : "string"
+          },
+          "nameEn" : {
+            "type" : "string"
+          },
+          "selfAssessmentValues" : {
+            "type" : "object",
+            "additionalProperties" : {
+              "type" : "string"
+            },
+            "description" : "Form text → OK | NOK | NA"
+          }
+        },
+        "required" : [ "active", "code", "elementTable", "header", "marker", "nameDe", "nameEn", "selfAssessmentValues" ]
+      },
+      "FormTemplateElementTableDto" : {
+        "type" : "object",
+        "properties" : {
+          "columns" : {
+            "type" : "object",
+            "additionalProperties" : {
+              "type" : "string"
+            },
+            "description" : "code, selfAssessment, comment → column letter"
+          },
+          "firstRow" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "lastRow" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "sheet" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "columns", "firstRow", "sheet" ]
+      },
+      "FormTemplateHeaderFieldDto" : {
+        "type" : "object",
+        "properties" : {
+          "cell" : {
+            "type" : "string"
+          },
+          "field" : {
+            "type" : "string"
+          },
+          "sheet" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "cell", "field", "sheet" ]
+      },
+      "FormTemplateMarkerDto" : {
+        "type" : "object",
+        "properties" : {
+          "cell" : {
+            "type" : "string"
+          },
+          "sheet" : {
+            "type" : "string"
+          },
+          "value" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "cell", "sheet", "value" ]
       },
       "ImportFailureDto" : {
         "type" : "object",
@@ -4998,6 +8828,64 @@
         },
         "required" : [ "labelKey", "name", "required" ]
       },
+      "IssueDto" : {
+        "type" : "object",
+        "properties" : {
+          "code" : {
+            "type" : "string",
+            "description" : "MISSING_SELF_ASSESSMENT, COMMENT_REQUIRED, DOCUMENT_REQUIRED, VALUES_REQUIRED, VALUE_SCHEMA_VIOLATION"
+          },
+          "field" : {
+            "type" : "string",
+            "description" : "JSON pointer into the values (VALUE_SCHEMA_VIOLATION)"
+          },
+          "message" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "code", "message" ]
+      },
+      "ManualApprovalCaseRequest" : {
+        "type" : "object",
+        "properties" : {
+          "dueDate" : {
+            "type" : "string",
+            "format" : "date"
+          },
+          "elements" : {
+            "type" : "array",
+            "description" : "Elements; default: elements REQUIRED at the level",
+            "items" : {
+              "$ref" : "#/components/schemas/RequestedElementInput"
+            }
+          },
+          "externalReference" : {
+            "type" : "string",
+            "description" : "Reference of the customer, e.g. e-mail or portal id"
+          },
+          "levelCode" : {
+            "type" : "string"
+          },
+          "partId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "partnerBpnl" : {
+            "type" : "string"
+          },
+          "partnerPartNumber" : {
+            "type" : "string",
+            "description" : "Customer part number; from the part mapping if omitted"
+          },
+          "reasonCode" : {
+            "type" : "string"
+          },
+          "remarks" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "dueDate", "levelCode", "partId", "partnerBpnl", "reasonCode" ]
+      },
       "MeResponse" : {
         "type" : "object",
         "properties" : {
@@ -5181,6 +9069,91 @@
           }
         },
         "required" : [ "partnerPartNumber" ]
+      },
+      "PartMappingSearchDto" : {
+        "type" : "object",
+        "properties" : {
+          "mappingId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "part" : {
+            "$ref" : "#/components/schemas/PartMappingSearchPartDto"
+          },
+          "partner" : {
+            "$ref" : "#/components/schemas/PartMappingSearchPartnerDto"
+          },
+          "partnerPartNumber" : {
+            "type" : "string"
+          },
+          "relationId" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        },
+        "required" : [ "mappingId", "part", "partner", "partnerPartNumber", "relationId" ]
+      },
+      "PartMappingSearchPage" : {
+        "type" : "object",
+        "properties" : {
+          "content" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/PartMappingSearchDto"
+            }
+          },
+          "page" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "size" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "totalElements" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "totalPages" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        },
+        "required" : [ "content", "page", "size", "totalElements", "totalPages" ]
+      },
+      "PartMappingSearchPartDto" : {
+        "type" : "object",
+        "properties" : {
+          "id" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "nameDe" : {
+            "type" : "string"
+          },
+          "nameEn" : {
+            "type" : "string"
+          },
+          "partNumber" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "id", "partNumber" ]
+      },
+      "PartMappingSearchPartnerDto" : {
+        "type" : "object",
+        "properties" : {
+          "bpnl" : {
+            "type" : "string"
+          },
+          "exchangeReady" : {
+            "type" : "boolean"
+          },
+          "name" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "bpnl", "exchangeReady", "name" ]
       },
       "PartPage" : {
         "type" : "object",
@@ -5366,6 +9339,26 @@
         },
         "required" : [ "bpnl", "name", "roles" ]
       },
+      "PartnerStatsDto" : {
+        "type" : "object",
+        "properties" : {
+          "bpnl" : {
+            "type" : "string"
+          },
+          "name" : {
+            "type" : "string"
+          },
+          "open" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "overdue" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        },
+        "required" : [ "bpnl", "name", "open", "overdue" ]
+      },
       "ProblemDetail" : {
         "type" : "object",
         "description" : "RFC 9457 problem details",
@@ -5504,6 +9497,63 @@
         },
         "required" : [ "partnerBpnl", "partnerRole" ]
       },
+      "RequestedElementDto" : {
+        "type" : "object",
+        "properties" : {
+          "code" : {
+            "type" : "string"
+          },
+          "note" : {
+            "type" : "string"
+          },
+          "requirement" : {
+            "type" : "string",
+            "enum" : [ "REQUIRED", "ON_REQUEST" ]
+          },
+          "snapshot" : {
+            "$ref" : "#/components/schemas/ElementSnapshotDto"
+          }
+        },
+        "required" : [ "code", "requirement", "snapshot" ]
+      },
+      "RequestedElementInput" : {
+        "type" : "object",
+        "properties" : {
+          "code" : {
+            "type" : "string"
+          },
+          "note" : {
+            "type" : "string"
+          },
+          "requirement" : {
+            "type" : "string",
+            "description" : "REQUIRED or ON_REQUEST; default from the level",
+            "enum" : [ "REQUIRED", "ON_REQUEST" ]
+          }
+        },
+        "required" : [ "code" ]
+      },
+      "SignatureDto" : {
+        "type" : "object",
+        "properties" : {
+          "alg" : {
+            "type" : "string"
+          },
+          "jws" : {
+            "type" : "string",
+            "description" : "Detached compact JWS <header>..<signature>"
+          },
+          "kid" : {
+            "type" : "string",
+            "description" : "RFC 7638 thumbprint of the signing key"
+          },
+          "status" : {
+            "type" : "string",
+            "enum" : [ "VALID", "INVALID", "UNVERIFIED", "NOT_SIGNED" ]
+          }
+        },
+        "required" : [ "status" ]
+      },
       "SiteDto" : {
         "type" : "object",
         "properties" : {
@@ -5612,6 +9662,50 @@
           }
         },
         "required" : [ "bpns", "name", "ownerBpnl" ]
+      },
+      "SubmissionDto" : {
+        "type" : "object",
+        "properties" : {
+          "basedOnRevision" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "completeness" : {
+            "$ref" : "#/components/schemas/CompletenessDto"
+          },
+          "decision" : {
+            "$ref" : "#/components/schemas/DecisionDto"
+          },
+          "elements" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/ElementEvidenceDto"
+            }
+          },
+          "payloadHash" : {
+            "type" : "string",
+            "description" : "sha256:<hex> of the canonical payload (SUBMITTED only)"
+          },
+          "revision" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "signature" : {
+            "$ref" : "#/components/schemas/SignatureDto"
+          },
+          "status" : {
+            "type" : "string",
+            "enum" : [ "DRAFT", "SUBMITTED" ]
+          },
+          "submittedAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "submittedBy" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "completeness", "elements", "revision", "status" ]
       },
       "SubmissionLevelDto" : {
         "type" : "object",
@@ -5780,6 +9874,50 @@
         },
         "required" : [ "code", "nameDe", "nameEn" ]
       },
+      "SubmissionSummaryDto" : {
+        "type" : "object",
+        "properties" : {
+          "basedOnRevision" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "decisionResult" : {
+            "type" : "string",
+            "enum" : [ "APPROVED", "CONDITIONALLY_APPROVED", "REJECTED" ]
+          },
+          "payloadHash" : {
+            "type" : "string"
+          },
+          "revision" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "signature" : {
+            "$ref" : "#/components/schemas/SignatureDto"
+          },
+          "status" : {
+            "type" : "string",
+            "enum" : [ "DRAFT", "SUBMITTED" ]
+          },
+          "submittedAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "submittedBy" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "revision", "status" ]
+      },
+      "SubmitRevisionRequest" : {
+        "type" : "object",
+        "properties" : {
+          "confirmation" : {
+            "type" : "boolean"
+          }
+        },
+        "required" : [ "confirmation" ]
+      },
       "SystemStatusResponse" : {
         "type" : "object",
         "properties" : {
@@ -5806,6 +9944,53 @@
           }
         },
         "required" : [ "bpnl", "name", "roleLabel" ]
+      },
+      "TimelineEntryDto" : {
+        "type" : "object",
+        "properties" : {
+          "action" : {
+            "type" : "string",
+            "enum" : [ "CREATE", "CAPTURE_MANUAL", "RECEIVE_REQUEST", "EDIT", "SEND", "CANCEL", "START_WORK", "EDIT_SUBMISSION", "SUBMIT", "RECEIVE_SUBMISSION", "START_REVIEW", "REVIEW", "DECIDE", "RECEIVE_DECISION", "NEW_REVISION" ]
+          },
+          "actor" : {
+            "type" : "string"
+          },
+          "at" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "comment" : {
+            "type" : "string"
+          },
+          "from" : {
+            "type" : "string",
+            "enum" : [ "DRAFT", "REQUESTED", "IN_PROGRESS", "SUBMITTED", "IN_REVIEW", "APPROVED", "CONDITIONALLY_APPROVED", "REJECTED", "CANCELLED" ]
+          },
+          "to" : {
+            "type" : "string",
+            "enum" : [ "DRAFT", "REQUESTED", "IN_PROGRESS", "SUBMITTED", "IN_REVIEW", "APPROVED", "CONDITIONALLY_APPROVED", "REJECTED", "CANCELLED" ]
+          }
+        },
+        "required" : [ "action", "actor", "at", "to" ]
+      },
+      "UpdateApprovalCaseRequest" : {
+        "type" : "object",
+        "properties" : {
+          "dueDate" : {
+            "type" : "string",
+            "format" : "date"
+          },
+          "levelCode" : {
+            "type" : "string"
+          },
+          "reasonCode" : {
+            "type" : "string"
+          },
+          "remarks" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "dueDate", "levelCode", "reasonCode" ]
       }
     },
     "securitySchemes" : {

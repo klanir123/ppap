@@ -4,6 +4,7 @@ import com.msg.ppap.identity.ActorProvider;
 import com.msg.ppap.identity.TenantContext;
 import com.msg.ppap.masterdata.MasterdataSeeded;
 import com.msg.ppap.masterdata.adapter.in.rest.CatalogExport;
+import com.msg.ppap.masterdata.api.SeedContributor;
 import com.msg.ppap.masterdata.application.CatalogTransferService;
 import com.msg.ppap.masterdata.application.imports.ImportEntity;
 import com.msg.ppap.masterdata.application.imports.ImportFailedException;
@@ -14,11 +15,13 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Clock;
+import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.event.EventListener;
@@ -55,6 +58,7 @@ public class SeedLoader {
     private final ApplicationEventPublisher publisher;
     private final TransactionTemplate transactions;
     private final Clock clock;
+    private final ObjectProvider<SeedContributor> contributors;
 
     public SeedLoader(
             SeedProperties properties,
@@ -65,7 +69,8 @@ public class SeedLoader {
             JsonMapper jsonMapper,
             ApplicationEventPublisher publisher,
             TransactionTemplate transactions,
-            Clock clock) {
+            Clock clock,
+            ObjectProvider<SeedContributor> contributors) {
         this.properties = properties;
         this.imports = imports;
         this.catalog = catalog;
@@ -75,6 +80,7 @@ public class SeedLoader {
         this.publisher = publisher;
         this.transactions = transactions;
         this.clock = clock;
+        this.contributors = contributors;
     }
 
     @EventListener(ApplicationReadyEvent.class)
@@ -87,7 +93,7 @@ public class SeedLoader {
             return;
         }
         try {
-            load(properties.commonPath(), properties.path());
+            load(properties.commonPath(), properties.path(), properties.documentsPath());
         } catch (RuntimeException ex) {
             LOG.warn("Seed loading failed: {}", ex.getMessage(), ex);
         }
@@ -99,6 +105,16 @@ public class SeedLoader {
      * @return result per file ({@code created/updated/unchanged/failed} or {@code error})
      */
     public Map<String, Object> load(Path commonPath, Path participantPath) {
+        return load(commonPath, participantPath, properties.documentsPath());
+    }
+
+    /**
+     * Loads master data seed files, then the seed files of downstream modules ({@link SeedContributor}, e.g.
+     * approval cases and form templates).
+     *
+     * @return result per file ({@code created/updated/unchanged/failed} or {@code error})
+     */
+    public Map<String, Object> load(Path commonPath, Path participantPath, Path documentsPath) {
         Map<String, Object> summary = new LinkedHashMap<>();
         actors.runAs(ActorProvider.SEED_ACTOR, () -> {
             if (commonPath != null) {
@@ -109,6 +125,24 @@ public class SeedLoader {
                     summary.put(file.getKey(), loadFile(participantPath.resolve(file.getKey()), file.getValue()));
                 }
             }
+            var paths = new SeedContributor.SeedPaths(commonPath, participantPath, documentsPath);
+            contributors
+                    .orderedStream()
+                    .sorted(Comparator.comparingInt(SeedContributor::order))
+                    .forEach(contributor -> {
+                        try {
+                            summary.putAll(contributor.load(paths));
+                        } catch (RuntimeException ex) {
+                            LOG.warn(
+                                    "Seed contributor {} failed: {}",
+                                    contributor.getClass().getSimpleName(),
+                                    ex.getMessage(),
+                                    ex);
+                            summary.put(
+                                    contributor.getClass().getSimpleName(),
+                                    Map.of("error", String.valueOf(ex.getMessage())));
+                        }
+                    });
             transactions.executeWithoutResult(status -> publisher.publishEvent(new MasterdataSeeded(
                     tenant.tenantId(),
                     clock.instant(),

@@ -20,4 +20,11 @@ public interface DocumentStorage {
      * @throws DocumentStorageException if the storage is unavailable
      */
     Optional<StoredDocument> get(String key);
+
+    /**
+     * Whether an object exists under the key.
+     *
+     * @throws DocumentStorageException if the storage is unavailable
+     */
+    boolean exists(String key);
 }

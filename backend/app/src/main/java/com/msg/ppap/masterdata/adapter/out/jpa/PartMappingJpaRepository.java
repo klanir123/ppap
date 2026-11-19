@@ -1,5 +1,6 @@
 package com.msg.ppap.masterdata.adapter.out.jpa;
 
+import com.msg.ppap.masterdata.domain.PartnerRole;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
@@ -22,6 +23,31 @@ interface PartMappingJpaRepository extends JpaRepository<PartMappingEntity, UUID
     boolean existsByTenantIdAndRelationId(String tenantId, UUID relationId);
 
     boolean existsByTenantIdAndPartId(String tenantId, UUID partId);
+
+    List<PartMappingEntity> findByTenantIdAndPartId(String tenantId, UUID partId);
+
+    @Query("""
+            select m from PartMappingEntity m
+            where m.tenantId = :tenant
+              and exists (select 1 from RelationEntity r
+                          where r.tenantId = :tenant and r.id = m.relationId and r.active = true
+                            and (:role is null or r.partnerRole = :role))
+              and (:text is null
+                   or lower(m.partnerPartNumber) like :text escape '\\'
+                   or exists (select 1 from PartEntity p
+                              where p.tenantId = :tenant and p.id = m.partId
+                                and (lower(p.partNumber) like :text escape '\\'
+                                     or lower(p.nameDe) like :text escape '\\'))
+                   or exists (select 1 from RelationEntity r2, PartnerEntity pa
+                              where r2.tenantId = :tenant and r2.id = m.relationId
+                                and pa.tenantId = :tenant and pa.bpnl = r2.partnerBpnl
+                                and (lower(pa.name) like :text escape '\\' or lower(pa.bpnl) like :text escape '\\')))
+            """)
+    Page<PartMappingEntity> searchAll(
+            @Param("tenant") String tenant,
+            @Param("role") PartnerRole role,
+            @Param("text") String text,
+            Pageable pageable);
 
     @Query("""
             select count(m) > 0 from PartMappingEntity m

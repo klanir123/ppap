@@ -2,8 +2,10 @@ package com.msg.ppap.masterdata.application.port.out;
 
 import com.msg.ppap.masterdata.domain.PartMapping;
 import com.msg.ppap.masterdata.domain.PartNumber;
+import com.msg.ppap.masterdata.domain.PartnerRole;
 import com.msg.ppap.platform.domain.Bpns;
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
@@ -32,6 +34,17 @@ public interface PartMappingRepository {
     boolean existsByRelation(UUID relationId);
 
     boolean existsByPart(UUID partId);
+
+    /**
+     * Mappings over all active relations.
+     *
+     * @param partnerRole role of the partner, or {@code null}
+     * @param text filter on partner part number, own part number/name and partner name, or {@code null}
+     */
+    Page<PartMapping> searchAll(PartnerRole partnerRole, String text, Pageable pageable);
+
+    /** All mappings of an own part. */
+    List<PartMapping> findByPart(UUID partId);
 
     boolean existsBySite(Bpns bpns);
 

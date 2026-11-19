@@ -10,6 +10,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
  * @param path participant folder with {@code partners.csv}, {@code sites.csv}, {@code parts.csv},
  *     {@code relations.csv}, {@code part-mappings.csv} ({@code PPAP_SEED_PATH})
  * @param commonPath folder with {@code catalog.json} shared by all participants ({@code PPAP_SEED_COMMON_PATH})
+ * @param documentsPath folder with example documents referenced by seed files ({@code PPAP_SEED_DOCUMENTS_PATH})
  */
 @ConfigurationProperties("ppap.seed")
-public record SeedProperties(boolean enabled, Path path, Path commonPath) {}
+public record SeedProperties(boolean enabled, Path path, Path commonPath, Path documentsPath) {}

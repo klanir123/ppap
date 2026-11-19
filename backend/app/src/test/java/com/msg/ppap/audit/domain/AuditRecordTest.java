@@ -3,6 +3,7 @@ package com.msg.ppap.audit.domain;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 
+import com.msg.ppap.semantics.api.CanonicalJson;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.Instant;

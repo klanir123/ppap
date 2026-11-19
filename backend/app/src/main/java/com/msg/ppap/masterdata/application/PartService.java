@@ -21,11 +21,14 @@ public class PartService extends MasterdataService<Part, PartValues> {
 
     private final PartRepository parts;
     private final PartMappingRepository mappings;
+    private final MasterdataUsages usages;
 
-    public PartService(PartRepository parts, PartMappingRepository mappings, MasterdataEvents events) {
+    public PartService(
+            PartRepository parts, PartMappingRepository mappings, MasterdataUsages usages, MasterdataEvents events) {
         super(events);
         this.parts = parts;
         this.mappings = mappings;
+        this.usages = usages;
     }
 
     @Override
@@ -115,7 +118,6 @@ public class PartService extends MasterdataService<Part, PartValues> {
 
     @Override
     protected boolean isReferenced(Part aggregate) {
-        // TODO(phase-3): also referenced by approval cases
-        return mappings.existsByPart(aggregate.id());
+        return mappings.existsByPart(aggregate.id()) || usages.any(usage -> usage.isPartUsed(aggregate.id()));
     }
 }

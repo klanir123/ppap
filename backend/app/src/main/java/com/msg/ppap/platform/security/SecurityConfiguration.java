@@ -44,6 +44,9 @@ public class SecurityConfiguration {
                         // public endpoints
                         .requestMatchers(HttpMethod.GET, "/api/v1/config")
                         .permitAll()
+                        // public verification key of payload signatures (ADR-0008)
+                        .requestMatchers(HttpMethod.GET, "/.well-known/jwks.json")
+                        .permitAll()
                         .requestMatchers("/actuator/health", "/actuator/health/**", "/actuator/info")
                         .permitAll()
                         .requestMatchers("/v3/api-docs", "/v3/api-docs/**", "/swagger-ui.html", "/swagger-ui/**")
@@ -103,8 +106,9 @@ public class SecurityConfiguration {
         var config = new CorsConfiguration();
         config.setAllowedOrigins(cors.allowedOrigins());
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
-        config.setAllowedHeaders(List.of("Authorization", "Content-Type", "Accept", "X-Correlation-Id"));
-        config.setExposedHeaders(List.of("X-Correlation-Id", "Location", "Content-Disposition"));
+        config.setAllowedHeaders(List.of("Authorization", "Content-Type", "Accept", "X-Correlation-Id", "If-Match"));
+        config.setExposedHeaders(List.of(
+                "X-Correlation-Id", "Location", "Content-Disposition", "ETag", "X-Payload-Hash", "X-Signature"));
         config.setMaxAge(Duration.ofHours(1));
         source.registerCorsConfiguration("/api/**", config);
         return source;

@@ -7,6 +7,7 @@ import com.msg.ppap.masterdata.domain.SubmissionLevel;
 import com.msg.ppap.masterdata.domain.SubmissionLevelValues;
 import com.msg.ppap.platform.domain.FieldViolation;
 import com.msg.ppap.platform.domain.PpapException;
+import com.msg.ppap.platform.domain.ReferencedException;
 import com.msg.ppap.platform.domain.ValidationException;
 import com.msg.ppap.platform.domain.ViolationCodes;
 import java.util.List;
@@ -24,10 +25,12 @@ import org.springframework.transaction.annotation.Transactional;
 public class SubmissionLevelService extends MasterdataService<SubmissionLevel, SubmissionLevelValues> {
 
     private final CatalogRepository catalog;
+    private final MasterdataUsages usages;
 
-    public SubmissionLevelService(CatalogRepository catalog, MasterdataEvents events) {
+    public SubmissionLevelService(CatalogRepository catalog, MasterdataUsages usages, MasterdataEvents events) {
         super(events);
         this.catalog = catalog;
+        this.usages = usages;
     }
 
     @Override
@@ -119,6 +122,15 @@ public class SubmissionLevelService extends MasterdataService<SubmissionLevel, S
 
     @Override
     protected boolean isReferenced(SubmissionLevel aggregate) {
-        return false; // TODO(phase-3): referenced by approval cases
+        String code = aggregate.values().code().value();
+        return usages.any(usage -> usage.isLevelUsed(code));
+    }
+
+    @Override
+    protected void checkKeyChange(SubmissionLevel existing, SubmissionLevelValues newValues) {
+        if (isReferenced(existing)) {
+            throw new ReferencedException(
+                    "Code of level '" + existing.businessKey() + "' cannot change: used by approval cases");
+        }
     }
 }
