@@ -49,3 +49,10 @@ Neue Schritt-Typen im `ExchangeRecord`: `DTR_LOOKUP`, `SHELL_DESCRIPTOR`, `SUBMO
 
 ## Konfiguration (Env)
 `PPAP_DTR_URL` (intern, Backend), `PPAP_DTR_PUBLIC_URL` (für Asset-DataAddress, aus Sicht der eigenen Data Plane), `PPAP_DTR_CLIENT_ID`/`SECRET` (Backend, `ppap-backend-dtr`), `PPAP_DTR_EDC_CLIENT_ID`/`SECRET` (für die DataAddress, `ppap-edc-dtr`), `PPAP_EDC_DATAPLANE_PUBLIC_URL` (eigene Data Plane, für Submodel-`href`), `PPAP_PULL_POLL_INTERVAL`.
+
+## Ergänzungen (Abstimmung Frontend, Phase 5)
+1. Dokument-Referenz: zusätzlich `transferError` (Fehlercode, nur bei `FAILED`).
+2. `GET /exchange/messages` filtert zusätzlich nach `messageType` (mehrfach).
+3. `POST …/documents/{sha256}/fetch` erwartet den reinen 64-stelligen Hex-Hash ohne Präfix `sha256:`.
+4. `GET /twins/{exchangeId}` → `{ exchangeId, caseId, registeredAt, updatedAt, shell: <AAS-3.0-ShellDescriptor wie in der DTR registriert> }`, `404` ohne Twin.
+5. Austauschschritte erhalten `target` (`DTR`, `SUBMODEL`, `DOCUMENT`, `NOTIFICATION`, `PUBLIC_KEYS`) und optional `targetRef` (z. B. SHA-256, Asset-ID): Ein Abruf durchläuft Katalog/Verhandlung/Transfer/EDR legitim mehrfach (je Asset); echte Wiederholungen erhöhen `attempt`.
