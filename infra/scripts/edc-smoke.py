@@ -129,8 +129,11 @@ def run(provider_name, consumer_name):
         _, edrs = call(consumer["mgmt"], "POST", "/v3/edrs/request", {
             "@context": {"@vocab": EDC_NS}, "@type": "QuerySpec",
             "filterExpression": [{"operandLeft": "assetId", "operator": "=", "operandRight": asset_id}]})
-        if edrs:
-            tp_id = edrs[-1].get("transferProcessId")
+        # use the EDR of THIS negotiation – older EDRs of the asset may carry tokens signed with keys
+        # that no longer exist (e.g. after a vault restart in dev mode)
+        fresh = [e for e in (edrs or []) if e.get("contractNegotiationId") == created.get("@id")]
+        if fresh:
+            tp_id = fresh[-1].get("transferProcessId")
             break
         time.sleep(1)
     if not tp_id:
