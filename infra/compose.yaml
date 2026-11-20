@@ -126,6 +126,8 @@ x-app-env: &app-env
 
 x-dtr-service: &dtr-service
   image: tractusx/sldt-digital-twin-registry:${DTR_VERSION:-0.13.0}
+  # the DTR image is published for amd64 only; on Apple Silicon Docker Desktop runs it via Rosetta emulation
+  platform: linux/amd64
   restart: unless-stopped
   mem_limit: 768m
 

@@ -6,7 +6,7 @@ Digitaler, strukturierter PPAP/PPF-Datenaustausch zwischen OEMs und Zulieferern 
 
 ## Schnellstart
 
-Voraussetzungen: Docker (Compose v2), Java 25 (Temurin), Node 22, Python 3, `make`. Ca. 6 GB freier RAM (Vollausbau gemessen: 4,4 GiB).
+Voraussetzungen: Docker (Compose v2), Java 25 (Temurin), Node 22, Python 3, `make`. Ca. 6 GB freier RAM (Vollausbau gemessen: 4,4 GiB). Schritt-für-Schritt-Anleitung für macOS, Windows (WSL2) und Linux inkl. Rundgang und Fehlerbehebung: **[docs/LOCAL-SETUP.md](docs/LOCAL-SETUP.md)**.
 
 ```bash
 make up
@@ -54,6 +54,7 @@ docs/               Architektur, ADRs, Use Cases, Backlog, Versionen
 
 | Dokument | Inhalt |
 |---|---|
+| [docs/LOCAL-SETUP.md](docs/LOCAL-SETUP.md) | Betrieb auf dem eigenen Notebook: Voraussetzungen je Betriebssystem, Start, Logins, Rundgang, Fehlerbehebung |
 | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | Architektur (arc42-light): Kontext, Container, Module, Sequenzen Push/Pull, Deployment, Risiken, Phasenplan |
 | [docs/adr/](docs/adr/README.md) | Architekturentscheidungen 0001–0008 |
 | [docs/use-cases/](docs/use-cases/README.md) | UC-01 … UC-12 inkl. Diagramm und Akzeptanzkriterien |
