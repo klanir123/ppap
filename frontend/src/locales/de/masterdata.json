@@ -146,7 +146,8 @@
       "appliesNext": "Eine Änderung gilt ab der nächsten Einreichung; bereits eingereichte Revisionen behalten ihren Modus.",
       "documents": "Dokumente ruft der Partner in allen Modi über Catena-X ab und prüft sie per SHA-256.",
       "supplierHint": "Bei Lieferanten bestimmt der Lieferant, wie er bereitstellt – Ihr System empfängt alle Modi. Die Einstellung wirkt nur in Beziehungen, in denen Sie liefern."
-    }
+    },
+    "policyProfileHint": "Bestimmt Zugriffs- und Nutzungsbedingungen der partnerspezifischen Angebote. Änderungen werden sofort im eigenen Connector angewendet."
   },
   "partMappings": {
     "title": "Teilezuordnungen",
@@ -259,5 +260,84 @@
       "SEEDED": "Geseedet"
     },
     "businessKey": "Fachlicher Schlüssel"
+  },
+  "policyProfiles": {
+    "title": "Policy-Profile",
+    "description": "Zugriffs- und Nutzungsbedingungen, die Ihr Connector je Partnerbeziehung anbietet. Jede Änderung wird sofort im eigenen EDC nachgezogen.",
+    "glossary": "Begriffe:",
+    "new": "Neues Profil",
+    "newDescription": "Legen Sie ein weiteres Profil an und ordnen Sie es anschließend Beziehungen zu.",
+    "open": "Öffnen",
+    "empty": "Keine Policy-Profile",
+    "emptyDescription": "Das Profil „default“ wird beim Start aus den Seed-Daten angelegt.",
+    "notFound": "Policy-Profil nicht gefunden",
+    "created": "Profil {{name}} angelegt",
+    "saved": "Profil {{name}} gespeichert",
+    "versionLabel": "Version {{version}}",
+    "updatedAt": "geändert {{at}}",
+    "unsaved": "Ungespeicherte Änderungen",
+    "applyTitle": "Wirkt sofort im Connector",
+    "applyHint": "Beim Speichern erzeugt der Connector neue Policies (mit Inhalts-Hash) und hängt die Contract Definitions aller Beziehungen mit diesem Profil um. Partner sehen die neuen Bedingungen beim nächsten Katalogabruf.",
+    "access": {
+      "BPN_GROUP": "Partnergruppe (BPN-Gruppe)",
+      "BPN": "Einzelner Partner (BPNL)"
+    },
+    "columns": {
+      "code": "Code",
+      "name": "Name",
+      "access": "Zugriff",
+      "membership": "Catena-X-Mitgliedschaft erforderlich",
+      "usage": "Nutzung",
+      "active": "Status",
+      "version": "Version"
+    },
+    "form": {
+      "label": "Policy-Profil bearbeiten",
+      "code": "Code",
+      "codeHint": "Kleinbuchstaben, Ziffern, - und _; nach dem Anlegen nicht änderbar.",
+      "name": "Name",
+      "description": "Beschreibung",
+      "accessTitle": "Zugriff – wer sieht das Angebot?",
+      "accessHint": "Die Zugriffs-Policy entscheidet, ob ein Partner das Angebot überhaupt im Katalog sieht.",
+      "accessType": "Zugriff über",
+      "accessTypeHint": "Partnergruppe: alle Partner der Gruppe „ppap-partners“. Einzelner Partner: nur die BPNL der jeweiligen Beziehung.",
+      "membership": "Catena-X-Mitgliedschaft erforderlich",
+      "membershipHint": "Nur Teilnehmer mit gültigem Membership Credential erhalten Zugriff.",
+      "usageTitle": "Nutzung – wofür dürfen die Daten verwendet werden?",
+      "usageHint": "Die Nutzungs-Policy wird Teil des Vertrags (Contract Agreement) mit dem Partner.",
+      "frameworkAgreement": "Rahmenvertrag (FrameworkAgreement)",
+      "frameworkAgreementHint": "z. B. DataExchangeGovernance:1.0",
+      "usagePurposes": "Nutzungszwecke (UsagePurpose)",
+      "usagePurposesHint": "Format: cx.<bereich>.<zweck>:<version>, z. B. cx.quality.base:1. Enter fügt hinzu.",
+      "noPurposes": "Noch kein Nutzungszweck",
+      "addPurpose": "Hinzufügen",
+      "removePurpose": "{{purpose}} entfernen",
+      "active": "Aktiv",
+      "activeHint": "Inaktive Profile können keiner Beziehung neu zugeordnet werden.",
+      "defaultProtected": "Das Standardprofil „default“ ist immer aktiv und kann nicht gelöscht werden."
+    },
+    "preview": {
+      "title": "ODRL-Vorschau",
+      "description": "So legt der Connector die Policies im EDC an (JSON-LD).",
+      "dirty": "Vorschau des gespeicherten Stands – speichern Sie, um Ihre Änderungen zu sehen.",
+      "refresh": "Vorschau aktualisieren",
+      "error": "Vorschau konnte nicht geladen werden.",
+      "empty": "Keine Policies erzeugt.",
+      "policy": "Policy {{index}}",
+      "copy": "{{title}} kopieren",
+      "kinds": {
+        "USAGE": "Nutzungs-Policy",
+        "ACCESS_PARTNER": "Zugriffs-Policy (partnerspezifische Angebote)",
+        "ACCESS_SHARED": "Zugriffs-Policy (gemeinsame Angebote)"
+      },
+      "relations": "Verwendet von: {{relations}}"
+    },
+    "reconciliation": {
+      "applied": "Im Connector angewendet.",
+      "pending": "Wird im Connector angewendet …",
+      "failed": "Anwenden im Connector fehlgeschlagen – der nächste Abgleich versucht es erneut.",
+      "policies_one": "{{count}} Policy, {{definitions}} Contract Definitions aktiv.",
+      "policies_other": "{{count}} Policies, {{definitions}} Contract Definitions aktiv."
+    }
   }
 }

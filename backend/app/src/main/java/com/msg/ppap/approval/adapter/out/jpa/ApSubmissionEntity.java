@@ -65,6 +65,10 @@ class ApSubmissionEntity {
     @Column(name = "exchange_mode")
     String exchangeMode;
 
+    @ColumnTransformer(write = "?::jsonb")
+    @Column(name = "sub_supplier_references", columnDefinition = "jsonb", nullable = false)
+    String subSupplierReferences;
+
     @Column(name = "updated_at", nullable = false)
     Instant updatedAt;
 

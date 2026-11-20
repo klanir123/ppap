@@ -81,7 +81,10 @@ Offen/Backlog: bediente Abrufe als Audit-Ereignis statt nur Log; doppelte DTR-Ab
 | E4-04 | Moduswahl je Beziehung (PUSH / PULL / PUSH_NOTIFY_PULL_PAYLOAD) | M | 3 |
 | E4-05 | ADR-0002 mit Messwerten (Latenz, Anzahl EDC-Schritte) aktualisieren → Input für Expert Group | S | 2 |
 
-## Epic E5 – Kaskade und Transparenz (Phase 6, UC-09–12)
+## Epic E5 – Kaskade und Transparenz (Phase 6, UC-09–12) ✅ abgeschlossen 20.11.2026
+
+Zusätzlich: Herkunftsprüfung für Dokumente von Unterlieferanten, `reconciliation`-Rückmeldung bei Policy-Änderungen, Audit `SERVED_TO_PARTNER`, Ersetzen bestehender Teilezuordnungen, erneute Signaturprüfung.
+Offen/Backlog: Audit-Export als PDF; Pseudonymisierung der Unterlieferanten-BPNL (`TODO(EG)`); EDC-Version im Cockpit (Management API liefert keine).
 
 | ID | Story | Prio | SP |
 |---|---|---|---|

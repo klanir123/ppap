@@ -64,6 +64,17 @@ export async function apiFetchResponse(url: string, options: RequestInit = {}): 
   return response
 }
 
+/** JSON request init (method + body + Content-Type), merged with extra headers such as `If-Match`. */
+export function jsonInit(method: string, body?: unknown, headers?: Record<string, string | undefined>): ApiRequestInit {
+  const clean = Object.fromEntries(Object.entries(headers ?? {}).filter(([, v]) => v !== undefined)) as Record<
+    string,
+    string
+  >
+  return body === undefined
+    ? { method, headers: clean }
+    : { method, headers: { 'Content-Type': 'application/json', ...clean }, body: JSON.stringify(body) }
+}
+
 export default apiFetch
 
 /** Picked up by orval: the error type of all generated hooks. */

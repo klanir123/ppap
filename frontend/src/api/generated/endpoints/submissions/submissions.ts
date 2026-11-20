@@ -36,6 +36,8 @@ import type {
   PreviewExcelImportBody,
   PreviewExcelImportParams,
   ProblemDetail,
+  ReplaceSubSupplierReferencesHeaders,
+  SubSupplierReferencesRequest,
   SubmissionDto,
   SubmissionSummaryDto,
   SubmitDraftHeaders,
@@ -899,6 +901,96 @@ export const usePreviewExcelImport = <TError = ErrorType<ProblemDetail>, TContex
 > => {
   return useMutation(getPreviewExcelImportMutationOptions(options), queryClient)
 }
+export const getReplaceSubSupplierReferencesUrl = (id: string) => {
+  return `/api/v1/approval-cases/${id}/submissions/draft/sub-supplier-references`
+}
+
+/**
+ * @summary Cascade (UC-09): references of the draft to own, approved sub-supplier cases (If-Match); 422 SUB_SUPPLIER_REFERENCE_INVALID otherwise
+ */
+export const replaceSubSupplierReferences = async (
+  id: string,
+  subSupplierReferencesRequest: SubSupplierReferencesRequest,
+  headers?: ReplaceSubSupplierReferencesHeaders,
+  options?: Parameters<typeof apiFetch>[1],
+): Promise<SubmissionDto> => {
+  return apiFetch<SubmissionDto>(getReplaceSubSupplierReferencesUrl(id), {
+    ...options,
+    method: 'PUT',
+    headers: getHeaders({ 'Content-Type': 'application/json' }, headers, options?.headers),
+    body: JSON.stringify(subSupplierReferencesRequest),
+  })
+}
+
+export const getReplaceSubSupplierReferencesMutationKey = () => ['replaceSubSupplierReferences'] as const
+
+export const getReplaceSubSupplierReferencesMutationOptions = <
+  TError = ErrorType<ProblemDetail>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof replaceSubSupplierReferences>>,
+    TError,
+    ReplaceSubSupplierReferencesMutationVariables,
+    TContext
+  >
+  request?: SecondParameter<typeof apiFetch>
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof replaceSubSupplierReferences>>,
+  TError,
+  ReplaceSubSupplierReferencesMutationVariables,
+  TContext
+> => {
+  const mutationKey = getReplaceSubSupplierReferencesMutationKey()
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined }
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof replaceSubSupplierReferences>>,
+    ReplaceSubSupplierReferencesMutationVariables
+  > = (props) => {
+    const { id, data, headers } = props ?? {}
+
+    return replaceSubSupplierReferences(id, data, headers, requestOptions)
+  }
+
+  return { mutationFn, ...mutationOptions }
+}
+
+export type ReplaceSubSupplierReferencesMutationResult = NonNullable<
+  Awaited<ReturnType<typeof replaceSubSupplierReferences>>
+>
+export type ReplaceSubSupplierReferencesMutationBody = SubSupplierReferencesRequest
+export type ReplaceSubSupplierReferencesMutationError = ErrorType<ProblemDetail>
+export type ReplaceSubSupplierReferencesMutationVariables = {
+  id: string
+  data: SubSupplierReferencesRequest
+  headers?: ReplaceSubSupplierReferencesHeaders
+}
+
+/** @summary Cascade (UC-09): references of the draft to own, approved sub-supplier cases (If-Match); 422 SUB_SUPPLIER_REFERENCE_INVALID otherwise */
+export const useReplaceSubSupplierReferences = <TError = ErrorType<ProblemDetail>, TContext = unknown>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof replaceSubSupplierReferences>>,
+      TError,
+      ReplaceSubSupplierReferencesMutationVariables,
+      TContext
+    >
+    request?: SecondParameter<typeof apiFetch>
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<ReturnType<typeof replaceSubSupplierReferences>>,
+  TError,
+  ReplaceSubSupplierReferencesMutationVariables,
+  TContext
+> => {
+  return useMutation(getReplaceSubSupplierReferencesMutationOptions(options), queryClient)
+}
 export const getSubmitDraftUrl = (id: string) => {
   return `/api/v1/approval-cases/${id}/submissions/draft/submit`
 }
@@ -1340,4 +1432,86 @@ export function useGetSubmissionPayload<
   }
 
   return withQueryKey(query, queryOptions.queryKey)
+}
+
+export const getVerifySubmissionSignatureUrl = (id: string, revision: number) => {
+  return `/api/v1/approval-cases/${id}/submissions/${revision}/verify-signature`
+}
+
+/**
+ * @summary Verify the signature of a received revision again (UNVERIFIED: the partner keys are fetched via EDC first)
+ */
+export const verifySubmissionSignature = async (
+  id: string,
+  revision: number,
+  options?: Parameters<typeof apiFetch>[1],
+): Promise<SubmissionDto> => {
+  return apiFetch<SubmissionDto>(getVerifySubmissionSignatureUrl(id, revision), {
+    ...options,
+    method: 'POST',
+  })
+}
+
+export const getVerifySubmissionSignatureMutationKey = () => ['verifySubmissionSignature'] as const
+
+export const getVerifySubmissionSignatureMutationOptions = <
+  TError = ErrorType<ProblemDetail>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof verifySubmissionSignature>>,
+    TError,
+    VerifySubmissionSignatureMutationVariables,
+    TContext
+  >
+  request?: SecondParameter<typeof apiFetch>
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof verifySubmissionSignature>>,
+  TError,
+  VerifySubmissionSignatureMutationVariables,
+  TContext
+> => {
+  const mutationKey = getVerifySubmissionSignatureMutationKey()
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined }
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof verifySubmissionSignature>>,
+    VerifySubmissionSignatureMutationVariables
+  > = (props) => {
+    const { id, revision } = props ?? {}
+
+    return verifySubmissionSignature(id, revision, requestOptions)
+  }
+
+  return { mutationFn, ...mutationOptions }
+}
+
+export type VerifySubmissionSignatureMutationResult = NonNullable<Awaited<ReturnType<typeof verifySubmissionSignature>>>
+
+export type VerifySubmissionSignatureMutationError = ErrorType<ProblemDetail>
+export type VerifySubmissionSignatureMutationVariables = { id: string; revision: number }
+
+/** @summary Verify the signature of a received revision again (UNVERIFIED: the partner keys are fetched via EDC first) */
+export const useVerifySubmissionSignature = <TError = ErrorType<ProblemDetail>, TContext = unknown>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof verifySubmissionSignature>>,
+      TError,
+      VerifySubmissionSignatureMutationVariables,
+      TContext
+    >
+    request?: SecondParameter<typeof apiFetch>
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<ReturnType<typeof verifySubmissionSignature>>,
+  TError,
+  VerifySubmissionSignatureMutationVariables,
+  TContext
+> => {
+  return useMutation(getVerifySubmissionSignatureMutationOptions(options), queryClient)
 }

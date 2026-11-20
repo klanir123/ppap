@@ -5,9 +5,14 @@
  * REST API of the msg CX PPAP Connector backend.
  * OpenAPI spec version: v1
  */
+import type { PartnerStatsDtoExchangeHealth } from './partnerStatsDtoExchangeHealth'
 
 export interface PartnerStatsDto {
   bpnl: string
+  /** Exchange health of the last 24 h: FAILING (failed/rejected messages), DEGRADED (retries, long pending messages) or OK */
+  exchangeHealth?: PartnerStatsDtoExchangeHealth
+  /** Last message exchanged with the partner */
+  lastExchangeAt?: string
   name: string
   open: number
   overdue: number

@@ -14,6 +14,9 @@ import {
 import { problemCode } from '../components/problem'
 import { normalizePointer, type SchemaError } from '../schema-form/schema'
 
+/** Save-status key of the sub-supplier references (not an element code). */
+export const SUB_SUPPLIER_REFERENCES = '__subSupplierReferences'
+
 export type SaveState = 'idle' | 'saving' | 'saved' | 'error' | 'conflict' | 'invalid'
 
 export interface ElementSaveStatus {
@@ -110,6 +113,15 @@ export function useDraftSaver(caseId: string, initialVersion: number) {
     [caseId, enqueue],
   )
 
+  /** Referenced sub-supplier cases of the draft (UC-09); status key `SUB_SUPPLIER_REFERENCES`. */
+  const saveSubSupplierReferences = useCallback(
+    (childCaseIds: string[]) =>
+      enqueue(SUB_SUPPLIER_REFERENCES, (version) =>
+        approvalsApi.putSubSupplierReferences(caseId, childCaseIds, version),
+      ),
+    [caseId, enqueue],
+  )
+
   /** After a conflict: reload the server state (discarding local edits of the element). */
   const reload = useCallback(
     async (code: string) => {
@@ -157,6 +169,7 @@ export function useDraftSaver(caseId: string, initialVersion: number) {
     saveElement,
     addDocument,
     removeDocument,
+    saveSubSupplierReferences,
     reload,
     overwrite,
     refreshVersion,

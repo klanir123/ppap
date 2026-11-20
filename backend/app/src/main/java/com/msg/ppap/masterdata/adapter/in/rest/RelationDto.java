@@ -19,9 +19,18 @@ public record RelationDto(
         @Schema(requiredMode = Schema.RequiredMode.REQUIRED) long version,
         @Schema(requiredMode = Schema.RequiredMode.REQUIRED) long mappingCount,
         Instant createdAt,
-        Instant updatedAt) {
+        Instant updatedAt,
+
+        @Schema(
+                description = "Effect on the offers of the own EDC (only when a write changed policyProfile or"
+                        + " exchangeMode, otherwise null)")
+        ReconciliationDto reconciliation) {
 
     static RelationDto from(RelationView view) {
+        return from(view, null);
+    }
+
+    static RelationDto from(RelationView view, ReconciliationDto reconciliation) {
         var relation = view.relation();
         var v = relation.values();
         var m = relation.metadata();
@@ -36,6 +45,7 @@ public record RelationDto(
                 m.version(),
                 view.mappingCount(),
                 m.createdAt(),
-                m.updatedAt());
+                m.updatedAt(),
+                reconciliation);
     }
 }

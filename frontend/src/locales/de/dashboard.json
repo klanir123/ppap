@@ -9,9 +9,15 @@
     "open": "Offene Vorgänge",
     "approvalRate": "Freigabequote",
     "overdueHint": "Termin überschritten – bitte nachfassen",
-    "leadTime": "Ø Durchlaufzeit {{days}} Tage",
     "approved30_one": "{{count}} Freigabe (30 Tage)",
-    "approved30_other": "{{count}} Freigaben (30 Tage)"
+    "approved30_other": "{{count}} Freigaben (30 Tage)",
+    "leadTimeLabel": "Ø Durchlaufzeit",
+    "days_one": "{{value}} Tag",
+    "days_other": "{{value}} Tage",
+    "leadTimeHint": "Anforderung → Entscheidung, letzte 12 Monate",
+    "blockingChildren": "Blockierende Unterlieferanten-Vorgänge",
+    "blockingChildrenHint": "Eigene Einreichung wartet auf Unterlieferanten",
+    "blockingChildrenNone": "Keine offenen Unterlieferanten-Vorgänge"
   },
   "recent": {
     "title": "Aktuelle Freigabevorgänge",
@@ -32,10 +38,20 @@
   },
   "partners": {
     "title": "Status je Partner",
-    "description": "Offene und überfällige Vorgänge je Geschäftspartner",
+    "description": "Offene Vorgänge und Zustand des Datenaustauschs je Geschäftspartner (letzte 24 Stunden)",
     "empty": "Noch keine Vorgänge mit Partnern.",
     "partner": "Partner",
     "open": "Offen",
-    "overdue": "Überfällig"
+    "overdue": "Überfällig",
+    "exchange": "Austausch",
+    "lastExchange": "Letzter Austausch",
+    "noExchange": "Noch kein Austausch"
+  },
+  "activity": {
+    "title": "Aktivitäten",
+    "description": "Letzte Ereignisse in allen Vorgängen – live aktualisiert",
+    "error": "Aktivitäten konnten nicht geladen werden.",
+    "empty": "Noch keine Aktivitäten.",
+    "partner": "mit {{partner}}"
   }
 }

@@ -54,4 +54,7 @@ public record ApprovalCaseDto(
         ClarificationDto clarification,
 
         @Schema(description = "Latest message sent to the partner, null if none")
-        LastOutboundDto lastOutbound) {}
+        LastOutboundDto lastOutbound,
+
+        @Schema(description = "Parent case id of a sub-supplier request (UC-09), null otherwise")
+        UUID parentCaseId) {}

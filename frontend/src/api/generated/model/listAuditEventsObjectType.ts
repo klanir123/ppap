@@ -20,4 +20,6 @@ export const ListAuditEventsObjectType = {
   SEED: 'SEED',
   APPROVAL_CASE: 'APPROVAL_CASE',
   DOCUMENT: 'DOCUMENT',
+  POLICY_PROFILE: 'POLICY_PROFILE',
+  PUBLIC_KEYS: 'PUBLIC_KEYS',
 } as const

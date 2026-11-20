@@ -139,6 +139,7 @@ describe('status helpers', () => {
     expect(elementState('REQUIRED', element, 0)).toBe('complete')
     const map = issuesByElement({
       complete: false,
+      hints: [],
       requiredDone: 0,
       requiredTotal: 2,
       issues: [

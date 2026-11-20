@@ -5,6 +5,7 @@ import com.msg.ppap.approval.application.CaseCommands;
 import com.msg.ppap.approval.application.CaseView;
 import com.msg.ppap.approval.application.ElementInput;
 import com.msg.ppap.approval.application.ReviewService;
+import com.msg.ppap.approval.application.SubmissionService;
 import com.msg.ppap.approval.application.port.out.CaseQuery;
 import com.msg.ppap.approval.domain.CaseRole;
 import com.msg.ppap.approval.domain.CaseStatus;
@@ -50,10 +51,12 @@ public class ApprovalCaseController {
 
     private final ApprovalCaseService cases;
     private final ReviewService reviews;
+    private final SubmissionService submissions;
 
-    public ApprovalCaseController(ApprovalCaseService cases, ReviewService reviews) {
+    public ApprovalCaseController(ApprovalCaseService cases, ReviewService reviews, SubmissionService submissions) {
         this.cases = cases;
         this.reviews = reviews;
+        this.submissions = submissions;
     }
 
     @GetMapping
@@ -80,6 +83,14 @@ public class ApprovalCaseController {
         return ApprovalDtos.stats(cases.statistics());
     }
 
+    @GetMapping("/{id}/sub-supplier-candidates")
+    @Operation(
+            operationId = "listSubSupplierCandidates",
+            summary = "Cascade (UC-09): decided sub-supplier requests of the case (approvals can be referenced)")
+    public List<SubSupplierCandidateDto> subSupplierCandidates(@PathVariable UUID id) {
+        return submissions.candidates(id).stream().map(ApprovalDtos::candidate).toList();
+    }
+
     @GetMapping("/{id}")
     @Operation(
             operationId = "getApprovalCase",
@@ -101,6 +112,29 @@ public class ApprovalCaseController {
                 request.dueDate(),
                 request.remarks(),
                 elements(request.elements())));
+        return created(view);
+    }
+
+    @PostMapping("/{parentId}/sub-requests")
+    @CreatedResponse
+    @PreAuthorize(ApprovalRest.ANY_QUALITY)
+    @Operation(
+            operationId = "createSubRequest",
+            summary = "Cascade (UC-09): request the approval of an own sub-part from a supplier out of a case in which"
+                    + " the own tenant is supplier (REQUESTED / IN_PROGRESS); new customer draft linked to the parent;"
+                    + " requires SUPPLIER_QUALITY_MANAGER and CUSTOMER_QUALITY_ENGINEER")
+    public ResponseEntity<ApprovalCaseDetailDto> createSubRequest(
+            @PathVariable UUID parentId, @RequestBody CreateApprovalCaseRequest request) {
+        CaseView view = cases.createSubRequest(
+                parentId,
+                new CaseCommands.Create(
+                        request.partId(),
+                        request.relationId(),
+                        request.reasonCode(),
+                        request.levelCode(),
+                        request.dueDate(),
+                        request.remarks(),
+                        elements(request.elements())));
         return created(view);
     }
 
@@ -213,6 +247,7 @@ public class ApprovalCaseController {
                 id,
                 request.partId(),
                 !Boolean.FALSE.equals(request.saveMapping()),
+                Boolean.TRUE.equals(request.replaceExistingMapping()),
                 ApprovalRest.expectedVersion(ifMatch)));
     }
 

@@ -1,5 +1,16 @@
 import { useNavigate } from '@tanstack/react-router'
-import { Ban, ClipboardCheck, FilePlus2, Loader2, PackageOpen, Pencil, Play, Send, type LucideIcon } from 'lucide-react'
+import {
+  Ban,
+  ClipboardCheck,
+  FilePlus2,
+  GitBranchPlus,
+  Loader2,
+  PackageOpen,
+  Pencil,
+  Play,
+  Send,
+  type LucideIcon,
+} from 'lucide-react'
 import { useId, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
@@ -18,6 +29,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { useCurrentUser } from '@/features/auth/current-user'
 
 import { useCancelCase, useNewRevision, useTransition, type ApprovalCase, type CaseAction } from '../api'
+import { canRequestSubSupplier } from '../cascade/cascade-model'
 import { availableWorkspace, permittedActions } from '../model/actions'
 import { problemMessage, toastProblem } from './problem'
 
@@ -73,6 +85,13 @@ export function CaseActions({ approvalCase }: { approvalCase: ApprovalCase }) {
     })
   if (workspace === 'package')
     buttons.push({ key: 'package', label: t('actions.openPackage'), icon: PackageOpen, onClick: goPackage })
+  if (canRequestSubSupplier(approvalCase, me.roles))
+    buttons.push({
+      key: 'sub-request',
+      label: t('cascade.request.action'),
+      icon: GitBranchPlus,
+      onClick: () => void navigate({ to: '/approvals/new', search: { parentId: id } }),
+    })
   if (has('START_REVIEW'))
     buttons.push({
       key: 'start-review',

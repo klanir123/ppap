@@ -1,6 +1,7 @@
 package com.msg.ppap.approval.adapter.out.jpa;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.msg.ppap.approval.domain.DecisionResult;
 import com.msg.ppap.approval.domain.DocumentRef;
 import com.msg.ppap.approval.domain.ElementEvidence;
 import com.msg.ppap.approval.domain.ElementFinding;
@@ -10,6 +11,7 @@ import com.msg.ppap.approval.domain.FindingResult;
 import com.msg.ppap.approval.domain.RequestedElement;
 import com.msg.ppap.approval.domain.Requirement;
 import com.msg.ppap.approval.domain.SelfAssessment;
+import com.msg.ppap.approval.domain.SubSupplierReference;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
@@ -58,6 +60,60 @@ final class ApprovalJson {
 
     @JsonInclude(JsonInclude.Include.NON_NULL)
     record FindingJson(String code, String result, String comment) {}
+
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    record ReferenceJson(
+            UUID childCaseId,
+            String subSupplierBpnl,
+            String subSupplierName,
+            UUID exchangeId,
+            String caseNumber,
+            String partNumber,
+            String partName,
+            String supplierPartNumber,
+            int revision,
+            String decisionResult,
+            Instant decidedAt,
+            String decisionHash,
+            java.time.LocalDate conditionDueDate) {}
+
+    static String references(List<SubSupplierReference> references) {
+        return write(references.stream()
+                .map(r -> new ReferenceJson(
+                        r.childCaseId(),
+                        r.subSupplierBpnl(),
+                        r.subSupplierName(),
+                        r.exchangeId(),
+                        r.caseNumber(),
+                        r.partNumber(),
+                        r.partName(),
+                        r.supplierPartNumber(),
+                        r.revision(),
+                        r.decisionResult().name(),
+                        r.decidedAt(),
+                        r.decisionHash(),
+                        r.conditionDueDate()))
+                .toList());
+    }
+
+    static List<SubSupplierReference> references(String json) {
+        return read(json, new TypeReference<List<ReferenceJson>>() {}).stream()
+                .map(r -> new SubSupplierReference(
+                        r.childCaseId(),
+                        r.subSupplierBpnl(),
+                        r.subSupplierName(),
+                        r.exchangeId(),
+                        r.caseNumber(),
+                        r.partNumber(),
+                        r.partName(),
+                        r.supplierPartNumber(),
+                        r.revision(),
+                        DecisionResult.valueOf(r.decisionResult()),
+                        r.decidedAt(),
+                        r.decisionHash(),
+                        r.conditionDueDate()))
+                .toList();
+    }
 
     static String requestElements(List<RequestedElement> elements) {
         return write(elements.stream()

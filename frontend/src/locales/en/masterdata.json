@@ -146,7 +146,8 @@
       "appliesNext": "A change applies from the next submission; revisions already submitted keep their mode.",
       "documents": "In all modes, the partner retrieves documents via Catena-X and verifies them by SHA-256.",
       "supplierHint": "For suppliers, the supplier decides how to provide – your system receives all modes. The setting only takes effect in relationships in which you supply."
-    }
+    },
+    "policyProfileHint": "Defines access and usage terms of the partner-specific offers. Changes are applied to your own connector immediately."
   },
   "partMappings": {
     "title": "Part mappings",
@@ -259,5 +260,84 @@
       "SEEDED": "Seeded"
     },
     "businessKey": "Business key"
+  },
+  "policyProfiles": {
+    "title": "Policy profiles",
+    "description": "Access and usage terms your connector offers per partner relation. Every change is applied to your own EDC immediately.",
+    "glossary": "Terms:",
+    "new": "New profile",
+    "newDescription": "Create another profile and assign it to relations afterwards.",
+    "open": "Open",
+    "empty": "No policy profiles",
+    "emptyDescription": "The profile “default” is created from the seed data at start-up.",
+    "notFound": "Policy profile not found",
+    "created": "Profile {{name}} created",
+    "saved": "Profile {{name}} saved",
+    "versionLabel": "Version {{version}}",
+    "updatedAt": "changed {{at}}",
+    "unsaved": "Unsaved changes",
+    "applyTitle": "Takes effect in the connector immediately",
+    "applyHint": "On save the connector creates new policies (with content hash) and re-points the contract definitions of all relations using this profile. Partners see the new terms with their next catalog request.",
+    "access": {
+      "BPN_GROUP": "Partner group (BPN group)",
+      "BPN": "Single partner (BPNL)"
+    },
+    "columns": {
+      "code": "Code",
+      "name": "Name",
+      "access": "Access",
+      "membership": "Catena-X membership required",
+      "usage": "Usage",
+      "active": "Status",
+      "version": "Version"
+    },
+    "form": {
+      "label": "Edit policy profile",
+      "code": "Code",
+      "codeHint": "Lower-case letters, digits, - and _; cannot be changed after creation.",
+      "name": "Name",
+      "description": "Description",
+      "accessTitle": "Access – who sees the offer?",
+      "accessHint": "The access policy decides whether a partner sees the offer in the catalog at all.",
+      "accessType": "Access via",
+      "accessTypeHint": "Partner group: all partners of the group “ppap-partners”. Single partner: only the BPNL of the respective relation.",
+      "membership": "Catena-X membership required",
+      "membershipHint": "Only participants with a valid membership credential get access.",
+      "usageTitle": "Usage – what may the data be used for?",
+      "usageHint": "The usage policy becomes part of the contract (contract agreement) with the partner.",
+      "frameworkAgreement": "Framework agreement",
+      "frameworkAgreementHint": "e.g. DataExchangeGovernance:1.0",
+      "usagePurposes": "Usage purposes",
+      "usagePurposesHint": "Format: cx.<area>.<purpose>:<version>, e.g. cx.quality.base:1. Enter adds.",
+      "noPurposes": "No usage purpose yet",
+      "addPurpose": "Add",
+      "removePurpose": "Remove {{purpose}}",
+      "active": "Active",
+      "activeHint": "Inactive profiles cannot be newly assigned to a relation.",
+      "defaultProtected": "The standard profile “default” is always active and cannot be deleted."
+    },
+    "preview": {
+      "title": "ODRL preview",
+      "description": "This is how the connector creates the policies in the EDC (JSON-LD).",
+      "dirty": "Preview of the saved state – save to see your changes.",
+      "refresh": "Refresh preview",
+      "error": "Preview could not be loaded.",
+      "empty": "No policies generated.",
+      "policy": "Policy {{index}}",
+      "copy": "Copy {{title}}",
+      "kinds": {
+        "USAGE": "Usage policy",
+        "ACCESS_PARTNER": "Access policy (partner-specific offers)",
+        "ACCESS_SHARED": "Access policy (shared offers)"
+      },
+      "relations": "Used by: {{relations}}"
+    },
+    "reconciliation": {
+      "applied": "Applied in the connector.",
+      "pending": "Being applied in the connector …",
+      "failed": "Applying in the connector failed – the next reconciliation will retry.",
+      "policies_one": "{{count}} policy, {{definitions}} contract definitions active.",
+      "policies_other": "{{count}} policies, {{definitions}} contract definitions active."
+    }
   }
 }

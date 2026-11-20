@@ -6,6 +6,7 @@ import static com.msg.ppap.exchange.adapter.out.edc.JsonLd.TX_NS;
 import com.msg.ppap.exchange.adapter.out.edc.ManagementApi.ManagementApiUnavailable;
 import com.msg.ppap.exchange.adapter.out.edc.ManagementApi.Response;
 import com.msg.ppap.exchange.application.port.out.AssetSpec;
+import com.msg.ppap.exchange.application.port.out.CatalogDataset;
 import com.msg.ppap.exchange.application.port.out.CatalogOffer;
 import com.msg.ppap.exchange.application.port.out.ConnectorHealth;
 import com.msg.ppap.exchange.application.port.out.ContractDefinitionSpec;
@@ -125,7 +126,7 @@ public class TractusXEdcAdapter implements DataspaceConnector {
     }
 
     @Override
-    public void ensurePolicy(PolicySpec policy) {
+    public Map<String, Object> renderPolicy(PolicySpec policy) {
         List<Map<String, Object>> constraints = policy.constraints().stream()
                 .map(c -> Map.<String, Object>of(
                         "leftOperand", c.leftOperand(), "operator", c.operator(), "rightOperand", c.rightOperand()))
@@ -142,6 +143,12 @@ public class TractusXEdcAdapter implements DataspaceConnector {
         body.put("@type", "PolicyDefinition");
         body.put("@id", policy.id());
         body.put("policy", Map.of("@type", "Set", "permission", List.of(permission)));
+        return body;
+    }
+
+    @Override
+    public void ensurePolicy(PolicySpec policy) {
+        Map<String, Object> body = renderPolicy(policy);
         Response created = api.post("/v3/policydefinitions", body);
         // policy ids are content-addressed by the caller: an existing id has the same content. The EDC answers 409,
         // or 400 "referenced by a Contract Definition" (referenced policies are immutable) for existing ids.
@@ -702,23 +709,103 @@ public class TractusXEdcAdapter implements DataspaceConnector {
         }
     }
 
+    @Override
+    public boolean removePolicy(String policyId) {
+        try {
+            Response response = api.delete("/v3/policydefinitions/" + encode(policyId));
+            return response.ok();
+        } catch (RuntimeException ex) {
+            LOG.debug("EDC: policy {} not removed: {}", policyId, ex.toString());
+            return false;
+        }
+    }
+
     // ---------------------------------------------------------------------------------------------- monitoring
 
     @Override
     public List<Map<String, Object>> listNegotiations(int limit) {
-        return query("/v3/contractnegotiations/request", limit);
+        return listNegotiations(null, 0, limit);
     }
 
     @Override
     public List<Map<String, Object>> listTransfers(int limit) {
-        return query("/v3/transferprocesses/request", limit);
+        return listTransfers(null, 0, limit);
+    }
+
+    @Override
+    public List<Map<String, Object>> listNegotiations(String state, int offset, int limit) {
+        return query("/v3/contractnegotiations/request", state, offset, limit, true);
+    }
+
+    @Override
+    public List<Map<String, Object>> listTransfers(String state, int offset, int limit) {
+        return query("/v3/transferprocesses/request", state, offset, limit, true);
+    }
+
+    @Override
+    public List<Map<String, Object>> listAssets(int limit) {
+        return query(ASSET_QUERY_PATH, null, 0, limit, false);
+    }
+
+    @Override
+    public List<Map<String, Object>> listPolicies(int limit) {
+        return query("/v3/policydefinitions/request", null, 0, limit, false);
+    }
+
+    @Override
+    public List<Map<String, Object>> listContractDefinitions(int limit) {
+        return query("/v3/contractdefinitions/request", null, 0, limit, false);
+    }
+
+    @Override
+    public List<CatalogDataset> requestFullCatalog(PartnerEndpoint partner) {
+        var body = new LinkedHashMap<String, Object>();
+        body.put("@context", JsonLd.edcContext());
+        body.put("@type", "CatalogRequest");
+        body.put("counterPartyAddress", partner.dspEndpoint());
+        body.put("counterPartyId", partner.did());
+        body.put("protocol", JsonLd.DSP_PROTOCOL);
+        body.put("querySpec", Map.of("offset", 0, "limit", 500));
+        Response response = call(StepName.CATALOG, () -> api.post("/v3/catalog/request", body));
+        if (!response.ok()) {
+            throw new DataspaceException(
+                    StepName.CATALOG,
+                    "Catalog request to " + partner.bpnl() + " failed: HTTP " + response.status() + " "
+                            + abbreviate(response.raw()),
+                    true,
+                    response.status(),
+                    null);
+        }
+        List<CatalogDataset> datasets = new ArrayList<>();
+        for (JsonNode dataset : JsonLd.list(response.body(), "dataset")) {
+            @SuppressWarnings("unchecked")
+            Map<String, Object> properties = new LinkedHashMap<>(ManagementApi.JSON.convertValue(dataset, Map.class));
+            properties.remove("hasPolicy");
+            properties.remove("distribution");
+            properties.remove("@context");
+            List<Map<String, Object>> offers = new ArrayList<>();
+            for (JsonNode offer : JsonLd.list(dataset, "hasPolicy")) {
+                @SuppressWarnings("unchecked")
+                Map<String, Object> policy = ManagementApi.JSON.convertValue(offer, Map.class);
+                offers.add(policy);
+            }
+            datasets.add(
+                    new CatalogDataset(JsonLd.scalar(dataset.get("@id")), datasetType(dataset), properties, offers));
+        }
+        return datasets;
     }
 
     @SuppressWarnings("unchecked")
-    private List<Map<String, Object>> query(String path, int limit) {
+    private List<Map<String, Object>> query(String path, String state, int offset, int limit, boolean newestFirst) {
         Map<String, Object> spec = new LinkedHashMap<>(JsonLd.querySpec(null, null, limit));
-        spec.put("sortField", "createdAt");
-        spec.put("sortOrder", "DESC");
+        spec.put("offset", Math.max(0, offset));
+        if (newestFirst) {
+            spec.put("sortField", "createdAt");
+            spec.put("sortOrder", "DESC");
+        }
+        if (state != null && !state.isBlank()) {
+            spec.put("filterExpression", List.of(JsonLd.filter("state", state.strip())));
+        }
         Response response = call(StepName.CATALOG, () -> api.post(path, spec));
         if (!response.ok()) {
             throw new IllegalStateException("EDC query " + path + " failed: HTTP " + response.status());

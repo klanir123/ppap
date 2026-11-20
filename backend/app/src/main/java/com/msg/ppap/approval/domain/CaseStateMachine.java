@@ -13,6 +13,7 @@ import static com.msg.ppap.approval.domain.CaseAction.RECEIVE_REQUEST;
 import static com.msg.ppap.approval.domain.CaseAction.RECEIVE_STATUS_UPDATE;
 import static com.msg.ppap.approval.domain.CaseAction.RECEIVE_SUBMISSION;
 import static com.msg.ppap.approval.domain.CaseAction.RECEIVE_WITHDRAWAL;
+import static com.msg.ppap.approval.domain.CaseAction.REQUEST_SUB_SUPPLIER;
 import static com.msg.ppap.approval.domain.CaseAction.REVIEW;
 import static com.msg.ppap.approval.domain.CaseAction.SEND;
 import static com.msg.ppap.approval.domain.CaseAction.START_REVIEW;
@@ -148,6 +149,13 @@ public final class CaseStateMachine {
                     CaseRole.SUPPLIER,
                     Set.of(REJECTED, CONDITIONALLY_APPROVED),
                     Set.of(IN_PROGRESS),
+                    SUPPLIER_USERS),
+            // UC-09: the user additionally needs CUSTOMER_QUALITY_ENGINEER (checked by the aggregate)
+            rule(
+                    REQUEST_SUB_SUPPLIER,
+                    CaseRole.SUPPLIER,
+                    Set.of(REQUESTED, IN_PROGRESS),
+                    Set.of(REQUESTED, IN_PROGRESS),
                     SUPPLIER_USERS));
 
     private CaseStateMachine() {}

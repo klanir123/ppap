@@ -37,6 +37,8 @@ export interface ApprovalCaseDto {
   level: CatalogRefDto
   overdue: boolean
   ownRole: ApprovalCaseDtoOwnRole
+  /** Parent case id of a sub-supplier request (UC-09), null otherwise */
+  parentCaseId?: string
   /** Own part; null while the part of a received request is not mapped (clarification) */
   part?: CasePartDto
   partner: CasePartnerDto

@@ -10,8 +10,7 @@ import com.msg.ppap.exchange.config.EdcProperties;
 import com.msg.ppap.exchange.config.ExchangeProperties;
 import com.msg.ppap.exchange.domain.ProvisioningState;
 import com.msg.ppap.masterdata.api.MasterdataQueries;
-import com.msg.ppap.semantics.api.CanonicalJson;
-import com.msg.ppap.semantics.api.PayloadHash;
+import com.msg.ppap.masterdata.api.MasterdataQueries.PolicyProfileInfo;
 import java.time.Instant;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -109,44 +108,49 @@ public class ProvisioningService {
                     ExchangeAssets.ASSET_VERSION,
                     "Public signature keys (JWKS) of the participant (msg CX PPAP Connector)",
                     dataAddress(base + ExchangeAssets.JWKS_PATH, false, auth)));
-            PolicySpec access = versioned(new PolicySpec(
-                    ExchangeAssets.ACCESS_POLICY,
-                    "access",
-                    List.of(new PolicySpec.Constraint(
-                            "BusinessPartnerGroup",
-                            "isAnyOf",
-                            List.of(edc.policy().partnerGroup())))));
-            PolicySpec usage = versioned(new PolicySpec(
-                    ExchangeAssets.USAGE_POLICY,
-                    "use",
-                    List.of(
-                            new PolicySpec.Constraint(
-                                    "FrameworkAgreement", "eq", edc.policy().frameworkAgreement()),
-                            new PolicySpec.Constraint(
-                                    "UsagePurpose",
-                                    "isAnyOf",
-                                    List.of(edc.policy().usagePurpose())))));
+            Set<String> partners = new TreeSet<>();
+            masterdata.exchangePartners().forEach(p -> partners.add(p.bpnl()));
+            PolicyProfileInfo defaultProfile = defaultProfile();
+            PolicySpec access =
+                    OfferPolicies.sharedAccess(defaultProfile, edc.policy().partnerGroup(), partners);
+            PolicySpec usage = OfferPolicies.usage(defaultProfile);
+            Set<String> usedPolicies = new TreeSet<>(Set.of(access.id(), usage.id()));
+            Map<String, String> usagePolicies = new java.util.TreeMap<>();
             connector.ensurePolicy(access);
             connector.ensurePolicy(usage);
             connector.ensureContractDefinition(new ContractDefinitionSpec(
                     ExchangeAssets.NOTIFICATION_CONTRACT, access.id(), usage.id(), ExchangeAssets.NOTIFICATION_ASSET));
             connector.ensureContractDefinition(new ContractDefinitionSpec(
                     ExchangeAssets.PUBLIC_KEYS_CONTRACT, access.id(), usage.id(), ExchangeAssets.PUBLIC_KEYS_ASSET));
-            Set<String> partners = new TreeSet<>();
-            masterdata.exchangePartners().forEach(p -> partners.add(p.bpnl()));
             Set<String> members =
                     connector.ensureBusinessPartnerGroup(edc.policy().partnerGroup(), partners);
             List<String> assets = new java.util.ArrayList<>(
                     List.of(ExchangeAssets.NOTIFICATION_ASSET, ExchangeAssets.PUBLIC_KEYS_ASSET));
-            assets.addAll(provisionPullOffers(base, auth, access, usage, partners));
-            ProvisioningState done =
-                    new ProvisioningState(assets, List.copyOf(new TreeSet<>(members)), true, now, null);
-            if (!state.get().ok() || !state.get().partners().equals(done.partners())) {
+            usagePolicies.put(ExchangeAssets.NOTIFICATION_ASSET, usage.id());
+            usagePolicies.put(ExchangeAssets.PUBLIC_KEYS_ASSET, usage.id());
+            assets.addAll(provisionPullOffers(base, auth, access, usage, partners, usedPolicies, usagePolicies));
+            removeStalePolicies(usedPolicies);
+            ProvisioningState done = new ProvisioningState(
+                    assets,
+                    List.copyOf(new TreeSet<>(members)),
+                    true,
+                    now,
+                    null,
+                    usagePolicies,
+                    List.copyOf(usedPolicies),
+                    usagePolicies.keySet().stream()
+                            .map(ExchangeAssets::contractOf)
+                            .sorted()
+                            .toList());
+            if (!state.get().ok()
+                    || !state.get().partners().equals(done.partners())
+                    || !state.get().usagePolicies().equals(done.usagePolicies())) {
                 LOG.info(
-                        "EDC provisioning complete: assets {}, group {} = {}",
+                        "EDC provisioning complete: assets {}, group {} = {}, usage policies {}",
                         done.assets(),
                         edc.policy().partnerGroup(),
-                        done.partners());
+                        done.partners(),
+                        done.usagePolicies());
             }
             return update(done);
         } catch (RuntimeException ex) {
@@ -155,8 +159,15 @@ public class ProvisioningService {
             } else {
                 LOG.debug("EDC provisioning failed again: {}", ex.toString());
             }
-            return update(
-                    new ProvisioningState(state.get().assets(), state.get().partners(), false, now, ex.getMessage()));
+            return update(new ProvisioningState(
+                    state.get().assets(),
+                    state.get().partners(),
+                    false,
+                    now,
+                    ex.getMessage(),
+                    state.get().usagePolicies(),
+                    state.get().policyIds(),
+                    state.get().contractDefinitionIds()));
         }
     }
 
@@ -167,8 +178,15 @@ public class ProvisioningService {
      *
      * @return provisioned asset ids
      */
+    @SuppressWarnings("java:S107")
     private List<String> provisionPullOffers(
-            String base, Map<String, String> auth, PolicySpec access, PolicySpec usage, Set<String> partners) {
+            String base,
+            Map<String, String> auth,
+            PolicySpec access,
+            PolicySpec usage,
+            Set<String> partners,
+            Set<String> usedPolicies,
+            Map<String, String> usagePolicies) {
         List<String> assets = new java.util.ArrayList<>();
         if (dtr.offered()) {
             connector.ensureAsset(new AssetSpec(
@@ -180,14 +198,20 @@ public class ProvisioningService {
             connector.ensureContractDefinition(new ContractDefinitionSpec(
                     ExchangeAssets.DTR_CONTRACT, access.id(), usage.id(), ExchangeAssets.DTR_ASSET));
             assets.add(ExchangeAssets.DTR_ASSET);
+            usagePolicies.put(ExchangeAssets.DTR_ASSET, usage.id());
         }
         Set<String> desired = new TreeSet<>();
         for (String bpnl : partners) {
-            PolicySpec bpn = versioned(new PolicySpec(
-                    ExchangeAssets.BPN_ACCESS_POLICY_PREFIX + bpnl,
-                    "access",
-                    List.of(new PolicySpec.Constraint("BusinessPartnerNumber", "isAnyOf", List.of(bpnl)))));
+            // phase 6: per-partner assets carry the policy profile of the relation with this partner
+            PolicyProfileInfo profile = profileOf(bpnl);
+            PolicySpec bpn = OfferPolicies.partnerAccess(profile, bpnl);
+            PolicySpec partnerUsage = OfferPolicies.usage(profile);
             connector.ensurePolicy(bpn);
+            if (!partnerUsage.id().equals(usage.id())) {
+                connector.ensurePolicy(partnerUsage);
+            }
+            usedPolicies.add(bpn.id());
+            usedPolicies.add(partnerUsage.id());
             String documents = ExchangeAssets.documentsAsset(bpnl);
             connector.ensureAsset(new AssetSpec(
                     documents,
@@ -196,8 +220,9 @@ public class ProvisioningService {
                     "PPAP documents shared with " + bpnl + " (msg CX PPAP Connector)",
                     pathDataAddress(base + ExchangeAssets.DOCUMENTS_PATH, auth)));
             connector.ensureContractDefinition(new ContractDefinitionSpec(
-                    documents + ExchangeAssets.CONTRACT_SUFFIX, bpn.id(), usage.id(), documents));
+                    documents + ExchangeAssets.CONTRACT_SUFFIX, bpn.id(), partnerUsage.id(), documents));
             desired.add(documents);
+            usagePolicies.put(documents, partnerUsage.id());
             if (dtr.offered() && isCustomer(bpnl)) {
                 String submission = ExchangeAssets.submissionAsset(bpnl);
                 connector.ensureAsset(new AssetSpec(
@@ -207,13 +232,56 @@ public class ProvisioningService {
                         "PPAP submissions (submodel PpapSubmission) for " + bpnl + " (msg CX PPAP Connector)",
                         pathDataAddress(base + ExchangeAssets.SUBMODELS_PATH, auth)));
                 connector.ensureContractDefinition(new ContractDefinitionSpec(
-                        submission + ExchangeAssets.CONTRACT_SUFFIX, bpn.id(), usage.id(), submission));
+                        submission + ExchangeAssets.CONTRACT_SUFFIX, bpn.id(), partnerUsage.id(), submission));
                 desired.add(submission);
+                usagePolicies.put(submission, partnerUsage.id());
             }
         }
         assets.addAll(desired);
         removeStaleOffers(desired);
         return assets;
+    }
+
+    /**
+     * Policy profile of the relation with a partner: the customer relation's profile if active, else the supplier
+     * relation's; unknown or inactive profiles fall back to {@code default}.
+     */
+    PolicyProfileInfo profileOf(String bpnl) {
+        String code = activeRelation(bpnl, "CUSTOMER")
+                .or(() -> activeRelation(bpnl, "SUPPLIER"))
+                .map(MasterdataQueries.RelationInfo::policyProfile)
+                .orElse("default");
+        return masterdata
+                .findPolicyProfile(code)
+                .filter(PolicyProfileInfo::active)
+                .orElseGet(this::defaultProfile);
+    }
+
+    private java.util.Optional<MasterdataQueries.RelationInfo> activeRelation(String bpnl, String role) {
+        return masterdata.findRelation(bpnl, role).filter(MasterdataQueries.RelationInfo::active);
+    }
+
+    /** The profile {@code default} of the master data, or the configuration as fallback. */
+    PolicyProfileInfo defaultProfile() {
+        return masterdata.findPolicyProfile("default").orElseGet(() -> OfferPolicies.fallback(edc.policy()));
+    }
+
+    /** Removes own policy definitions that no contract definition uses anymore (best effort). */
+    private void removeStalePolicies(Set<String> usedPolicies) {
+        try {
+            for (Map<String, Object> policy : connector.listPolicies(1000)) {
+                Object id = policy.get("@id");
+                if (id instanceof String policyId
+                        && (policyId.startsWith(ExchangeAssets.ACCESS_POLICY_PREFIX)
+                                || policyId.startsWith(ExchangeAssets.USAGE_POLICY + "-"))
+                        && !usedPolicies.contains(policyId)
+                        && connector.removePolicy(policyId)) {
+                    LOG.info("EDC: removed unused policy {}", policyId);
+                }
+            }
+        } catch (RuntimeException ex) {
+            LOG.debug("EDC: cleanup of unused policies skipped: {}", ex.toString());
+        }
     }
 
     private void removeStaleOffers(Set<String> desiredAssets) {
@@ -290,23 +358,9 @@ public class ProvisioningService {
         return next;
     }
 
-    /**
-     * Policy with a content-addressed id ({@code <base>-<8 hex of SHA-256 over the canonical spec>}): policy
-     * definitions referenced by a contract definition cannot be changed in the EDC, so a changed policy (e.g. another
-     * UsagePurpose) gets a new id and the contract definitions are switched to it.
-     */
+    /** See {@link OfferPolicies#versioned}. */
     static PolicySpec versioned(PolicySpec spec) {
-        String hash = PayloadHash.sha256Hex(CanonicalJson.canonicalize(Map.of(
-                "action",
-                spec.action(),
-                "constraints",
-                spec.constraints().stream()
-                        .map(c -> Map.of(
-                                "leftOperand", c.leftOperand(),
-                                "operator", c.operator(),
-                                "rightOperand", c.rightOperand()))
-                        .toList())));
-        return new PolicySpec(spec.id() + "-" + hash.substring(0, 8), spec.action(), spec.constraints());
+        return OfferPolicies.versioned(spec);
     }
 
     private Map<String, String> callbackAuthentication() {

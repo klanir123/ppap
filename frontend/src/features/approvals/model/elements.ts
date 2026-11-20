@@ -21,9 +21,10 @@ export function elementState(
 export function issuesByElement(completeness: Completeness | undefined): Map<string, Completeness['issues']> {
   const map = new Map<string, Completeness['issues']>()
   for (const issue of completeness?.issues ?? []) {
-    const list = map.get(issue.elementCode) ?? []
+    const code = issue.elementCode ?? ''
+    const list = map.get(code) ?? []
     list.push(issue)
-    map.set(issue.elementCode, list)
+    map.set(code, list)
   }
   return map
 }

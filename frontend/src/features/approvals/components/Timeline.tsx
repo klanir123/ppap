@@ -43,7 +43,7 @@ export function Timeline({ entries }: { entries: TimelineEntry[] }) {
                 </time>
                 <span aria-hidden="true"> · </span>
                 <span className="sr-only">{t('timeline.actor')}: </span>
-                {entry.actor}
+                <ActorText actor={entry.actor} actorDisplay={entry.actorDisplay} />
               </p>
               {entry.from ? (
                 <p className="mt-0.5 text-xs text-muted-foreground">
@@ -63,5 +63,15 @@ export function Timeline({ entries }: { entries: TimelineEntry[] }) {
         )
       })}
     </ol>
+  )
+}
+
+/** `actorDisplay` (user or partner name) with the technical actor (`partner:BPNL…`) as title. */
+export function ActorText({ actor, actorDisplay }: { actor: string; actorDisplay?: string | null }) {
+  const display = actorDisplay?.trim() || actor
+  return (
+    <span data-testid="actor" title={display !== actor ? actor : undefined}>
+      {display}
+    </span>
   )
 }

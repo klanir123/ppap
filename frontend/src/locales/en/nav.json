@@ -12,11 +12,13 @@
   "relationships": "Relationships",
   "elementCatalog": "Element catalogue",
   "cockpit": "Connector cockpit",
-  "dataspace": "Data space (demo)",
+  "dataspace": "Dataspace",
   "system": "System status",
   "home": "Home",
   "detail": "Details",
   "newRequest": "Request submission",
   "package": "PPF package",
-  "review": "Review"
+  "review": "Review",
+  "policyProfiles": "Policy profiles",
+  "usage": "Usage"
 }

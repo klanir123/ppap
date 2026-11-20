@@ -11,14 +11,19 @@ public record CaseStatsDto(
         @Schema(requiredMode = Schema.RequiredMode.REQUIRED) long inReview,
         @Schema(requiredMode = Schema.RequiredMode.REQUIRED) long approvedLast30Days,
 
-        @Schema(description = "Average days from request to approval")
+        @Schema(description = "Average days from request to the last decision of approved cases of the last 12 months")
         Double averageLeadTimeDays,
 
-        @Schema(description = "Share of approvals among decisions (0..1)")
+        @Schema(description = "Share of approvals (incl. conditional) among decided revisions (0..1)")
         Double approvalRate,
 
         @Schema(requiredMode = Schema.RequiredMode.REQUIRED) Map<String, Long> byStatus,
         @Schema(requiredMode = Schema.RequiredMode.REQUIRED) List<PartnerStatsDto> byPartner,
 
         @Schema(requiredMode = Schema.RequiredMode.REQUIRED, description = "Received requests to clarify (UC-04 A1)")
-        long needsClarification) {}
+        long needsClarification,
+
+        @Schema(
+                requiredMode = Schema.RequiredMode.REQUIRED,
+                description = "Open cases with sub-supplier requests that are not decided yet (UC-09)")
+        long blockingChildren) {}

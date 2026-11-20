@@ -1,0 +1,44 @@
+{
+  "title": "Nutzung",
+  "description": "Freigabevorgänge und Revisionen Ihres Unternehmens je Monat – ereignisbasiert gezählt und jederzeit aus den Rohdaten reproduzierbar.",
+  "export": "CSV exportieren",
+  "exportFailed": "Export fehlgeschlagen",
+  "recompute": "Neu berechnen",
+  "recomputeDone": "Zähler aus den Rohdaten neu berechnet",
+  "recomputeFailed": "Neuberechnung fehlgeschlagen",
+  "recomputeConfirm": {
+    "title": "Zähler neu berechnen?",
+    "description": "Die Zähler werden aus den gespeicherten Revisionen neu ermittelt und ersetzen die laufend fortgeschriebenen Werte. Das Ergebnis muss mit den bisherigen Werten übereinstimmen.",
+    "confirm": "Neu berechnen"
+  },
+  "recomputeHint": "Zählweise reproduzierbar: „Neu berechnen“ ermittelt alle Werte aus den Revisionen.",
+  "summary": {
+    "cases": "Freigabevorgänge ({{months}} Monate)",
+    "revisions": "Weitere Revisionen ({{months}} Monate)",
+    "currentMonth": "Freigabevorgänge {{month}}"
+  },
+  "chartTitle": "Verlauf je Monat",
+  "definition": "Ein Freigabevorgang zählt einmal im Monat seiner ersten Einreichung (Revision 1) – beim einreichenden Lieferanten und beim empfangenden Kunden. Weitere Revisionen werden getrennt ausgewiesen; Altvorgänge zählen nicht.",
+  "period": "Zeitraum",
+  "periodMonths_one": "Letzter Monat",
+  "periodMonths_other": "Letzte {{count}} Monate",
+  "loadError": "Nutzungsdaten konnten nicht geladen werden.",
+  "retry": "Erneut versuchen",
+  "chartSummary": "Balkendiagramm {{from}} bis {{to}}: {{cases}} Freigabevorgänge und {{revisions}} weitere Revisionen. Die Werte je Monat stehen in der Tabelle darunter.",
+  "series": {
+    "approvalCases": "Freigabevorgänge",
+    "revisions": "Weitere Revisionen"
+  },
+  "tableCaption": "Nutzung je Monat",
+  "columns": {
+    "month": "Monat",
+    "approvalCases": "Freigabevorgänge",
+    "submitted": "davon eingereicht",
+    "received": "davon empfangen",
+    "revisions": "Weitere Revisionen"
+  },
+  "recomputeDifferences_one": "Neuberechnung weicht ab: {{count}} Abweichung",
+  "recomputeDifferences_other": "Neuberechnung weicht ab: {{count}} Abweichungen",
+  "recomputeConsistent_one": "Identisch mit den laufend gezählten Werten ({{count}} Ereignis).",
+  "recomputeConsistent_other": "Identisch mit den laufend gezählten Werten ({{count}} Ereignisse)."
+}

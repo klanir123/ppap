@@ -11,13 +11,13 @@ import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
 
 /**
- * Triggers the EDC provisioning on startup and when partners or relations change (group membership {@code
- * ppap-partners}); the scheduler applies it shortly after.
+ * Triggers the EDC provisioning on startup and when partners, relations or policy profiles change (group membership
+ * {@code ppap-partners}, policies of the offers); the scheduler applies it shortly after.
  */
 @Component
 class MasterdataEventsListener {
 
-    private static final Set<String> RELEVANT = Set.of("PARTNER", "RELATION");
+    private static final Set<String> RELEVANT = Set.of("PARTNER", "RELATION", "POLICY_PROFILE");
 
     private final ProvisioningService provisioning;
 

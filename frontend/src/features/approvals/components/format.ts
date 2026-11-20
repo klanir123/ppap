@@ -43,3 +43,19 @@ export function shortHash(hash: string): string {
   const raw = hash.replace(/^sha256:/i, '')
   return raw.slice(0, 12)
 }
+
+/** Relative time ("vor 5 Min.") with the absolute time in `title` and `dateTime`. */
+export function useRelativeTime() {
+  const { i18n } = useTranslation()
+  const fmt = useFormat()
+  const rtf = new Intl.RelativeTimeFormat(i18n.resolvedLanguage, { numeric: 'auto', style: 'short' })
+  return (iso: string, now = Date.now()) => {
+    const seconds = Math.round((new Date(iso).getTime() - now) / 1000)
+    const abs = Math.abs(seconds)
+    if (abs < 60) return rtf.format(seconds, 'second')
+    if (abs < 3600) return rtf.format(Math.round(seconds / 60), 'minute')
+    if (abs < 86_400) return rtf.format(Math.round(seconds / 3600), 'hour')
+    if (abs < 7 * 86_400) return rtf.format(Math.round(seconds / 86_400), 'day')
+    return fmt.date(iso)
+  }
+}

@@ -11,6 +11,7 @@ import { caseStatusToken } from '@/features/approvals/model/status'
 import { EVENTS_URL } from '../api/client'
 import type { LiveEvent } from '../api/types'
 import { affectedByResume, affectsQuery, parseLiveEvent } from './invalidation'
+import { createLiveBus, LiveBusContext } from './live-bus'
 import { LiveStatusContext } from './live-context'
 import { mayNotify, notificationFor, type LiveNotification } from './notifications'
 import { createEventStream, type LiveStatus } from './sse'
@@ -26,6 +27,7 @@ export function LiveEventsProvider({ children }: { children: ReactNode }) {
   const { t } = useTranslation(['exchange', 'status'])
   const [status, setStatus] = useState<LiveStatus>('idle')
   const notified = useRef(new Set<string>())
+  const [bus] = useState(createLiveBus)
 
   const notify = useEffectEvent((n: LiveNotification) => {
     const title =
@@ -74,13 +76,19 @@ export function LiveEventsProvider({ children }: { children: ReactNode }) {
       onMessage: (message) => {
         const event = parseLiveEvent(message)
         if (!event) return
+        bus.publish(event)
+        if (event.type === 'connector.log') return
         void queryClient.invalidateQueries({ predicate: (q) => affectsQuery(event, q.queryKey) })
         void maybeNotify(event)
       },
     })
     stream.start()
     return () => stream.stop()
-  }, [queryClient])
+  }, [queryClient, bus])
 
-  return <LiveStatusContext value={status}>{children}</LiveStatusContext>
+  return (
+    <LiveStatusContext value={status}>
+      <LiveBusContext value={bus}>{children}</LiveBusContext>
+    </LiveStatusContext>
+  )
 }

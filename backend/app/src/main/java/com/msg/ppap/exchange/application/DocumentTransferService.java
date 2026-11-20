@@ -150,6 +150,7 @@ public class DocumentTransferService implements DocumentTransferStatus {
     private void queue(DocumentTransferStore.Transfer t, String caseNumber, String correlationId) {
         Instant now = context.now();
         UUID id = Ids.newId();
+        UUID messageId = UUID.randomUUID();
         var envelope = new LinkedHashMap<String, Object>();
         envelope.put("transferId", t.id().toString());
         envelope.put("caseId", t.caseId().toString());
@@ -161,7 +162,7 @@ public class DocumentTransferService implements DocumentTransferStatus {
                 .insertInbound(
                         new NewMessage(
                                 id,
-                                UUID.randomUUID(),
+                                messageId,
                                 Direction.INBOUND,
                                 RecordTypes.PULL_DOCUMENT,
                                 t.partnerBpnl(),
@@ -178,7 +179,7 @@ public class DocumentTransferService implements DocumentTransferStatus {
                         null,
                         null);
         transfers.linkMessage(t.id(), id, now);
-        context.live().exchangeChanged(t.caseId(), id, "PENDING");
+        context.live().exchangeChanged(t.caseId(), messageId, "PENDING");
     }
 
     /** Runs a claimed document job. */

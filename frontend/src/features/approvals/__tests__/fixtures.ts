@@ -27,6 +27,7 @@ export function caseDetail(overrides: Partial<ApprovalCaseDetail> = {}): Approva
     reviewFindings: [],
     submissions: [],
     timeline: [],
+    childCases: [],
     ...overrides,
   }
 }

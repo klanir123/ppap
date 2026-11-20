@@ -5,6 +5,9 @@ import type { LiveEvent } from '../api/types'
 import type { SseMessage } from './sse'
 
 const AUDIT_PREFIX = '/api/v1/audit-events'
+const ACTIVITY_PREFIX = '/api/v1/activity'
+const CONNECTOR_PREFIX = '/api/v1/connector'
+const USAGE_PREFIX = '/api/v1/usage'
 const STATS_KEY = `${CASES_URL}/stats`
 
 /** SSE message → typed event (`event:` field, or `type` in the JSON data); heartbeats and unknown events → undefined. */
@@ -21,6 +24,9 @@ export function parseLiveEvent(message: SseMessage): LiveEvent | undefined {
     return { ...data, type, caseId: data.caseId } as LiveEvent
   }
   if (type === 'exchange.changed') return { ...data, type } as LiveEvent
+  if (type === 'connector.log' && typeof data.text === 'string') {
+    return { ...data, type, id: message.id ?? (data.id as string | undefined) } as LiveEvent
+  }
   return undefined
 }
 
@@ -35,22 +41,29 @@ function firstKey(key: QueryKey): string | undefined {
 /**
  * Which cached queries an event makes stale:
  * - `case.changed`: case lists (incl. clarification count), stats, the case detail and everything below it, audit trail
- * - `exchange.changed`: exchange records of the case + cockpit queries (messages, status) + digital twins;
- *   once a record of the case is finished, also the case and its revisions (document transfer states of pulls)
+ *   + activity feed and usage counters
+ * - `exchange.changed`: exchange records of the case + cockpit queries (messages, status, connector) + digital twins;
+ *   once a record is finished, also the case and its revisions (document transfer states of pulls) and the stats
+ *   (exchange health per partner)
+ * - `connector.log`: nothing (consumed by the live log)
  */
 export function affectsQuery(event: LiveEvent, queryKey: QueryKey): boolean {
   const key = firstKey(queryKey)
   if (!key) return false
+  if (event.type === 'connector.log') return false
   if (event.type === 'case.changed') {
     return (
       key === CASES_URL ||
       key === STATS_KEY ||
       key === `${CASES_URL}/${event.caseId}` ||
       key.startsWith(`${CASES_URL}/${event.caseId}/`) ||
-      key.startsWith(AUDIT_PREFIX)
+      key.startsWith(AUDIT_PREFIX) ||
+      key.startsWith(ACTIVITY_PREFIX) ||
+      key.startsWith(USAGE_PREFIX)
     )
   }
-  if (key.startsWith(EXCHANGE_URL) || key.startsWith(TWINS_URL)) return true
+  if (key.startsWith(EXCHANGE_URL) || key.startsWith(TWINS_URL) || key.startsWith(CONNECTOR_PREFIX)) return true
+  if (key === STATS_KEY) return isFinished(event.status)
   if (!event.caseId) return /\/exchange$/.test(key)
   if (key === `${CASES_URL}/${event.caseId}/exchange`) return true
   return (
@@ -67,6 +80,8 @@ export function affectedByResume(queryKey: QueryKey): boolean {
     (key.startsWith(CASES_URL) ||
       key.startsWith(EXCHANGE_URL) ||
       key.startsWith(TWINS_URL) ||
+      key.startsWith(CONNECTOR_PREFIX) ||
+      key.startsWith(ACTIVITY_PREFIX) ||
       key.startsWith(AUDIT_PREFIX)),
   )
 }

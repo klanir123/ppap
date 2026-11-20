@@ -46,7 +46,18 @@ final class PayloadsV0_1 {
 
     @JsonInclude(JsonInclude.Include.NON_NULL)
     record SubSupplierReference(
-            String subSupplierBpnl, String partNumber, String exchangeId, int revision, String result, String hash) {}
+            String subSupplierBpnl,
+            String subSupplierName,
+            String exchangeId,
+            String caseNumber,
+            String partNumber,
+            String partName,
+            String supplierPartNumber,
+            int revision,
+            String decisionResult,
+            String decidedAt,
+            String decisionHash,
+            String conditionDueDate) {}
 
     @JsonInclude(JsonInclude.Include.NON_NULL)
     record Decision(

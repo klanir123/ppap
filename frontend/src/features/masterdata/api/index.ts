@@ -171,4 +171,5 @@ export const reasonsApi = createResource({
 })
 
 export * from './types'
+export { normalizePreview, policyProfilesApi, POLICY_PROFILES_URL, usePolicyPreview } from './policy-profiles'
 export { ifMatch, invalidateResource } from './resource'

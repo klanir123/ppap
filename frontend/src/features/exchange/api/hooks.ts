@@ -18,20 +18,33 @@ export const exchangeKeys = {
   twin: (exchangeId: string) => [api.twinUrl(exchangeId)] as const,
 }
 
-/** Fallback polling while a message is still on its way and the live connection is down. */
-const FALLBACK_POLL_MS = 5_000
+/** Polling while a message is still on its way: fast without live connection, a slow safety net with it. */
+export const FALLBACK_POLL_MS = 5_000
+export const LIVE_SAFETY_POLL_MS = 10_000
 
-function pollWhileInFlight(records: ExchangeRecord[] | undefined, live: boolean) {
-  return !live && records?.some((r) => isInFlight(r.status)) ? FALLBACK_POLL_MS : false
+/**
+ * Refetch interval while something is in flight (or still expected, `waiting`). Live events alone are not enough:
+ * a status event can overtake the commit of the status (refetch reads the old state) or arrive before the
+ * query exists – without a further event the view would stay "pending" forever.
+ */
+export function pollWhileInFlight(records: ExchangeRecord[] | undefined, live: boolean, waiting = false) {
+  const inFlight = waiting || Boolean(records?.some((r) => isInFlight(r.status)))
+  if (!inFlight) return false
+  return live ? LIVE_SAFETY_POLL_MS : FALLBACK_POLL_MS
 }
 
-export function useCaseExchange(caseId: string | undefined, enabled = true) {
+export function useCaseExchange(
+  caseId: string | undefined,
+  enabled = true,
+  /** Keeps polling while the caller still waits for a record (e.g. the delivery right after submitting). */
+  waitingFor?: (records: ExchangeRecord[] | undefined) => boolean,
+) {
   const live = useLiveConnected()
   return useQuery({
     queryKey: exchangeKeys.case(caseId ?? ''),
     queryFn: ({ signal }) => api.listCaseExchange(caseId!, { signal }),
     enabled: Boolean(caseId) && enabled,
-    refetchInterval: (query) => pollWhileInFlight(query.state.data, live),
+    refetchInterval: (query) => pollWhileInFlight(query.state.data, live, waitingFor?.(query.state.data) ?? false),
   })
 }
 

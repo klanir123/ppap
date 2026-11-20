@@ -6,6 +6,11 @@ import {
   addRequestAttachment as genAddRequestAttachment,
   cancelApprovalCase,
   captureManualApprovalCase,
+  createSubRequest as genCreateSubRequest,
+  getListActivityUrl,
+  getListSubSupplierCandidatesUrl,
+  listActivity as genListActivity,
+  listSubSupplierCandidates as genListSubSupplierCandidates,
   createApprovalCase,
   decideApprovalCase,
   fetchApprovalCaseDocument,
@@ -37,10 +42,13 @@ import {
   getGetSubmissionPayloadUrl,
   listSubmissions as genListSubmissions,
   previewExcelImport,
+  replaceSubSupplierReferences,
   submitDraft as genSubmitDraft,
+  verifySubmissionSignature,
   updateDraftElement,
 } from '@/api/generated/endpoints/submissions/submissions'
 import { apiFetchResponse, type ApiRequestInit } from '@/api/fetcher'
+import { getExportApprovalCaseAuditUrl } from '@/api/generated/endpoints/audit/audit'
 import type { ElementEvidenceRequest, ListApprovalCasesParams } from '@/api/generated/model'
 
 import type {
@@ -55,6 +63,8 @@ import type {
   ManualCaseInput,
   RequestElementInput,
   ReviewElementInput,
+  SubRequestInput,
+  Submission,
   Versioned,
 } from './types'
 
@@ -99,7 +109,7 @@ export function listCases(params: CaseListParams, options?: Options) {
   return listApprovalCases(query, options) as Promise<CasePage>
 }
 
-export const getCase = (id: string, options?: Options) => getApprovalCase(id, options)
+export const getCase = (id: string, options?: Options) => getApprovalCase(id, options) as Promise<ApprovalCaseDetail>
 
 export const getCaseStats = (options?: Options) => getApprovalCaseStats(options)
 
@@ -147,7 +157,7 @@ export const cancelCase = (id: string, reason: string, version?: number) =>
 export const listSubmissions = (id: string, options?: Options) => genListSubmissions(id, options)
 
 /** `revision` = number or `draft`. */
-export const getSubmission = (id: string, revision: number | 'draft', options?: Options) =>
+export const getSubmission = (id: string, revision: number | 'draft', options?: Options): Promise<Submission> =>
   revision === 'draft' ? getDraftSubmission(id, options) : genGetSubmission(id, revision, options)
 
 export const newRevision = (id: string, version?: number) => createRevision(id, ifMatchHeader(version))
@@ -231,3 +241,53 @@ export const fetchCaseDocument = (caseId: string, sha256: string) =>
   fetchApprovalCaseDocument(caseId, sha256Segment(sha256))
 
 export type { ApprovalCase }
+
+// --- cascade (UC-09) ----------------------------------------------------------------------------
+
+/** Creates a child case (own role CUSTOMER, status DRAFT) towards a sub-supplier for an own sub-part. */
+export const createSubRequest = (parentId: string, input: SubRequestInput) => genCreateSubRequest(parentId, input)
+
+export const subSupplierCandidatesUrl = (id: string) => getListSubSupplierCandidatesUrl(id)
+
+export const listSubSupplierCandidates = (id: string, options?: Options) => genListSubSupplierCandidates(id, options)
+
+/** Replaces the referenced child cases of the draft revision (If-Match). */
+export const putSubSupplierReferences = (id: string, childCaseIds: string[], version?: number) =>
+  versioned((o) => replaceSubSupplierReferences(id, { childCaseIds }, ifMatchHeader(version), o))
+
+// --- signature / audit (phase 6) ----------------------------------------------------------------
+
+/** Re-verifies the signature of an UNVERIFIED revision (the partner keys are fetched via EDC first). */
+export const verifySignature = (id: string, revision: number) => verifySubmissionSignature(id, revision)
+
+export interface AuditExport {
+  blob: Blob
+  fileName: string
+  signature?: string
+}
+
+function fileNameFrom(disposition: string | null): string | undefined {
+  if (!disposition) return undefined
+  const star = /filename\*=(?:UTF-8'')?([^;]+)/i.exec(disposition)
+  if (star?.[1]) return decodeURIComponent(star[1].trim().replace(/^"|"$/g, ''))
+  const plain = /filename="?([^";]+)"?/i.exec(disposition)
+  return plain?.[1]?.trim()
+}
+
+/** Signed audit export of a case (`X-Signature` = JWS); raw bytes are kept so the signature stays verifiable. */
+export async function getAuditExport(id: string, caseNumber: string): Promise<AuditExport> {
+  const response = await apiFetchResponse(getExportApprovalCaseAuditUrl(id), {
+    headers: { Accept: 'application/json' },
+  })
+  return {
+    blob: await response.blob(),
+    fileName: fileNameFrom(response.headers.get('Content-Disposition')) ?? `audit-${caseNumber}.json`,
+    signature: response.headers.get('X-Signature') ?? undefined,
+  }
+}
+
+// --- activity feed (UC-11) ----------------------------------------------------------------------
+
+export const ACTIVITY_URL = getListActivityUrl().split('?')[0]!
+
+export const listActivity = (limit: number, options?: Options) => genListActivity({ limit }, options)

@@ -17,7 +17,8 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 /**
  * Live updates ({@code text/event-stream}, bearer token): {@code case.changed {caseId, status}}, {@code
- * exchange.changed {caseId, messageId, status}}, {@code heartbeat} every 25 s. The event name is sent in the SSE
+ * exchange.changed {caseId, messageId, status}}, {@code connector.log {at, level, correlationId, messageType, step,
+ * text}} (phase 6), {@code heartbeat} every 25 s. The event name is sent in the SSE
  * {@code event:} field, the JSON object in {@code data:}. Only events of the own tenant.
  */
 @RestController
@@ -39,7 +40,7 @@ public class LiveEventController {
             responses =
                     @ApiResponse(
                             responseCode = "200",
-                            description = "Event stream: case.changed, exchange.changed, heartbeat",
+                            description = "Event stream: case.changed, exchange.changed, connector.log, heartbeat",
                             content =
                                     @Content(
                                             mediaType = MediaType.TEXT_EVENT_STREAM_VALUE,

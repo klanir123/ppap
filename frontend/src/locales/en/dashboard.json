@@ -9,9 +9,15 @@
     "open": "Open cases",
     "approvalRate": "Approval rate",
     "overdueHint": "Due date passed – please follow up",
-    "leadTime": "Avg. lead time {{days}} days",
     "approved30_one": "{{count}} approval (30 days)",
-    "approved30_other": "{{count}} approvals (30 days)"
+    "approved30_other": "{{count}} approvals (30 days)",
+    "leadTimeLabel": "Avg. lead time",
+    "days_one": "{{value}} day",
+    "days_other": "{{value}} days",
+    "leadTimeHint": "Request → decision, last 12 months",
+    "blockingChildren": "Blocking sub-supplier cases",
+    "blockingChildrenHint": "Own submission waits for sub-suppliers",
+    "blockingChildrenNone": "No open sub-supplier cases"
   },
   "recent": {
     "title": "Recent approval processes",
@@ -32,10 +38,20 @@
   },
   "partners": {
     "title": "Status per partner",
-    "description": "Open and overdue cases per business partner",
+    "description": "Open cases and data exchange health per business partner (last 24 hours)",
     "empty": "No cases with partners yet.",
     "partner": "Partner",
     "open": "Open",
-    "overdue": "Overdue"
+    "overdue": "Overdue",
+    "exchange": "Exchange",
+    "lastExchange": "Last exchange",
+    "noExchange": "No exchange yet"
+  },
+  "activity": {
+    "title": "Activity",
+    "description": "Latest events across all cases – updated live",
+    "error": "Activity could not be loaded.",
+    "empty": "No activity yet.",
+    "partner": "with {{partner}}"
   }
 }

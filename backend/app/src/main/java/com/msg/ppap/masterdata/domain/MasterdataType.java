@@ -9,7 +9,8 @@ public enum MasterdataType {
     PART_MAPPING("Part mapping"),
     CATALOG_ELEMENT("Catalog element"),
     SUBMISSION_LEVEL("Submission level"),
-    SUBMISSION_REASON("Submission reason");
+    SUBMISSION_REASON("Submission reason"),
+    POLICY_PROFILE("Policy profile");
 
     private final String label;
 

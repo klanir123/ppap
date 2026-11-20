@@ -1,8 +1,10 @@
 package com.msg.ppap.approval.adapter.in.rest;
 
 import com.msg.ppap.approval.DocumentTransferStatus;
+import com.msg.ppap.approval.application.ActivityView;
 import com.msg.ppap.approval.application.CaseView;
 import com.msg.ppap.approval.application.ExcelPreview;
+import com.msg.ppap.approval.application.SubSupplierCandidate;
 import com.msg.ppap.approval.application.SubmissionView;
 import com.msg.ppap.approval.application.SummaryView;
 import com.msg.ppap.approval.application.port.out.CaseStatistics;
@@ -16,6 +18,7 @@ import com.msg.ppap.approval.domain.ElementFinding;
 import com.msg.ppap.approval.domain.FormTemplate;
 import com.msg.ppap.approval.domain.PartRef;
 import com.msg.ppap.approval.domain.Seal;
+import com.msg.ppap.approval.domain.SubSupplierReference;
 import com.msg.ppap.approval.domain.Submission;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -58,7 +61,8 @@ final class ApprovalDtos {
                 s.createdAt(),
                 s.updatedAt(),
                 ClarificationDto.of(s.clarification()),
-                LastOutboundDto.of(view.lastOutbound()));
+                LastOutboundDto.of(view.lastOutbound()),
+                s.parentCaseId());
     }
 
     static ApprovalCaseDetailDto detail(CaseView view) {
@@ -117,11 +121,85 @@ final class ApprovalDtos {
                 last.map(ApprovalDtos::decision).orElse(null),
                 findings(c.reviewFindings()),
                 c.timeline().stream()
-                        .map(t -> new TimelineEntryDto(t.at(), t.actor(), t.from(), t.to(), t.action(), t.comment()))
+                        .map(t -> new TimelineEntryDto(
+                                t.at(),
+                                t.actor(),
+                                view.actorDisplay(t.actor()),
+                                t.from(),
+                                t.to(),
+                                t.action(),
+                                t.comment()))
                         .toList(),
                 view.draftCompleteness() == null ? null : completeness(view.draftCompleteness()),
                 ClarificationDto.of(c.clarification()),
-                LastOutboundDto.of(view.lastOutbound()));
+                LastOutboundDto.of(view.lastOutbound()),
+                view.parent() == null
+                        ? null
+                        : new ParentCaseDto(
+                                view.parent().id(),
+                                view.parent().caseNumber(),
+                                partner(view.parent().partner())),
+                view.children().stream()
+                        .map(child -> new ChildCaseDto(
+                                child.id(),
+                                child.caseNumber(),
+                                partner(child.partner()),
+                                child.partNumber(),
+                                child.status(),
+                                child.lastDecisionResult()))
+                        .toList());
+    }
+
+    static CasePartnerDto partner(com.msg.ppap.approval.domain.PartnerRef partner) {
+        return new CasePartnerDto(partner.bpnl(), partner.name());
+    }
+
+    static SubSupplierReferenceDto reference(SubSupplierReference r) {
+        return new SubSupplierReferenceDto(
+                r.childCaseId(),
+                r.subSupplierBpnl(),
+                r.subSupplierName(),
+                r.exchangeId(),
+                r.caseNumber(),
+                r.partNumber(),
+                r.partName(),
+                r.supplierPartNumber(),
+                r.revision(),
+                r.decisionResult(),
+                r.decidedAt(),
+                r.decisionHash(),
+                r.conditionDueDate());
+    }
+
+    static SubSupplierCandidateDto candidate(SubSupplierCandidate c) {
+        return new SubSupplierCandidateDto(
+                c.caseId(),
+                c.caseNumber(),
+                c.exchangeId(),
+                partner(c.subSupplier()),
+                c.partNumber(),
+                c.partName(),
+                c.supplierPartNumber(),
+                c.status(),
+                c.revision(),
+                c.decisionResult(),
+                c.decidedAt(),
+                c.decisionHash(),
+                c.conditionDueDate(),
+                c.referenceable());
+    }
+
+    static ActivityDto activity(ActivityView a) {
+        return new ActivityDto(
+                a.at(),
+                a.caseId(),
+                a.caseNumber(),
+                a.action(),
+                a.actor(),
+                a.actorDisplay(),
+                partner(a.partner()),
+                a.fromStatus(),
+                a.toStatus());
     }
 
     /** Own part, {@code null} while not mapped. */
@@ -188,7 +266,8 @@ final class ApprovalDtos {
                 seal == null ? null : signature(seal),
                 s.decision().map(ApprovalDtos::decision).orElse(null),
                 s.basedOnRevision(),
-                s.exchangeMode());
+                s.exchangeMode(),
+                s.subSupplierReferences().stream().map(ApprovalDtos::reference).toList());
     }
 
     static CompletenessDto completeness(Completeness c) {
@@ -197,6 +276,9 @@ final class ApprovalDtos {
                 c.requiredTotal(),
                 c.requiredDone(),
                 c.issues().stream()
+                        .map(i -> new CompletenessIssueDto(i.elementCode(), i.code(), i.message(), i.pointer()))
+                        .toList(),
+                c.hints().stream()
                         .map(i -> new CompletenessIssueDto(i.elementCode(), i.code(), i.message(), i.pointer()))
                         .toList());
     }
@@ -285,9 +367,11 @@ final class ApprovalDtos {
                 s.approvalRate(),
                 new TreeMap<>(s.byStatus()),
                 s.byPartner().stream()
-                        .map(p -> new PartnerStatsDto(p.bpnl(), p.name(), p.open(), p.overdue()))
+                        .map(p -> new PartnerStatsDto(
+                                p.bpnl(), p.name(), p.open(), p.overdue(), p.exchangeHealth(), p.lastExchangeAt()))
                         .toList(),
-                s.needsClarification());
+                s.needsClarification(),
+                s.blockingChildren());
     }
 
     static FormTemplateDto template(FormTemplate t) {

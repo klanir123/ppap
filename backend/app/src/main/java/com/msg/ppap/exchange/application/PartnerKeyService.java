@@ -7,6 +7,7 @@ import com.msg.ppap.exchange.application.port.out.EndpointDataReference;
 import com.msg.ppap.exchange.application.port.out.PartnerEndpoint;
 import com.msg.ppap.exchange.application.port.out.PartnerKeyStore;
 import com.msg.ppap.exchange.application.port.out.StepListener;
+import com.msg.ppap.exchange.domain.PartnerKeysFetched;
 import com.msg.ppap.exchange.domain.StepName;
 import com.msg.ppap.identity.PartnerKeys;
 import java.util.LinkedHashMap;
@@ -14,6 +15,7 @@ import java.util.Map;
 import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.json.JsonMapper;
@@ -32,9 +34,15 @@ public class PartnerKeyService implements PartnerKeys {
     private final DataspaceConnector connector;
     private final PartnerDirectory partners;
     private final ExchangeContext context;
+    private final ApplicationEventPublisher events;
 
     public PartnerKeyService(
-            PartnerKeyStore keys, DataspaceConnector connector, PartnerDirectory partners, ExchangeContext context) {
+            PartnerKeyStore keys,
+            DataspaceConnector connector,
+            PartnerDirectory partners,
+            ExchangeContext context,
+            ApplicationEventPublisher events) {
+        this.events = events;
         this.keys = keys;
         this.connector = connector;
         this.partners = partners;
@@ -85,6 +93,9 @@ public class PartnerKeyService implements PartnerKeys {
             stored++;
         }
         LOG.info("Fetched {} signature key(s) of partner {} via EDC", stored, bpnl);
+        if (stored > 0) {
+            events.publishEvent(new PartnerKeysFetched(bpnl, stored));
+        }
         return stored;
     }
 }

@@ -1,9 +1,10 @@
-import { CircleAlert, CircleCheck } from 'lucide-react'
+import { CircleAlert, CircleCheck, Network } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
 import { Progress } from '@/components/ui/progress'
 
 import type { Completeness } from '../api'
+import { elementIssues, hasSubSupplierPending } from '../cascade/cascade-model'
 
 interface CompletenessPanelProps {
   completeness: Completeness | undefined
@@ -16,10 +17,17 @@ interface CompletenessPanelProps {
 export function CompletenessPanel({ completeness, names, onSelect }: CompletenessPanelProps) {
   const { t } = useTranslation('approvals')
   if (!completeness) return null
-  const { requiredDone, requiredTotal, issues, complete } = completeness
+  const { requiredDone, requiredTotal, complete } = completeness
+  // SUB_SUPPLIER_PENDING is a case-level hint (no element, no blocker)
+  const issues = elementIssues(completeness)
+  const subSupplierPending = hasSubSupplierPending(completeness)
+  const otherHints = completeness.hints.filter((h) => h.code !== 'SUB_SUPPLIER_PENDING')
   const percent = requiredTotal ? Math.round((requiredDone / requiredTotal) * 100) : 100
   const grouped = new Map<string, typeof issues>()
-  for (const issue of issues) grouped.set(issue.elementCode, [...(grouped.get(issue.elementCode) ?? []), issue])
+  for (const issue of issues) {
+    const code = issue.elementCode ?? ''
+    grouped.set(code, [...(grouped.get(code) ?? []), issue])
+  }
 
   return (
     <section aria-labelledby="completeness-heading" className="space-y-3 rounded-lg border bg-card p-4">
@@ -74,6 +82,23 @@ export function CompletenessPanel({ completeness, names, onSelect }: Completenes
           </ul>
         </>
       )}
+      {subSupplierPending ? (
+        <p
+          className="flex items-start gap-2 border-t pt-3 text-xs text-muted-foreground"
+          data-testid="completeness-sub-supplier"
+        >
+          <Network aria-hidden="true" className="mt-px size-3.5 shrink-0 text-(--status-warning-solid)" />
+          {t('completeness.subSupplierPending')}
+        </p>
+      ) : null}
+      {otherHints.map((h, i) => (
+        <p key={`${h.code}-${i}`} className="flex items-start gap-2 text-xs text-muted-foreground">
+          <CircleAlert aria-hidden="true" className="mt-px size-3.5 shrink-0 text-(--status-warning-solid)" />
+          {t(`completeness.issues.${h.code}` as 'completeness.issues.MISSING_SELF_ASSESSMENT', {
+            defaultValue: h.message ?? h.code,
+          })}
+        </p>
+      ))}
     </section>
   )
 }

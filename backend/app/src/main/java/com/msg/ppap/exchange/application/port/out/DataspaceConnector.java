@@ -111,4 +111,38 @@ public interface DataspaceConnector {
 
     /** Latest transfer processes (monitoring, cockpit). */
     List<Map<String, Object>> listTransfers(int limit);
+
+    // ------------------------------------------------------------------------- phase 6: cockpit and policies
+
+    /** Assets of the own connector (compacted JSON-LD without context), at most {@code limit}. */
+    List<Map<String, Object>> listAssets(int limit);
+
+    /** Policy definitions of the own connector. */
+    List<Map<String, Object>> listPolicies(int limit);
+
+    /** Contract definitions of the own connector. */
+    List<Map<String, Object>> listContractDefinitions(int limit);
+
+    /** Contract negotiations, newest first, optionally filtered by state. */
+    List<Map<String, Object>> listNegotiations(String state, int offset, int limit);
+
+    /** Transfer processes, newest first, optionally filtered by state. */
+    List<Map<String, Object>> listTransfers(String state, int offset, int limit);
+
+    /**
+     * The partner's complete catalog, requested live via DSP.
+     *
+     * @throws DataspaceException if the request fails (message of the EDC)
+     */
+    List<CatalogDataset> requestFullCatalog(PartnerEndpoint partner);
+
+    /**
+     * Deletes a policy definition that is no longer referenced (best effort).
+     *
+     * @return {@code true} if deleted
+     */
+    boolean removePolicy(String policyId);
+
+    /** The policy definition exactly as sent to the management API (JSON-LD), for previews. */
+    Map<String, Object> renderPolicy(PolicySpec policy);
 }

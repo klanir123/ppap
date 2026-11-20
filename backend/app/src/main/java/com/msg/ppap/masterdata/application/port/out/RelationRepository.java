@@ -19,6 +19,12 @@ public interface RelationRepository {
 
     boolean existsByPartner(Bpnl partnerBpnl);
 
+    /** Whether a relation references the policy profile. */
+    boolean existsByPolicyProfile(String code);
+
+    /** All relations of the tenant (topology, provisioning). */
+    java.util.List<Relation> findAll();
+
     Relation save(Relation relation);
 
     void delete(Relation relation);

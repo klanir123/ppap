@@ -118,6 +118,7 @@ class JpaApprovalCaseRepository implements ApprovalCaseRepository {
             created.exchangeId = c.exchangeId();
             created.ownRole = c.ownRole().name();
             created.source = c.source().name();
+            created.parentCaseId = c.parentCaseId();
             return created;
         });
         apply(e, c);
@@ -190,7 +191,8 @@ class JpaApprovalCaseRepository implements ApprovalCaseRepository {
                 .addValue("tenant", tenant.tenantId())
                 .addValue("open", OPEN)
                 .addValue("today", Date.valueOf(p.today()))
-                .addValue("since", Timestamp.from(p.since()));
+                .addValue("since", Timestamp.from(p.since()))
+                .addValue("leadTimeSince", Timestamp.from(p.leadTimeSince()));
         Map<String, Long> byStatus = new LinkedHashMap<>();
         for (CaseStatus status : CaseStatus.values()) {
             byStatus.put(status.name(), 0L);
@@ -219,8 +221,14 @@ class JpaApprovalCaseRepository implements ApprovalCaseRepository {
                 select avg(extract(epoch from (decided_at - requested_at)) / 86400.0)
                 from ap_case
                 where tenant_id = :tenant and status in ('APPROVED', 'CONDITIONALLY_APPROVED')
-                  and decided_at is not null and requested_at is not null
+                  and decided_at is not null and requested_at is not null and decided_at >= :leadTimeSince
                 """, params, Double.class);
+        long blockingChildren = jdbc.queryForObject("""
+                select count(distinct p.id) from ap_case p
+                  join ap_case c on c.parent_case_id = p.id and c.tenant_id = p.tenant_id
+                 where p.tenant_id = :tenant and p.status in (:open)
+                   and c.status in ('DRAFT', 'REQUESTED', 'IN_PROGRESS', 'SUBMITTED', 'IN_REVIEW')
+                """, params, Long.class);
         List<CaseStatistics.PartnerFigures> byPartner = jdbc.query(
                 """
                 select partner_bpnl, max(partner_name) as name,
@@ -246,7 +254,74 @@ class JpaApprovalCaseRepository implements ApprovalCaseRepository {
                 jdbc.queryForObject(
                         "select count(*) from ap_case where tenant_id = :tenant and clarification_reason is not null",
                         params,
-                        Long.class));
+                        Long.class),
+                blockingChildren);
+    }
+
+    @Override
+    public List<CaseSummary> findChildren(UUID parentId) {
+        return cases.findByTenantIdAndParentCaseIdOrderByCreatedAt(tenant.tenantId(), parentId).stream()
+                .map(JpaApprovalCaseRepository::summary)
+                .toList();
+    }
+
+    @Override
+    public List<UUID> findCasesWithUnverifiedSignatures(String partnerBpnl) {
+        return jdbc.queryForList(
+                """
+                select distinct c.id from ap_case c join ap_submission s on s.case_id = c.id
+                 where c.tenant_id = :tenant and c.own_role = 'CUSTOMER' and c.partner_bpnl = :partner
+                   and s.status = 'SUBMITTED' and s.signature_status = 'UNVERIFIED'
+                """,
+                new MapSqlParameterSource()
+                        .addValue("tenant", tenant.tenantId())
+                        .addValue("partner", partnerBpnl),
+                UUID.class);
+    }
+
+    @Override
+    public List<ActivityRow> recentActivity(int limit) {
+        return jdbc.query(
+                """
+                select t.at, t.case_id, c.case_number, t.action, t.actor, t.from_status, t.to_status,
+                       c.partner_bpnl, c.partner_name
+                  from ap_timeline_entry t join ap_case c on c.id = t.case_id
+                 where t.tenant_id = :tenant
+                 order by t.at desc, t.seq desc
+                 limit :limit
+                """,
+                new MapSqlParameterSource()
+                        .addValue("tenant", tenant.tenantId())
+                        .addValue("limit", limit),
+                (rs, i) -> new ActivityRow(
+                        rs.getTimestamp("at").toInstant(),
+                        rs.getObject("case_id", UUID.class),
+                        rs.getString("case_number"),
+                        rs.getString("action"),
+                        rs.getString("actor"),
+                        rs.getString("from_status"),
+                        rs.getString("to_status"),
+                        rs.getString("partner_bpnl"),
+                        rs.getString("partner_name")));
+    }
+
+    @Override
+    public List<RevisionRow> submittedRevisions() {
+        return jdbc.query(
+                """
+                select c.id, c.exchange_id, c.own_role, c.source, s.revision, s.submitted_at
+                  from ap_submission s join ap_case c on c.id = s.case_id
+                 where c.tenant_id = :tenant and s.status = 'SUBMITTED' and s.submitted_at is not null
+                 order by s.submitted_at, c.id, s.revision
+                """,
+                new MapSqlParameterSource().addValue("tenant", tenant.tenantId()),
+                (rs, i) -> new RevisionRow(
+                        rs.getObject("id", UUID.class),
+                        rs.getObject("exchange_id", UUID.class),
+                        rs.getString("own_role"),
+                        rs.getString("source"),
+                        rs.getInt("revision"),
+                        rs.getTimestamp("submitted_at").toInstant()));
     }
 
     @Override
@@ -297,6 +372,7 @@ class JpaApprovalCaseRepository implements ApprovalCaseRepository {
                  where c.tenant_id = :tenant and c.partner_bpnl = :partner and c.own_role = 'SUPPLIER'
                    and c.source = 'EXCHANGE' and s.status = 'SUBMITTED'
                    and d ->> 'sha256' = :sha and d ->> 'documentId' is not null
+                   and coalesce(d ->> 'uploadedBy', '') not like 'partner:%'
                 union all
                 select cast(d ->> 'documentId' as uuid)
                   from ap_case c
@@ -304,6 +380,7 @@ class JpaApprovalCaseRepository implements ApprovalCaseRepository {
                  where c.tenant_id = :tenant and c.partner_bpnl = :partner and c.own_role = 'CUSTOMER'
                    and c.source = 'LOCAL' and c.requested_at is not null
                    and d ->> 'sha256' = :sha and d ->> 'documentId' is not null
+                   and coalesce(d ->> 'uploadedBy', '') not like 'partner:%'
                  limit 1
                 """,
                 new MapSqlParameterSource()
@@ -393,6 +470,7 @@ class JpaApprovalCaseRepository implements ApprovalCaseRepository {
             row.signatureStatus = seal.signature().status().name();
         }
         row.exchangeMode = s.exchangeMode() == null ? null : s.exchangeMode().name();
+        row.subSupplierReferences = ApprovalJson.references(s.subSupplierReferences());
         row.updatedAt = now;
     }
 
@@ -469,7 +547,8 @@ class JpaApprovalCaseRepository implements ApprovalCaseRepository {
                     s.submittedBy,
                     seal,
                     decisionsByRevision.get(s.revision),
-                    s.exchangeMode == null ? null : ExchangeMode.valueOf(s.exchangeMode)));
+                    s.exchangeMode == null ? null : ExchangeMode.valueOf(s.exchangeMode),
+                    ApprovalJson.references(s.subSupplierReferences)));
         }
         List<TimelineEntry> entries = timeline.findByTenantIdAndCaseIdOrderBySeq(t, e.id).stream()
                 .map(r -> new TimelineEntry(
@@ -498,7 +577,8 @@ class JpaApprovalCaseRepository implements ApprovalCaseRepository {
                 ApprovalJson.findings(e.reviewFindings),
                 entries,
                 new CaseMetadata(e.version, e.createdAt, e.createdBy, e.updatedAt, e.updatedBy),
-                clarification(e));
+                clarification(e),
+                e.parentCaseId);
     }
 
     private static Clarification clarification(ApCaseEntity e) {
@@ -546,7 +626,8 @@ class JpaApprovalCaseRepository implements ApprovalCaseRepository {
                 e.version,
                 e.createdAt,
                 e.updatedAt,
-                clarification(e));
+                clarification(e),
+                e.parentCaseId);
     }
 
     private static SignatureInfo signature(String alg, String kid, String jws, String status) {

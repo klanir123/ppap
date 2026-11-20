@@ -23,7 +23,11 @@ public enum CaseAction {
     REVIEW(false),
     DECIDE(false),
     RECEIVE_DECISION(true),
-    NEW_REVISION(false);
+    NEW_REVISION(false),
+    /** Supplier creates a sub-supplier request (child case) from this case (UC-09); edit action of the parent. */
+    REQUEST_SUB_SUPPLIER(false),
+    /** Technical: the signature of a received revision was verified again (e.g. after a partner key fetch). */
+    VERIFY_SIGNATURE(false);
 
     private final boolean inbound;
 

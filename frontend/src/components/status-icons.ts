@@ -30,6 +30,7 @@ import {
 import type {
   ApprovalStatus,
   Assessment,
+  ExchangeHealthState,
   ExchangeState,
   StepStateValue,
   Finding,
@@ -90,6 +91,10 @@ export const STATUS_ICONS = {
     PENDING: CircleDashed,
     NOT_REACHED: CircleMinus,
   } satisfies Record<StepStateValue, LucideIcon>,
+  exchangeHealth: { OK: CircleCheck, DEGRADED: TriangleAlert, FAILING: CircleX } satisfies Record<
+    ExchangeHealthState,
+    LucideIcon
+  >,
 }
 
 export type StatusKind = keyof typeof STATUS_ICONS

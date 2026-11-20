@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next'
 
 import { EmptyState } from '@/components/EmptyState'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { ClarificationBanner } from '@/features/exchange/clarification/ClarificationBanner'
@@ -14,6 +14,8 @@ import { AuditTrail } from '@/features/masterdata/shared/AuditTrail'
 import { cn } from '@/lib/utils'
 
 import { useCase, useSubmission, type ApprovalCaseDetail } from '../api'
+import { ParentCaseLink, SubSuppliersPanel } from '../cascade/CaseRelations'
+import { AuditExportButton } from '../components/AuditExportButton'
 import { CaseStatusBadge, SignatureBadge } from '../components/badges'
 import { DecisionView } from '../components/DecisionView'
 import { useFormat } from '../components/format'
@@ -62,6 +64,7 @@ export function CaseDetailPage() {
         </Link>
       </Button>
       <ClarificationBanner approvalCase={c} />
+      <ParentCaseLink approvalCase={c} />
       <CaseHeader approvalCase={c} />
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_20rem]">
@@ -107,24 +110,32 @@ export function CaseDetailPage() {
           </TabsContent>
           <TabsContent value="audit" className="pt-2">
             <Card>
-              <CardContent>
+              <CardHeader>
+                <CardTitle className="text-sm">{t('audit.title')}</CardTitle>
+                <CardDescription className="text-xs">{t('audit.description')}</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <AuditExportButton approvalCase={c} />
                 <AuditTrail objectType={CASE_AUDIT_OBJECT_TYPE} objectId={c.id} />
               </CardContent>
             </Card>
           </TabsContent>
         </Tabs>
 
-        <Card className="h-fit gap-4">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-sm">
-              <History aria-hidden="true" className="size-4 text-muted-foreground" />
-              {t('timeline.title')}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <Timeline entries={c.timeline} />
-          </CardContent>
-        </Card>
+        <div className="space-y-6">
+          <SubSuppliersPanel approvalCase={c} />
+          <Card className="h-fit gap-4">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-sm">
+                <History aria-hidden="true" className="size-4 text-muted-foreground" />
+                {t('timeline.title')}
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <Timeline entries={c.timeline} />
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </div>
   )

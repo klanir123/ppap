@@ -12,6 +12,8 @@ import type { TimelineEntryDtoTo } from './timelineEntryDtoTo'
 export interface TimelineEntryDto {
   action: TimelineEntryDtoAction
   actor: string
+  /** Display name of the actor: partner name instead of partner:<BPNL> */
+  actorDisplay: string
   at: string
   comment?: string
   from?: TimelineEntryDtoFrom

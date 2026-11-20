@@ -23,6 +23,7 @@ public final class Submission {
     private Seal seal;
     private Decision decision;
     private ExchangeMode exchangeMode;
+    private List<SubSupplierReference> subSupplierReferences = List.of();
 
     private Submission(
             int revision,
@@ -81,6 +82,38 @@ public final class Submission {
                 new Submission(revision, status, basedOnRevision, elements, submittedAt, submittedBy, seal, decision);
         s.exchangeMode = exchangeMode;
         return s;
+    }
+
+    /** Restores a persisted revision with exchange mode and sub-supplier references (phase 6). */
+    @SuppressWarnings("java:S107")
+    public static Submission restore(
+            int revision,
+            SubmissionStatus status,
+            Integer basedOnRevision,
+            List<ElementEvidence> elements,
+            Instant submittedAt,
+            String submittedBy,
+            Seal seal,
+            Decision decision,
+            ExchangeMode exchangeMode,
+            List<SubSupplierReference> subSupplierReferences) {
+        Submission s = restore(
+                revision, status, basedOnRevision, elements, submittedAt, submittedBy, seal, decision, exchangeMode);
+        s.subSupplierReferences = subSupplierReferences == null ? List.of() : List.copyOf(subSupplierReferences);
+        return s;
+    }
+
+    /**
+     * References to decided approvals of sub-suppliers (UC-09): editable in the draft, part of the signed payload once
+     * submitted; on the customer side as received.
+     */
+    public List<SubSupplierReference> subSupplierReferences() {
+        return subSupplierReferences;
+    }
+
+    void replaceSubSupplierReferences(List<SubSupplierReference> references) {
+        requireDraft();
+        this.subSupplierReferences = List.copyOf(references);
     }
 
     /**
@@ -143,7 +176,10 @@ public final class Submission {
 
     /** Unsealed view of this draft as it would be submitted (used to build the payload). */
     public Submission asSubmitted(Instant at, String by) {
-        return new Submission(revision, SubmissionStatus.SUBMITTED, basedOnRevision, elements(), at, by, null, null);
+        Submission view =
+                new Submission(revision, SubmissionStatus.SUBMITTED, basedOnRevision, elements(), at, by, null, null);
+        view.subSupplierReferences = subSupplierReferences;
+        return view;
     }
 
     void replace(ElementEvidence evidence) {
@@ -178,7 +214,9 @@ public final class Submission {
         for (RequestedElement element : requested) {
             copy.add(Optional.ofNullable(elements.get(element.code())).orElseGet(() -> ElementEvidence.empty(element)));
         }
-        return draft(revision + 1, revision, copy);
+        Submission next = draft(revision + 1, revision, copy);
+        next.subSupplierReferences = subSupplierReferences;
+        return next;
     }
 
     private void requireDraft() {

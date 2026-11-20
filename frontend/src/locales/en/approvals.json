@@ -242,7 +242,11 @@
     "loadError": "Revision could not be loaded.",
     "empty": "No revision yet",
     "emptyDescription": "Revisions are created once the supplier starts working.",
-    "immutableHint": "Submitted revisions are immutable; the canonical payload (RFC 8785) is SHA-256 hashed and JWS-signed."
+    "immutableHint": "Submitted revisions are immutable; the canonical payload (RFC 8785) is SHA-256 hashed and JWS-signed.",
+    "verifySignature": "Verify signature again",
+    "verifyDone": "Signature checked: {{status}}",
+    "verifyStillUnverified": "Signature still cannot be verified – the partner's key is not available yet.",
+    "verifyFailed": "Signature check failed"
   },
   "decision": {
     "empty": "No decision yet",
@@ -274,7 +278,12 @@
       "EDIT_SUBMISSION": "Package edited",
       "RECEIVE_SUBMISSION": "Submission received",
       "REVIEW": "Finding recorded",
-      "RECEIVE_DECISION": "Decision received"
+      "RECEIVE_DECISION": "Decision received",
+      "ASSIGN_PART": "Part assigned",
+      "RECEIVE_WITHDRAWAL": "Withdrawal received",
+      "RECEIVE_STATUS_UPDATE": "Status update received",
+      "REQUEST_SUB_SUPPLIER": "Sub-supplier request created",
+      "VERIFY_SIGNATURE": "Signature verified again"
     }
   },
   "documents": {
@@ -474,7 +483,8 @@
       "DOCUMENT_REQUIRED": "Evidence document missing",
       "VALUES_REQUIRED": "Structured values missing",
       "VALUE_SCHEMA_VIOLATION": "Values do not match the value format"
-    }
+    },
+    "subSupplierPending": "Sub-supplier approvals are still pending (hint, does not block the submission)."
   },
   "excel": {
     "title": "Import Excel form",
@@ -601,5 +611,63 @@
   },
   "part": {
     "unassigned": "Part not assigned"
+  },
+  "cascade": {
+    "parent": {
+      "label": "Parent case",
+      "prefix": "Sub-supplier request for",
+      "customer": "Customer: {{partner}}"
+    },
+    "panel": {
+      "title": "Sub-suppliers",
+      "empty": "No sub-supplier cases for this case yet.",
+      "blocking_one": "{{count}} sub-supplier case still open",
+      "blocking_other": "{{count}} sub-supplier cases still open",
+      "allDecided": "All sub-supplier cases are decided.",
+      "openChild": "Not decided yet"
+    },
+    "request": {
+      "action": "Request from sub-supplier",
+      "title": "Request PPF package from sub-supplier",
+      "description": "Request a PPF package for one of your sub-parts from your supplier. The new case is linked to the customer request.",
+      "parentTitle": "For case {{caseNumber}} from {{partner}}",
+      "parentHint": "Reason and submission level are taken from the customer request; the due date is two weeks before the customer's due date. Choose the sub-part and the sub-supplier."
+    },
+    "references": {
+      "title": "Sub-supplier approvals",
+      "description": "Select decided sub-supplier cases whose approval you reference in your submission. Only sub-supplier, sub-part, result, date and decision hash are transmitted.",
+      "saving": "Saving …",
+      "selected_one": "{{count}} approval referenced",
+      "selected_other": "{{count}} approvals referenced",
+      "pendingTitle": "Sub-supplier approvals pending",
+      "pendingDescription": "At least one sub-supplier case is not decided yet. You can still submit – your customer will only see the approvals referenced so far.",
+      "submitAnyway": "At least one sub-supplier case is not decided yet. You can still submit.",
+      "loadError": "Sub-supplier cases could not be loaded.",
+      "noCandidates": "No decided sub-supplier cases yet.",
+      "listLabel": "Decided sub-supplier cases",
+      "noDocuments": "Documents of sub-suppliers are not passed on.",
+      "copyHash": "Copy decision hash",
+      "openCase": "Open case",
+      "notReferenceable": "Rejected – for information only, cannot be referenced",
+      "saveFailed": "Selection could not be saved"
+    },
+    "received": {
+      "title_one": "Sub-supplier approval ({{count}})",
+      "title_other": "Sub-supplier approvals ({{count}})",
+      "noDocuments": "Documents of sub-suppliers are not passed on. The details come from your supplier's signed submission.",
+      "part": "Sub-part",
+      "supplierPartNumber": "at sub-supplier {{number}}",
+      "decision": "Decision",
+      "conditionDue": "Conditions due",
+      "hash": "Hash"
+    }
+  },
+  "audit": {
+    "title": "Audit trail",
+    "description": "Immutable, hash-chained events of this case. The export contains case, timeline, submissions, decisions, exchange log and audit events and is signed with your company key.",
+    "export": "Export audit",
+    "exported": "{{fileName}} downloaded",
+    "signed": "Signed (JWS, header X-Signature)",
+    "exportFailed": "Audit export failed"
   }
 }

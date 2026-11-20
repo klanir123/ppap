@@ -22,6 +22,7 @@ import type {
 } from '@tanstack/react-query'
 
 import type {
+  ActivityDto,
   AddRequestAttachmentHeaders,
   ApprovalCaseDetailDto,
   ApprovalCasePage,
@@ -38,6 +39,7 @@ import type {
   DocumentTransferDto,
   ElementFindingRequest,
   ExchangeRecordDto,
+  ListActivityParams,
   ListApprovalCasesParams,
   ManualApprovalCaseRequest,
   ProblemDetail,
@@ -48,6 +50,7 @@ import type {
   SendApprovalCaseHeaders,
   StartReviewHeaders,
   StartWorkHeaders,
+  SubSupplierCandidateDto,
   UpdateApprovalCaseHeaders,
   UpdateApprovalCaseRequest,
 } from '../../model'
@@ -91,6 +94,125 @@ const withQueryKey = <T extends object, K>(query: T, queryKey: K): T & { queryKe
     })
   }
   return result
+}
+
+export const getListActivityUrl = (params?: ListActivityParams) => {
+  const normalizedParams = new URLSearchParams()
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  })
+
+  const stringifiedParams = normalizedParams.toString()
+
+  return stringifiedParams.length > 0 ? `/api/v1/activity?${stringifiedParams}` : `/api/v1/activity`
+}
+
+/**
+ * @summary Activity feed: latest timeline entries of all cases, partner names instead of partner:<BPNL>
+ */
+export const listActivity = async (
+  params?: ListActivityParams,
+  options?: Parameters<typeof apiFetch>[1],
+): Promise<ActivityDto[]> => {
+  return apiFetch<ActivityDto[]>(getListActivityUrl(params), {
+    ...options,
+    method: 'GET',
+  })
+}
+
+export const getListActivityQueryKey = (params?: ListActivityParams) => {
+  return [`/api/v1/activity`, ...(params ? [params] : [])] as const
+}
+
+export const getListActivityQueryOptions = <
+  TData = Awaited<ReturnType<typeof listActivity>>,
+  TError = ErrorType<ProblemDetail>,
+>(
+  params?: ListActivityParams,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof listActivity>>, TError, TData>>
+    request?: SecondParameter<typeof apiFetch>
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {}
+
+  const queryKey = queryOptions?.queryKey ?? getListActivityQueryKey(params)
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof listActivity>>> = ({ signal }) =>
+    listActivity(params, { signal, ...requestOptions })
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof listActivity>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListActivityQueryResult = NonNullable<Awaited<ReturnType<typeof listActivity>>>
+export type ListActivityQueryError = ErrorType<ProblemDetail>
+
+/** @summary Activity feed: latest timeline entries of all cases, partner names instead of partner:<BPNL> */
+export function useListActivity<TData = Awaited<ReturnType<typeof listActivity>>, TError = ErrorType<ProblemDetail>>(
+  params: undefined | ListActivityParams,
+  options: {
+    query: Partial<UseQueryOptions<Awaited<ReturnType<typeof listActivity>>, TError, TData>> &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listActivity>>,
+          TError,
+          Awaited<ReturnType<typeof listActivity>>
+        >,
+        'initialData'
+      >
+    request?: SecondParameter<typeof apiFetch>
+  },
+  queryClient?: QueryClient,
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/** @summary Activity feed: latest timeline entries of all cases, partner names instead of partner:<BPNL> */
+export function useListActivity<TData = Awaited<ReturnType<typeof listActivity>>, TError = ErrorType<ProblemDetail>>(
+  params?: ListActivityParams,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof listActivity>>, TError, TData>> &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listActivity>>,
+          TError,
+          Awaited<ReturnType<typeof listActivity>>
+        >,
+        'initialData'
+      >
+    request?: SecondParameter<typeof apiFetch>
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/** @summary Activity feed: latest timeline entries of all cases, partner names instead of partner:<BPNL> */
+export function useListActivity<TData = Awaited<ReturnType<typeof listActivity>>, TError = ErrorType<ProblemDetail>>(
+  params?: ListActivityParams,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof listActivity>>, TError, TData>>
+    request?: SecondParameter<typeof apiFetch>
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/** @summary Activity feed: latest timeline entries of all cases, partner names instead of partner:<BPNL> */
+export function useListActivity<TData = Awaited<ReturnType<typeof listActivity>>, TError = ErrorType<ProblemDetail>>(
+  params?: ListActivityParams,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof listActivity>>, TError, TData>>
+    request?: SecondParameter<typeof apiFetch>
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+  const queryOptions = getListActivityQueryOptions(params, options)
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
+    queryKey: DataTag<QueryKey, TData, TError>
+  }
+
+  return withQueryKey(query, queryOptions.queryKey)
 }
 
 export const getListApprovalCasesUrl = (params?: ListApprovalCasesParams) => {
@@ -1691,4 +1813,205 @@ export const useStartWork = <TError = ErrorType<ProblemDetail>, TContext = unkno
   queryClient?: QueryClient,
 ): UseMutationResult<Awaited<ReturnType<typeof startWork>>, TError, StartWorkMutationVariables, TContext> => {
   return useMutation(getStartWorkMutationOptions(options), queryClient)
+}
+export const getListSubSupplierCandidatesUrl = (id: string) => {
+  return `/api/v1/approval-cases/${id}/sub-supplier-candidates`
+}
+
+/**
+ * @summary Cascade (UC-09): decided sub-supplier requests of the case (approvals can be referenced)
+ */
+export const listSubSupplierCandidates = async (
+  id: string,
+  options?: Parameters<typeof apiFetch>[1],
+): Promise<SubSupplierCandidateDto[]> => {
+  return apiFetch<SubSupplierCandidateDto[]>(getListSubSupplierCandidatesUrl(id), {
+    ...options,
+    method: 'GET',
+  })
+}
+
+export const getListSubSupplierCandidatesQueryKey = (id: string) => {
+  return [`/api/v1/approval-cases/${id}/sub-supplier-candidates`] as const
+}
+
+export const getListSubSupplierCandidatesQueryOptions = <
+  TData = Awaited<ReturnType<typeof listSubSupplierCandidates>>,
+  TError = ErrorType<ProblemDetail>,
+>(
+  id: string,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof listSubSupplierCandidates>>, TError, TData>>
+    request?: SecondParameter<typeof apiFetch>
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {}
+
+  const queryKey = queryOptions?.queryKey ?? getListSubSupplierCandidatesQueryKey(id)
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof listSubSupplierCandidates>>> = ({ signal }) =>
+    listSubSupplierCandidates(id, { signal, ...requestOptions })
+
+  return { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof listSubSupplierCandidates>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListSubSupplierCandidatesQueryResult = NonNullable<Awaited<ReturnType<typeof listSubSupplierCandidates>>>
+export type ListSubSupplierCandidatesQueryError = ErrorType<ProblemDetail>
+
+/** @summary Cascade (UC-09): decided sub-supplier requests of the case (approvals can be referenced) */
+export function useListSubSupplierCandidates<
+  TData = Awaited<ReturnType<typeof listSubSupplierCandidates>>,
+  TError = ErrorType<ProblemDetail>,
+>(
+  id: string,
+  options: {
+    query: Partial<UseQueryOptions<Awaited<ReturnType<typeof listSubSupplierCandidates>>, TError, TData>> &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listSubSupplierCandidates>>,
+          TError,
+          Awaited<ReturnType<typeof listSubSupplierCandidates>>
+        >,
+        'initialData'
+      >
+    request?: SecondParameter<typeof apiFetch>
+  },
+  queryClient?: QueryClient,
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/** @summary Cascade (UC-09): decided sub-supplier requests of the case (approvals can be referenced) */
+export function useListSubSupplierCandidates<
+  TData = Awaited<ReturnType<typeof listSubSupplierCandidates>>,
+  TError = ErrorType<ProblemDetail>,
+>(
+  id: string,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof listSubSupplierCandidates>>, TError, TData>> &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listSubSupplierCandidates>>,
+          TError,
+          Awaited<ReturnType<typeof listSubSupplierCandidates>>
+        >,
+        'initialData'
+      >
+    request?: SecondParameter<typeof apiFetch>
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/** @summary Cascade (UC-09): decided sub-supplier requests of the case (approvals can be referenced) */
+export function useListSubSupplierCandidates<
+  TData = Awaited<ReturnType<typeof listSubSupplierCandidates>>,
+  TError = ErrorType<ProblemDetail>,
+>(
+  id: string,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof listSubSupplierCandidates>>, TError, TData>>
+    request?: SecondParameter<typeof apiFetch>
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/** @summary Cascade (UC-09): decided sub-supplier requests of the case (approvals can be referenced) */
+export function useListSubSupplierCandidates<
+  TData = Awaited<ReturnType<typeof listSubSupplierCandidates>>,
+  TError = ErrorType<ProblemDetail>,
+>(
+  id: string,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof listSubSupplierCandidates>>, TError, TData>>
+    request?: SecondParameter<typeof apiFetch>
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+  const queryOptions = getListSubSupplierCandidatesQueryOptions(id, options)
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
+    queryKey: DataTag<QueryKey, TData, TError>
+  }
+
+  return withQueryKey(query, queryOptions.queryKey)
+}
+
+export const getCreateSubRequestUrl = (parentId: string) => {
+  return `/api/v1/approval-cases/${parentId}/sub-requests`
+}
+
+/**
+ * @summary Cascade (UC-09): request the approval of an own sub-part from a supplier out of a case in which the own tenant is supplier (REQUESTED / IN_PROGRESS); new customer draft linked to the parent; requires SUPPLIER_QUALITY_MANAGER and CUSTOMER_QUALITY_ENGINEER
+ */
+export const createSubRequest = async (
+  parentId: string,
+  createApprovalCaseRequest: CreateApprovalCaseRequest,
+  options?: Parameters<typeof apiFetch>[1],
+): Promise<ApprovalCaseDetailDto> => {
+  return apiFetch<ApprovalCaseDetailDto>(getCreateSubRequestUrl(parentId), {
+    ...options,
+    method: 'POST',
+    headers: getHeaders({ 'Content-Type': 'application/json' }, options?.headers),
+    body: JSON.stringify(createApprovalCaseRequest),
+  })
+}
+
+export const getCreateSubRequestMutationKey = () => ['createSubRequest'] as const
+
+export const getCreateSubRequestMutationOptions = <TError = ErrorType<ProblemDetail>, TContext = unknown>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof createSubRequest>>,
+    TError,
+    CreateSubRequestMutationVariables,
+    TContext
+  >
+  request?: SecondParameter<typeof apiFetch>
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof createSubRequest>>,
+  TError,
+  CreateSubRequestMutationVariables,
+  TContext
+> => {
+  const mutationKey = getCreateSubRequestMutationKey()
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined }
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof createSubRequest>>,
+    CreateSubRequestMutationVariables
+  > = (props) => {
+    const { parentId, data } = props ?? {}
+
+    return createSubRequest(parentId, data, requestOptions)
+  }
+
+  return { mutationFn, ...mutationOptions }
+}
+
+export type CreateSubRequestMutationResult = NonNullable<Awaited<ReturnType<typeof createSubRequest>>>
+export type CreateSubRequestMutationBody = CreateApprovalCaseRequest
+export type CreateSubRequestMutationError = ErrorType<ProblemDetail>
+export type CreateSubRequestMutationVariables = { parentId: string; data: CreateApprovalCaseRequest }
+
+/** @summary Cascade (UC-09): request the approval of an own sub-part from a supplier out of a case in which the own tenant is supplier (REQUESTED / IN_PROGRESS); new customer draft linked to the parent; requires SUPPLIER_QUALITY_MANAGER and CUSTOMER_QUALITY_ENGINEER */
+export const useCreateSubRequest = <TError = ErrorType<ProblemDetail>, TContext = unknown>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof createSubRequest>>,
+      TError,
+      CreateSubRequestMutationVariables,
+      TContext
+    >
+    request?: SecondParameter<typeof apiFetch>
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<ReturnType<typeof createSubRequest>>,
+  TError,
+  CreateSubRequestMutationVariables,
+  TContext
+> => {
+  return useMutation(getCreateSubRequestMutationOptions(options), queryClient)
 }

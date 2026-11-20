@@ -61,5 +61,10 @@
     "SKIPPED": "Übersprungen",
     "PENDING": "Ausstehend",
     "NOT_REACHED": "Nicht erreicht"
+  },
+  "exchangeHealth": {
+    "OK": "Austausch OK",
+    "DEGRADED": "Beeinträchtigt",
+    "FAILING": "Gestört"
   }
 }

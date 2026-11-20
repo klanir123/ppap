@@ -1,5 +1,6 @@
 import {
   Activity,
+  BarChart3,
   Boxes,
   Cable,
   Database,
@@ -9,6 +10,7 @@ import {
   ListChecks,
   MapPin,
   Package,
+  ShieldCheck,
   Users,
   type LucideIcon,
 } from 'lucide-react'
@@ -31,6 +33,8 @@ export type NavLabelKey =
   | 'newRequest'
   | 'package'
   | 'review'
+  | 'policyProfiles'
+  | 'usage'
 
 export interface NavItem {
   labelKey: NavLabelKey
@@ -76,7 +80,9 @@ export const NAVIGATION: NavGroup[] = [
     labelKey: 'operations',
     items: [
       { labelKey: 'cockpit', to: '/cockpit', icon: Cable, permission: 'cockpit:view' },
+      { labelKey: 'policyProfiles', to: '/policy-profiles', icon: ShieldCheck, permission: 'policies:manage' },
       { labelKey: 'dataspace', to: '/dataspace', icon: Boxes, permission: 'dataspace:view' },
+      { labelKey: 'usage', to: '/usage', icon: BarChart3, permission: 'usage:view' },
       { labelKey: 'system', to: '/system', icon: Activity, permission: 'system:view' },
     ],
   },

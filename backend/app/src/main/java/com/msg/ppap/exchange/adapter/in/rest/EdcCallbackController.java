@@ -3,10 +3,12 @@ package com.msg.ppap.exchange.adapter.in.rest;
 import com.msg.ppap.exchange.application.ExchangeAssets;
 import com.msg.ppap.exchange.application.InboxService;
 import com.msg.ppap.exchange.application.InboxService.Receipt;
+import com.msg.ppap.exchange.application.ServedContentAudit;
 import com.msg.ppap.identity.PublicKeys;
 import io.swagger.v3.oas.annotations.Hidden;
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -31,11 +33,17 @@ public class EdcCallbackController {
     private final InboxService inbox;
     private final PublicKeys publicKeys;
     private final CallbackAuthentication authentication;
+    private final ServedContentAudit audit;
 
-    EdcCallbackController(InboxService inbox, PublicKeys publicKeys, CallbackAuthentication authentication) {
+    EdcCallbackController(
+            InboxService inbox,
+            PublicKeys publicKeys,
+            CallbackAuthentication authentication,
+            ServedContentAudit audit) {
         this.inbox = inbox;
         this.publicKeys = publicKeys;
         this.authentication = authentication;
+        this.audit = audit;
     }
 
     @PostMapping(path = ExchangeAssets.NOTIFICATIONS_PATH, produces = MediaType.APPLICATION_JSON_VALUE)
@@ -73,7 +81,19 @@ public class EdcCallbackController {
         if (!authorized(request)) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", "unauthorized"));
         }
-        return ResponseEntity.ok(publicKeys.publicJwkSet());
+        Map<String, Object> jwks = publicKeys.publicJwkSet();
+        String consumer = request.getHeader(EDC_BPN_HEADER);
+        if (consumer != null && !consumer.isBlank()) {
+            Object keys = jwks.get("keys");
+            List<String> kids = keys instanceof List<?> list
+                    ? list.stream()
+                            .filter(Map.class::isInstance)
+                            .map(k -> String.valueOf(((Map<?, ?>) k).get("kid")))
+                            .toList()
+                    : List.of();
+            audit.publicKeys(kids, consumer, request.getHeader(EDC_AGREEMENT_HEADER));
+        }
+        return ResponseEntity.ok(jwks);
     }
 
     private boolean authorized(HttpServletRequest request) {

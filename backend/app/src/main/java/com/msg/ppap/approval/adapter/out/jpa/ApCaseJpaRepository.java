@@ -60,4 +60,6 @@ interface ApCaseJpaRepository extends JpaRepository<ApCaseEntity, UUID> {
             @Param("text") String text,
             @Param("needsClarification") Boolean needsClarification,
             Pageable pageable);
+
+    java.util.List<ApCaseEntity> findByTenantIdAndParentCaseIdOrderByCreatedAt(String tenantId, UUID parentCaseId);
 }

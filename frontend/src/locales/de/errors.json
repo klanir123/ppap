@@ -86,6 +86,25 @@
     "DOCUMENT_NOT_AVAILABLE": "Das Dokument wird vom Partner nicht (mehr) angeboten.",
     "DOCUMENT_FETCH_FAILED": "Das Dokument konnte nicht über Catena-X abgerufen werden.",
     "DOCUMENT_FETCH_NOT_ALLOWED": "Für dieses Dokument ist kein erneuter Abruf möglich.",
-    "TWIN_NOT_FOUND": "Für diesen Vorgang ist noch kein Digital Twin registriert."
+    "TWIN_NOT_FOUND": "Für diesen Vorgang ist noch kein Digital Twin registriert.",
+    "INVALID_USAGE_PURPOSE": "Ungültiger Nutzungszweck – Format cx.<bereich>.<zweck>:<version>, z. B. cx.quality.base:1.",
+    "DUPLICATE_USAGE_PURPOSE": "Dieser Nutzungszweck ist bereits enthalten.",
+    "MIN_ONE_USAGE_PURPOSE": "Mindestens ein Nutzungszweck ist erforderlich.",
+    "FRAMEWORK_AGREEMENT_REQUIRED": "Rahmenvertrag ist erforderlich.",
+    "INVALID_FRAMEWORK_AGREEMENT": "Ungültiger Rahmenvertrag – z. B. DataExchangeGovernance:1.0.",
+    "INVALID_PROFILE_CODE": "Kleinbuchstaben, Ziffern, - und _ (2–64 Zeichen).",
+    "POLICY_PROFILE_IN_USE": "Das Profil ist Beziehungen zugeordnet und kann nicht deaktiviert werden.",
+    "POLICY_PROFILE_NOT_FOUND": "Policy-Profil nicht gefunden.",
+    "RECONCILIATION_FAILED": "Anwenden im Connector fehlgeschlagen.",
+    "CATALOG_REQUEST_FAILED": "Katalogabfrage beim Partner fehlgeschlagen",
+    "EDC_UNAVAILABLE": "Eigener EDC-Connector nicht erreichbar",
+    "SUB_REQUEST_NOT_ALLOWED": "Für diesen Vorgang kann keine Unterlieferanten-Vorlage angefordert werden.",
+    "NOT_A_CHILD_CASE": "Der Vorgang ist kein Unterlieferanten-Vorgang dieses Vorgangs.",
+    "CHILD_NOT_DECIDED": "Nur freigegebene oder bedingt freigegebene Unterlieferanten-Vorgänge können referenziert werden.",
+    "SIGNATURE_STILL_UNVERIFIED": "Die Signatur kann noch nicht geprüft werden – der Schlüssel des Partners ist nicht verfügbar.",
+    "USAGE_RANGE_INVALID": "Ungültiger Zeitraum.",
+    "SUB_SUPPLIER_REFERENCE_INVALID": "Nur eigene, freigegebene oder bedingt freigegebene Unterlieferanten-Vorgänge können referenziert werden.",
+    "DEFAULT_PROFILE_PROTECTED": "Das Standardprofil „default“ kann nicht gelöscht, deaktiviert oder umbenannt werden.",
+    "SUB_SUPPLIER_DOCUMENT_NOT_SHAREABLE": "Dokumente von Unterlieferanten dürfen nicht weitergegeben werden."
   }
 }

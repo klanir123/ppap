@@ -1,5 +1,6 @@
 import { useMutation } from '@tanstack/react-query'
-import { ChevronRight, Download, FileJson, Loader2 } from 'lucide-react'
+import { ChevronRight, Download, FileJson, Loader2, ShieldQuestion } from 'lucide-react'
+import { toast } from 'sonner'
 import { useTranslation } from 'react-i18next'
 
 import { StatusBadge } from '@/components/StatusBadge'
@@ -8,7 +9,15 @@ import { Skeleton } from '@/components/ui/skeleton'
 
 import { ExchangeModeBadge } from '@/features/exchange/components/ExchangeModeBadge'
 
-import { approvalsApi, useSubmission, type ApprovalCaseDetail, type JsonValue, type Submission } from '../api'
+import {
+  approvalsApi,
+  useSubmission,
+  useVerifySignature,
+  type ApprovalCaseDetail,
+  type JsonValue,
+  type Submission,
+} from '../api'
+import { SubSupplierReferenceList } from '../cascade/SubSupplierReferenceList'
 import { revisionExchangeMode } from '../model/submissions'
 import { SchemaValueView } from '../schema-form/SchemaValueView'
 import { HashText, SignatureBadge } from './badges'
@@ -52,6 +61,14 @@ export function IntegrityInfo({
           <SignatureBadge status={submission.signature?.status ?? 'NOT_SIGNED'} size="sm" />
         </dd>
       </div>
+      {kind === 'submission' && submission.signature?.status === 'UNVERIFIED' ? (
+        <div>
+          <dt className="sr-only">{t('revisions.verifySignature')}</dt>
+          <dd>
+            <VerifySignatureButton caseId={caseId} revision={submission.revision} />
+          </dd>
+        </div>
+      ) : null}
       {submission.payloadHash ? (
         <div>
           <dt className="sr-only">{t('revisions.payload')}</dt>
@@ -121,6 +138,7 @@ export function RevisionView({
           <IntegrityInfo caseNumber={approvalCase.caseNumber} caseId={approvalCase.id} submission={s} />
         ) : null}
       </div>
+      <SubSupplierReferenceList references={s.subSupplierReferences} />
       <ul className="space-y-2">
         {s.elements.map((el) => {
           const snap = snapshots.get(el.code)
@@ -175,5 +193,40 @@ export function RevisionView({
         {t('revisions.immutableHint')}
       </p>
     </div>
+  )
+}
+
+/** Re-verifies an UNVERIFIED signature once the partner key could be fetched (phase 6). */
+export function VerifySignatureButton({ caseId, revision }: { caseId: string; revision: number }) {
+  const { t } = useTranslation(['approvals', 'status'])
+  const verify = useVerifySignature()
+  return (
+    <Button
+      variant="outline"
+      size="sm"
+      data-action="verify-signature"
+      disabled={verify.isPending}
+      onClick={() =>
+        verify.mutate(
+          { id: caseId, revision },
+          {
+            onSuccess: (result) => {
+              const status = result?.signature?.status
+              if (status && status !== 'UNVERIFIED') {
+                toast.success(t('revisions.verifyDone', { status: t(`status:signature.${status}`) }))
+              } else toast.info(t('revisions.verifyStillUnverified'))
+            },
+            onError: (error) => toastProblem(error, t('revisions.verifyFailed')),
+          },
+        )
+      }
+    >
+      {verify.isPending ? (
+        <Loader2 aria-hidden="true" className="animate-spin" />
+      ) : (
+        <ShieldQuestion aria-hidden="true" />
+      )}
+      {t('revisions.verifySignature')}
+    </Button>
   )
 }

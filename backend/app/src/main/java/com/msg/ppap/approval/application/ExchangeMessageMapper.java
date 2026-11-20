@@ -3,12 +3,14 @@ package com.msg.ppap.approval.application;
 import com.msg.ppap.approval.domain.ApprovalCase;
 import com.msg.ppap.approval.domain.CaseRole;
 import com.msg.ppap.approval.domain.Decision;
+import com.msg.ppap.approval.domain.DecisionResult;
 import com.msg.ppap.approval.domain.DocumentRef;
 import com.msg.ppap.approval.domain.ElementEvidence;
 import com.msg.ppap.approval.domain.ElementFinding;
 import com.msg.ppap.approval.domain.FindingResult;
 import com.msg.ppap.approval.domain.Requirement;
 import com.msg.ppap.approval.domain.SelfAssessment;
+import com.msg.ppap.approval.domain.SubSupplierReference;
 import com.msg.ppap.approval.domain.Submission;
 import com.msg.ppap.semantics.api.DecisionMessage;
 import com.msg.ppap.semantics.api.DocumentReference;
@@ -101,7 +103,21 @@ public class ExchangeMessageMapper {
                                         .map(ExchangeMessageMapper::reference)
                                         .toList()))
                         .toList(),
-                List.of(),
+                s.subSupplierReferences().stream()
+                        .map(r -> new SubmissionMessage.SubSupplierReference(
+                                r.subSupplierBpnl(),
+                                r.subSupplierName(),
+                                r.exchangeId(),
+                                r.caseNumber(),
+                                r.partNumber(),
+                                r.partName(),
+                                r.supplierPartNumber(),
+                                r.revision(),
+                                r.decisionResult().name(),
+                                r.decidedAt(),
+                                r.decisionHash(),
+                                r.conditionDueDate()))
+                        .toList(),
                 s.submittedAt(),
                 s.submittedBy());
     }
@@ -137,6 +153,26 @@ public class ExchangeMessageMapper {
                                 .map(d -> new DocumentRef(
                                         null, d.fileName(), d.mediaType(), d.size(), d.sha256(), null, null))
                                 .toList()))
+                .toList();
+    }
+
+    /** Sub-supplier references of a received submission (UC-09, metadata only). */
+    public static List<SubSupplierReference> references(SubmissionMessage message) {
+        return message.subSupplierReferences().stream()
+                .map(r -> new SubSupplierReference(
+                        null,
+                        r.subSupplierBpnl(),
+                        r.subSupplierName(),
+                        r.exchangeId(),
+                        r.caseNumber(),
+                        r.partNumber(),
+                        r.partName(),
+                        r.supplierPartNumber(),
+                        r.revision(),
+                        DecisionResult.valueOf(r.decisionResult()),
+                        r.decidedAt(),
+                        r.decisionHash(),
+                        r.conditionDueDate()))
                 .toList();
     }
 

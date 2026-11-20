@@ -52,6 +52,18 @@ class JpaRelationRepository implements RelationRepository {
     }
 
     @Override
+    public boolean existsByPolicyProfile(String code) {
+        return jpa.existsByTenantIdAndPolicyProfile(tenant.tenantId(), code);
+    }
+
+    @Override
+    public java.util.List<Relation> findAll() {
+        return jpa.findByTenantIdOrderByPartnerBpnlAscPartnerRoleAsc(tenant.tenantId()).stream()
+                .map(RelationEntity::toDomain)
+                .toList();
+    }
+
+    @Override
     public Relation save(Relation relation) {
         RelationEntity entity = jpa.findByTenantIdAndId(tenant.tenantId(), relation.id())
                 .orElseGet(() -> new RelationEntity(relation.id(), tenant.tenantId()));

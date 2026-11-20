@@ -17,6 +17,7 @@ import { ElementStateIcon } from '../components/ElementStateIcon'
 import { localized } from '../components/format'
 import { availableWorkspace, permittedActions } from '../model/actions'
 import { elementState, issuesByElement, type ElementState } from '../model/elements'
+import { SubSupplierReferencesSection } from '../cascade/SubSupplierReferencesSection'
 import { CompletenessPanel } from './CompletenessPanel'
 import { ElementEditor } from './ElementEditor'
 import { ExcelImportDialog } from './ExcelImportDialog'
@@ -188,6 +189,8 @@ function Workspace({
           </CardContent>
         </Card>
       </div>
+
+      <SubSupplierReferencesSection approvalCase={c} draft={draft} saver={saver} />
 
       <ExcelImportDialog open={excelOpen} onOpenChange={setExcelOpen} caseId={c.id} saver={saver} names={names} />
       <SubmitDialog

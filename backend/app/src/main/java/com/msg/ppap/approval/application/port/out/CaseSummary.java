@@ -12,7 +12,7 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.util.UUID;
 
-/** Read model of a case for lists. */
+/** Read model of a case for lists; {@code parentCaseId} is set for sub-supplier requests (UC-09). */
 public record CaseSummary(
         UUID id,
         String caseNumber,
@@ -36,7 +36,8 @@ public record CaseSummary(
         long version,
         Instant createdAt,
         Instant updatedAt,
-        Clarification clarification) {
+        Clarification clarification,
+        UUID parentCaseId) {
 
     public String customerPartNumber() {
         return ownRole == CaseRole.CUSTOMER ? part.partNumber() : partnerPartNumber;

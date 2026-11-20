@@ -1,5 +1,5 @@
 import { getRouteApi, Link, useNavigate } from '@tanstack/react-router'
-import { ArrowLeft, ArrowRight, Loader2, Save, Send, TriangleAlert } from 'lucide-react'
+import { ArrowLeft, ArrowRight, GitBranchPlus, Loader2, Save, Send, TriangleAlert } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
@@ -10,13 +10,21 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 
-import { approvalsApi, useCase, useCatalogue, useSupplierPartOptions, type ApprovalCaseDetail } from '../api'
+import {
+  approvalsApi,
+  useCase,
+  useCatalogue,
+  useSupplierPartOptions,
+  type ApprovalCaseDetail,
+  type CasePartnerRef,
+} from '../api'
 import { problemMessage } from '../components/problem'
 import { Stepper } from '../components/Stepper'
 import { todayIso } from '../model/status'
 import {
   elementInputs,
   emptyRequest,
+  subRequestDefaults,
   firstInvalidStep,
   fromDraft,
   prefillElements,
@@ -32,10 +40,13 @@ const routeApi = getRouteApi('/approvals/new')
 
 /** Wizard "Vorlage anfordern" (UC-03): create or continue a draft, then save or request. */
 export function RequestWizardPage() {
-  const { caseId } = routeApi.useSearch()
+  const { caseId, parentId: parentParam } = routeApi.useSearch()
   const draft = useCase(caseId)
   const catalogue = useCatalogue()
-  if (caseId && (draft.isPending || catalogue.isPending)) {
+  // a sub-supplier request (UC-09) – new (parentId) or the draft of an existing child case
+  const parentId = caseId ? (draft.data?.parentCase?.id ?? undefined) : parentParam
+  const parent = useCase(parentParam && !caseId ? parentParam : undefined)
+  if ((caseId && (draft.isPending || catalogue.isPending)) || (parentParam && !caseId && parent.isPending)) {
     return (
       <div className="space-y-6" aria-busy="true">
         <Skeleton className="h-8 w-72" />
@@ -51,11 +62,33 @@ export function RequestWizardPage() {
           catalogue.elements,
           catalogue.levels.find((l) => l.code === draft.data.level.code),
         )
-      : emptyRequest()
-  return <RequestWizard key={caseId ?? 'new'} initial={initial} draft={draft.data} />
+      : parent.data
+        ? subRequestDefaults(parent.data, todayIso())
+        : emptyRequest()
+  return (
+    <RequestWizard
+      key={caseId ?? parentId ?? 'new'}
+      initial={initial}
+      draft={draft.data}
+      parent={parent.data ?? draft.data?.parentCase ?? undefined}
+      parentId={parentId}
+    />
+  )
 }
 
-function RequestWizard({ initial, draft }: { initial: RequestValues; draft?: ApprovalCaseDetail }) {
+type ParentInfo = Pick<ApprovalCaseDetail, 'id' | 'caseNumber'> & { partner: CasePartnerRef }
+
+function RequestWizard({
+  initial,
+  draft,
+  parent,
+  parentId,
+}: {
+  initial: RequestValues
+  draft?: ApprovalCaseDetail
+  parent?: ParentInfo
+  parentId?: string
+}) {
   const { t } = useTranslation('approvals')
   const navigate = useNavigate()
   const catalogue = useCatalogue()
@@ -120,6 +153,10 @@ function RequestWizard({ initial, draft }: { initial: RequestValues; draft?: App
         version = updated.version ?? updated.data?.version ?? version
         const withElements = await approvalsApi.updateRequestElements(draft.id, elementInputs(values), version)
         version = withElements.version ?? withElements.data?.version ?? version
+      } else if (parentId) {
+        const created = await approvalsApi.createSubRequest(parentId, toCreateInput(values))
+        id = created.id
+        version = created.version
       } else {
         const created = await approvalsApi.createCase(toCreateInput(values))
         id = created.id
@@ -163,15 +200,45 @@ function RequestWizard({ initial, draft }: { initial: RequestValues; draft?: App
   return (
     <div className="space-y-6">
       <Button variant="ghost" size="sm" className="-ml-2" asChild>
-        <Link to={draft ? '/approvals/$caseId' : '/approvals'} params={draft ? { caseId: draft.id } : undefined}>
-          <ArrowLeft aria-hidden="true" />
-          {draft ? draft.caseNumber : t('list.title')}
-        </Link>
+        {draft ? (
+          <Link to="/approvals/$caseId" params={{ caseId: draft.id }}>
+            <ArrowLeft aria-hidden="true" />
+            {draft.caseNumber}
+          </Link>
+        ) : parent ? (
+          <Link to="/approvals/$caseId" params={{ caseId: parent.id }}>
+            <ArrowLeft aria-hidden="true" />
+            {parent.caseNumber}
+          </Link>
+        ) : (
+          <Link to="/approvals">
+            <ArrowLeft aria-hidden="true" />
+            {t('list.title')}
+          </Link>
+        )}
       </Button>
       <PageHeader
-        title={draft ? t('wizard.editTitle', { caseNumber: draft.caseNumber }) : t('wizard.title')}
-        description={t('wizard.description')}
+        title={
+          draft
+            ? t('wizard.editTitle', { caseNumber: draft.caseNumber })
+            : parent
+              ? t('cascade.request.title')
+              : t('wizard.title')
+        }
+        description={parent && !draft ? t('cascade.request.description') : t('wizard.description')}
       />
+      {parent ? (
+        <Alert data-testid="sub-request-parent">
+          <GitBranchPlus aria-hidden="true" />
+          <AlertTitle>
+            {t('cascade.request.parentTitle', {
+              caseNumber: parent.caseNumber,
+              partner: parent.partner.name ?? parent.partner.bpnl,
+            })}
+          </AlertTitle>
+          <AlertDescription>{t('cascade.request.parentHint')}</AlertDescription>
+        </Alert>
+      ) : null}
       <Stepper steps={steps} current={stepIndex} maxReached={maxReached} onSelect={goTo} />
 
       <Card>
