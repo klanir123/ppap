@@ -1,5 +1,6 @@
 import { expect, type Page } from '@playwright/test'
 import fs from 'node:fs'
+import os from 'node:os'
 import path from 'node:path'
 
 export const URLS = {
@@ -28,6 +29,35 @@ export async function shot(page: Page, name: string) {
   // the SSE stream keeps a request open – networkidle is only a best effort
   await page.waitForLoadState('networkidle', { timeout: 3_000 }).catch(() => undefined)
   await page.screenshot({ path: path.join(SHOTS, `${name}.png`), fullPage: true })
+}
+
+/**
+ * Minimal, unique PDF (own content → own SHA-256) in the OS temp dir – for specs that must not reuse seed documents
+ * (e.g. the cascade: a document received from a sub-supplier may never be attached to an own submission).
+ */
+export function uniquePdf(label: string): string {
+  const text = `${label} ${new Date().toISOString()} ${Math.random().toString(16).slice(2)}`
+  const stream = `BT /F1 12 Tf 72 720 Td (${text}) Tj ET`
+  const objects = [
+    '<< /Type /Catalog /Pages 2 0 R >>',
+    '<< /Type /Pages /Kids [3 0 R] /Count 1 >>',
+    '<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Contents 4 0 R /Resources << /Font << /F1 5 0 R >> >> >>',
+    `<< /Length ${stream.length} >>\nstream\n${stream}\nendstream`,
+    '<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>',
+  ]
+  let body = '%PDF-1.4\n'
+  const offsets: number[] = []
+  objects.forEach((obj, i) => {
+    offsets.push(body.length)
+    body += `${i + 1} 0 obj\n${obj}\nendobj\n`
+  })
+  const xref = body.length
+  body += `xref\n0 ${objects.length + 1}\n0000000000 65535 f \n`
+  body += offsets.map((o) => `${String(o).padStart(10, '0')} 00000 n \n`).join('')
+  body += `trailer\n<< /Size ${objects.length + 1} /Root 1 0 R >>\nstartxref\n${xref}\n%%EOF\n`
+  const file = path.join(os.tmpdir(), `${label}-${Date.now()}.pdf`)
+  fs.writeFileSync(file, body, 'latin1')
+  return file
 }
 
 /** Local date + n days (YYYY-MM-DD) for date inputs. */
@@ -82,8 +112,13 @@ export async function fillValues(page: Page) {
  * Resolves all completeness issues of the draft through the package editor (page must show the workspace):
  * self-assessment i. O., comments, a PDF per document element, schema values.
  */
-export async function resolveIssues(page: Page, id: string, afterFirst?: () => Promise<void>) {
-  const pdf = path.join(SEED, 'documents/messprotokoll.pdf')
+export async function resolveIssues(
+  page: Page,
+  id: string,
+  afterFirst?: () => Promise<void>,
+  pdf = path.join(SEED, 'documents/messprotokoll.pdf'),
+) {
+  const pdfName = path.basename(pdf)
   for (let round = 0; round < 40; round++) {
     const draft = await draftOf(page, id)
     if (draft.completeness.complete) break
@@ -99,7 +134,7 @@ export async function resolveIssues(page: Page, id: string, afterFirst?: () => P
     if (issue.code === 'COMMENT_REQUIRED') await editor.getByLabel(/^Kommentar/).fill('E2E: Begründung')
     if (issue.code === 'DOCUMENT_REQUIRED') {
       await editor.locator('input[type=file]').setInputFiles(pdf)
-      await expect(editor.getByRole('button', { name: /messprotokoll\.pdf anzeigen/ }).first()).toBeVisible()
+      await expect(editor.getByRole('button', { name: `${pdfName} anzeigen` }).first()).toBeVisible()
     }
     if (issue.code === 'VALUES_REQUIRED' || issue.code === 'VALUE_SCHEMA_VIOLATION') await fillValues(page)
     // autosave (debounced) has reached the server once this issue is gone

@@ -86,6 +86,25 @@
     "DOCUMENT_NOT_AVAILABLE": "The partner does not (or no longer) offer this document.",
     "DOCUMENT_FETCH_FAILED": "The document could not be retrieved via Catena-X.",
     "DOCUMENT_FETCH_NOT_ALLOWED": "This document cannot be retrieved again.",
-    "TWIN_NOT_FOUND": "No digital twin has been registered for this case yet."
+    "TWIN_NOT_FOUND": "No digital twin has been registered for this case yet.",
+    "INVALID_USAGE_PURPOSE": "Invalid usage purpose – format cx.<area>.<purpose>:<version>, e.g. cx.quality.base:1.",
+    "DUPLICATE_USAGE_PURPOSE": "This usage purpose is already included.",
+    "MIN_ONE_USAGE_PURPOSE": "At least one usage purpose is required.",
+    "FRAMEWORK_AGREEMENT_REQUIRED": "Framework agreement is required.",
+    "INVALID_FRAMEWORK_AGREEMENT": "Invalid framework agreement – e.g. DataExchangeGovernance:1.0.",
+    "INVALID_PROFILE_CODE": "Lower-case letters, digits, - and _ (2–64 characters).",
+    "POLICY_PROFILE_IN_USE": "The profile is assigned to relations and cannot be deactivated.",
+    "POLICY_PROFILE_NOT_FOUND": "Policy profile not found.",
+    "RECONCILIATION_FAILED": "Applying in the connector failed.",
+    "CATALOG_REQUEST_FAILED": "Catalog request to the partner failed",
+    "EDC_UNAVAILABLE": "Own EDC connector not reachable",
+    "SUB_REQUEST_NOT_ALLOWED": "No sub-supplier request can be created for this case.",
+    "NOT_A_CHILD_CASE": "The case is not a sub-supplier case of this case.",
+    "CHILD_NOT_DECIDED": "Only approved or conditionally approved sub-supplier cases can be referenced.",
+    "SIGNATURE_STILL_UNVERIFIED": "The signature cannot be verified yet – the partner's key is not available.",
+    "USAGE_RANGE_INVALID": "Invalid period.",
+    "SUB_SUPPLIER_REFERENCE_INVALID": "Only own approved or conditionally approved sub-supplier cases can be referenced.",
+    "DEFAULT_PROFILE_PROTECTED": "The standard profile “default” cannot be deleted, deactivated or renamed.",
+    "SUB_SUPPLIER_DOCUMENT_NOT_SHAREABLE": "Documents of sub-suppliers must not be passed on."
   }
 }

@@ -8,7 +8,8 @@
 
 export interface CompletenessIssueDto {
   code: string
-  elementCode: string
+  /** Element code; null for hints of the whole revision */
+  elementCode?: string
   /** JSON pointer into the values (VALUE_SCHEMA_VIOLATION) */
   field?: string
   message: string

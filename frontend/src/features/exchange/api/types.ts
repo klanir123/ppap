@@ -96,7 +96,8 @@ export type ExchangeOverview = ExchangeStatusDto
 /** UC-04 A1 – a received request whose customer part number has no part mapping. */
 export type CaseClarification = ClarificationDto
 export type LastOutbound = LastOutboundDto
-export type AssignPartInput = Required<AssignPartRequest>
+/** `replaceExistingMapping` replaces the existing part mapping of this part in the relation (audited). */
+export type AssignPartInput = AssignPartRequest
 
 // --- digital twin (GET /api/v1/twins/{exchangeId}, supplier) -----------------------------------
 
@@ -139,11 +140,45 @@ export interface CaseChangedEvent {
   status?: string
 }
 
-export interface ExchangeChangedEvent {
+export interface ExchangeChangedEvent extends ExchangeChangedDetails {
   type: 'exchange.changed'
   caseId?: string | null
   messageId?: string
   status?: ExchangeStatus
 }
 
-export type LiveEvent = CaseChangedEvent | ExchangeChangedEvent
+export type LiveEvent = CaseChangedEvent | ExchangeChangedEvent | ConnectorLogEvent
+
+// --- phase 6 live events (cascade-transparency-api.md §2, §6) -----------------------------------
+
+/** Optional enrichment of `exchange.changed` – lets the dataspace view animate without a lookup. */
+export interface ExchangeChangedDetails {
+  messageType?: string
+  direction?: ExchangeDirection
+  partnerBpnl?: string
+  caseNumber?: string
+  step?: string
+  at?: string
+}
+
+export type LogLevel = 'DEBUG' | 'INFO' | 'WARN' | 'ERROR'
+export const LOG_LEVELS = ['DEBUG', 'INFO', 'WARN', 'ERROR'] as const satisfies readonly LogLevel[]
+
+/** `connector.log` – derived from exchange record steps (not from server logs). */
+export interface ConnectorLogEvent {
+  type: 'connector.log'
+  at: string
+  level: LogLevel | (string & {})
+  correlationId?: string | null
+  messageType?: string | null
+  step?: string | null
+  /** Step status (OK / FAILED / SKIPPED). */
+  status?: string | null
+  direction?: ExchangeDirection | null
+  partnerBpnl?: string | null
+  caseId?: string | null
+  messageId?: string | null
+  text: string
+  /** SSE event id (client side, for stable keys). */
+  id?: string
+}

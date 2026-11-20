@@ -162,3 +162,29 @@ export function fromDraft(
     attachments: c.request.attachments,
   }
 }
+
+/** Days the sub-supplier due date is set before the parent's due date (buffer for the own review). */
+export const SUB_REQUEST_BUFFER_DAYS = 14
+
+function addDays(iso: string, days: number): string {
+  const [y, m, d] = iso.slice(0, 10).split('-').map(Number)
+  const date = new Date(Date.UTC(y!, m! - 1, d! + days))
+  return date.toISOString().slice(0, 10)
+}
+
+/**
+ * Prefill of a sub-supplier request (UC-09) from the parent case: same reason and level, due date with a
+ * buffer before the parent's due date (only if still in the future), remark referencing the parent.
+ */
+export function subRequestDefaults(
+  parent: Pick<ApprovalCaseDetail, 'reason' | 'level' | 'dueDate'>,
+  today: string,
+): RequestValues {
+  const due = parent.dueDate ? addDays(parent.dueDate, -SUB_REQUEST_BUFFER_DAYS) : ''
+  return {
+    ...emptyRequest(),
+    reasonCode: parent.reason.code,
+    levelCode: parent.level.code,
+    dueDate: due > today ? due : '',
+  }
+}

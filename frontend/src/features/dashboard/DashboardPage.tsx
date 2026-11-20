@@ -1,5 +1,16 @@
 import { Link } from '@tanstack/react-router'
-import { AlarmClock, ArrowRight, Eye, FileCheck2, Gauge, Inbox, Plus, type LucideIcon } from 'lucide-react'
+import {
+  AlarmClock,
+  ArrowRight,
+  Eye,
+  FileCheck2,
+  Gauge,
+  Inbox,
+  Network,
+  Plus,
+  Timer,
+  type LucideIcon,
+} from 'lucide-react'
 import type { ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 
@@ -9,15 +20,19 @@ import { StatusBadge } from '@/components/StatusBadge'
 import { Button } from '@/components/ui/button'
 import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
-import { useCasePage, useCaseStats } from '@/features/approvals/api'
+import { useCasePage, useCaseStats, type CaseStatus } from '@/features/approvals/api'
 import { CasePartText, CaseStatusBadge, DueDate, RoleBadge } from '@/features/approvals/components/badges'
-import { useFormat } from '@/features/approvals/components/format'
+import { useFormat, useRelativeTime } from '@/features/approvals/components/format'
 import { useCurrentUser, usePermission, userDisplayName } from '@/features/auth/current-user'
 import { useComponentInfo } from '@/features/system/component-meta'
 import { useSystemStatus } from '@/features/system/useSystemStatus'
+import { canCascade } from '@/lib/permissions'
 import { isHealthStatus } from '@/lib/status'
 import { statusStyle } from '@/lib/status-style'
 import { cn } from '@/lib/utils'
+
+import { ActivityFeed } from './ActivityFeed'
+import { sortPartners } from './partners'
 
 const RECENT_PARAMS = { page: 0, size: 5, sort: 'updatedAt,desc' }
 
@@ -51,12 +66,19 @@ export function DashboardPage() {
 function ApprovalOverview({ cta }: { cta: ReactNode }) {
   const { t } = useTranslation(['dashboard', 'common'])
   const fmt = useFormat()
+  const me = useCurrentUser()
   const stats = useCaseStats()
   const s = stats.data
   const loading = stats.isPending
+  const blocking = s?.blockingChildren ?? undefined
+  // the cascade tile matters for suppliers that request from sub-suppliers (Tier-1)
+  const showBlocking = canCascade(me.roles) || (blocking ?? 0) > 0
   return (
     <>
-      <section aria-label={t('title')} className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <section
+        aria-label={t('title')}
+        className={cn('grid gap-4 sm:grid-cols-2', showBlocking ? 'lg:grid-cols-3' : 'lg:grid-cols-3 xl:grid-cols-5')}
+      >
         <KpiCard label={t('kpi.open')} icon={Inbox} value={s?.open} loading={loading} to={{ status: undefined }} />
         <KpiCard
           label={t('kpi.overdue')}
@@ -75,25 +97,42 @@ function ApprovalOverview({ cta }: { cta: ReactNode }) {
           to={{ status: ['IN_REVIEW'] }}
         />
         <KpiCard
+          label={t('kpi.leadTimeLabel')}
+          icon={Timer}
+          display={
+            s?.averageLeadTimeDays != null
+              ? t('kpi.days', { count: s.averageLeadTimeDays, value: fmt.number(s.averageLeadTimeDays) })
+              : undefined
+          }
+          loading={loading}
+          hint={s?.averageLeadTimeDays != null ? t('kpi.leadTimeHint') : undefined}
+          testId="kpi-lead-time"
+        />
+        <KpiCard
           label={t('kpi.approvalRate')}
           icon={Gauge}
           display={s?.approvalRate != null ? fmt.percent(s.approvalRate) : undefined}
           loading={loading}
-          hint={
-            s
-              ? [
-                  s.averageLeadTimeDays != null
-                    ? t('kpi.leadTime', { days: fmt.number(s.averageLeadTimeDays) })
-                    : undefined,
-                  t('kpi.approved30', { count: s.approvedLast30Days }),
-                ]
-                  .filter(Boolean)
-                  .join(' · ')
-              : undefined
-          }
+          hint={s ? t('kpi.approved30', { count: s.approvedLast30Days }) : undefined}
+          testId="kpi-approval-rate"
         />
+        {showBlocking ? (
+          <KpiCard
+            label={t('kpi.blockingChildren')}
+            icon={Network}
+            value={blocking ?? (s ? 0 : undefined)}
+            loading={loading}
+            tone={blocking && blocking > 0 ? 'warning' : undefined}
+            hint={blocking && blocking > 0 ? t('kpi.blockingChildrenHint') : t('kpi.blockingChildrenNone')}
+            to={{ role: 'SUPPLIER', status: ['REQUESTED', 'IN_PROGRESS'] }}
+            testId="kpi-blocking-children"
+          />
+        ) : null}
       </section>
-      <RecentCasesCard cta={cta} />
+      <div className="grid gap-4 lg:grid-cols-3">
+        <RecentCasesCard cta={cta} className="lg:col-span-2" />
+        <ActivityFeed />
+      </div>
     </>
   )
 }
@@ -107,6 +146,7 @@ function KpiCard({
   hint,
   tone,
   to,
+  testId,
 }: {
   label: string
   icon: LucideIcon
@@ -114,13 +154,17 @@ function KpiCard({
   display?: string
   loading?: boolean
   hint?: string
-  tone?: 'error'
-  to?: { status?: ('IN_REVIEW' | 'SUBMITTED')[]; overdue?: boolean }
+  tone?: 'error' | 'warning'
+  to?: { status?: CaseStatus[]; overdue?: boolean; role?: 'SUPPLIER' | 'CUSTOMER' }
+  testId?: string
 }) {
   const { t } = useTranslation(['dashboard', 'common'])
   const shown = display ?? (value !== undefined ? String(value) : undefined)
   const body = (
-    <Card className={cn('h-full gap-3 py-5 transition-colors', to && 'group-hover:border-foreground/20')}>
+    <Card
+      className={cn('h-full gap-3 py-5 transition-colors', to && 'group-hover:border-foreground/20')}
+      data-testid={testId}
+    >
       <CardHeader className="px-5">
         <CardDescription className="text-xs font-medium">{label}</CardDescription>
         <CardAction>
@@ -142,7 +186,7 @@ function KpiCard({
           <p
             className={cn(
               'text-3xl font-semibold tracking-tight tabular',
-              tone && shown !== '0' && 'text-(--status-error-fg)',
+              tone && shown !== '0' && (tone === 'error' ? 'text-(--status-error-fg)' : 'text-(--status-warning-fg)'),
             )}
           >
             {shown ?? t('common:notAvailable')}
@@ -166,12 +210,12 @@ function KpiCard({
   )
 }
 
-function RecentCasesCard({ cta }: { cta: ReactNode }) {
+function RecentCasesCard({ cta, className }: { cta: ReactNode; className?: string }) {
   const { t } = useTranslation(['dashboard', 'common'])
   const query = useCasePage(RECENT_PARAMS)
   const cases = query.data?.content ?? []
   return (
-    <Card>
+    <Card className={className}>
       <CardHeader>
         <CardTitle>{t('recent.title')}</CardTitle>
         <CardDescription>{t('recent.description')}</CardDescription>
@@ -235,7 +279,9 @@ function RecentCasesCard({ cta }: { cta: ReactNode }) {
 function PartnerStatusCard() {
   const { t } = useTranslation(['dashboard', 'common'])
   const stats = useCaseStats()
-  const partners = [...(stats.data?.byPartner ?? [])].sort((a, b) => b.open - a.open).slice(0, 8)
+  const fmt = useFormat()
+  const relative = useRelativeTime()
+  const partners = sortPartners(stats.data?.byPartner ?? []).slice(0, 8)
   return (
     <Card className="lg:col-span-2">
       <CardHeader>
@@ -249,11 +295,17 @@ function PartnerStatusCard() {
           <p className="text-sm text-muted-foreground">{t('partners.empty')}</p>
         ) : (
           <div className="relative overflow-x-auto rounded-md border">
-            <table className="w-full text-sm" aria-label={t('partners.title')}>
+            <table className="w-full text-sm" aria-label={t('partners.title')} data-testid="partner-status">
               <thead className="bg-muted/60 text-xs text-muted-foreground">
                 <tr>
                   <th scope="col" className="px-3 py-2 text-left font-medium">
                     {t('partners.partner')}
+                  </th>
+                  <th scope="col" className="px-3 py-2 text-left font-medium">
+                    {t('partners.exchange')}
+                  </th>
+                  <th scope="col" className="hidden px-3 py-2 text-left font-medium sm:table-cell">
+                    {t('partners.lastExchange')}
                   </th>
                   <th scope="col" className="px-3 py-2 text-right font-medium">
                     {t('partners.open')}
@@ -275,6 +327,22 @@ function PartnerStatusCard() {
                         {p.name ?? p.bpnl}
                       </Link>
                       <span className="block font-mono text-[11px] text-muted-foreground">{p.bpnl}</span>
+                    </td>
+                    <td className="px-3 py-2">
+                      {p.exchangeHealth ? (
+                        <StatusBadge kind="exchangeHealth" status={p.exchangeHealth} size="sm" />
+                      ) : (
+                        <span className="text-xs text-muted-foreground">{t('partners.noExchange')}</span>
+                      )}
+                    </td>
+                    <td className="hidden px-3 py-2 text-xs text-muted-foreground sm:table-cell">
+                      {p.lastExchangeAt ? (
+                        <time dateTime={p.lastExchangeAt} title={fmt.dateTime(p.lastExchangeAt)} className="tabular">
+                          {relative(p.lastExchangeAt)}
+                        </time>
+                      ) : (
+                        '–'
+                      )}
                     </td>
                     <td className="px-3 py-2 text-right tabular">{p.open}</td>
                     <td className="px-3 py-2 text-right tabular">

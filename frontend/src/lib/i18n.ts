@@ -3,6 +3,8 @@ import LanguageDetector from 'i18next-browser-languagedetector'
 import { initReactI18next } from 'react-i18next'
 
 import deApprovals from '@/locales/de/approvals.json'
+import deDataspace from '@/locales/de/dataspace.json'
+import deUsage from '@/locales/de/usage.json'
 import deAuth from '@/locales/de/auth.json'
 import deCommon from '@/locales/de/common.json'
 import deDashboard from '@/locales/de/dashboard.json'
@@ -17,6 +19,8 @@ import dePages from '@/locales/de/pages.json'
 import deStatus from '@/locales/de/status.json'
 import deSystem from '@/locales/de/system.json'
 import enApprovals from '@/locales/en/approvals.json'
+import enDataspace from '@/locales/en/dataspace.json'
+import enUsage from '@/locales/en/usage.json'
 import enAuth from '@/locales/en/auth.json'
 import enCommon from '@/locales/en/common.json'
 import enDashboard from '@/locales/en/dashboard.json'
@@ -51,6 +55,8 @@ export const resources = {
     masterdata: deMasterdata,
     approvals: deApprovals,
     exchange: deExchange,
+    usage: deUsage,
+    dataspace: deDataspace,
   },
   en: {
     common: enCommon,
@@ -67,6 +73,8 @@ export const resources = {
     masterdata: enMasterdata,
     approvals: enApprovals,
     exchange: enExchange,
+    usage: enUsage,
+    dataspace: enDataspace,
   },
 } as const
 

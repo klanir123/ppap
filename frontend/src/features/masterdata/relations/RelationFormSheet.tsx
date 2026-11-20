@@ -1,9 +1,10 @@
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
 
-import { FormSheet, SelectField, TextField } from '@/components/forms'
+import { FormSheet, SelectField } from '@/components/forms'
 
-import { relationsApi } from '../api'
+import { policyProfilesApi, relationsApi, type RelationWithReconciliation } from '../api'
+import { toastReconciliation } from '../policy-profiles/reconciliation'
 import { PARTNER_ROLES, type Relation } from '../api/types'
 import { usePartnerOptions } from '../shared/usePartnerOptions'
 import { ExchangeModeField } from './ExchangeModeField'
@@ -21,6 +22,7 @@ export function RelationFormSheet({ editing, onClose, onReloaded, readOnly }: Re
   const { t } = useTranslation(['masterdata', 'forms'])
   const save = relationsApi.useSave()
   const partners = usePartnerOptions({ includeOwn: false })
+  const profiles = policyProfilesApi.useAll({ active: true })
   const isNew = editing === 'new'
   const relation = editing && editing !== 'new' ? editing : undefined
 
@@ -37,9 +39,16 @@ export function RelationFormSheet({ editing, onClose, onReloaded, readOnly }: Re
       submitLabel={isNew ? t('forms:create') : undefined}
       onReload={() => relation && void relationsApi.fetchOne(relation.id).then(onReloaded)}
       onSubmit={async (values) => {
-        await save.mutateAsync({ id: relation?.id, version: relation?.version, input: toRelationInput(values) })
+        const saved: RelationWithReconciliation = await save.mutateAsync({
+          id: relation?.id,
+          version: relation?.version,
+          input: toRelationInput(values),
+        })
         const name = partners.options.find((o) => o.value === values.partnerBpnl)?.label ?? values.partnerBpnl
-        toast.success(t(isNew ? 'common.created' : 'common.saved', { name }))
+        const message = t(isNew ? 'common.created' : 'common.saved', { name })
+        // a write that changed profile or exchange mode reports its effect on the own EDC
+        if (saved.reconciliation) toastReconciliation(saved.reconciliation, message)
+        else toast.success(message)
       }}
     >
       {() => (
@@ -66,9 +75,23 @@ export function RelationFormSheet({ editing, onClose, onReloaded, readOnly }: Re
             options={PARTNER_ROLES.map((role) => ({ value: role, label: t(`relations.partnerRoleValues.${role}`) }))}
           />
           <ExchangeModeField />
-          <TextField name="policyProfile" label={t('relations.policyProfile')} mono placeholder="default" />
+          <SelectField
+            name="policyProfile"
+            label={t('relations.policyProfile')}
+            description={t('relations.policyProfileHint')}
+            options={policyProfileOptions(profiles.data, relation?.policyProfile)}
+          />
         </>
       )}
     </FormSheet>
   )
+}
+
+/** Active profiles (code → "name · code"); the current assignment stays selectable even if not listed. */
+function policyProfileOptions(profiles: { code: string; name: string }[] | undefined, current: string | undefined) {
+  const list = (profiles ?? []).map((p) => ({ value: p.code, label: `${p.name} · ${p.code}` }))
+  for (const code of [current, 'default']) {
+    if (code && !list.some((o) => o.value === code)) list.unshift({ value: code, label: code })
+  }
+  return list
 }

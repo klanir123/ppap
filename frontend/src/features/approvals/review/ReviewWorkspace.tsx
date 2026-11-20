@@ -57,6 +57,7 @@ import { DocumentList, DocumentPreview } from '../components/Documents'
 import { isStored } from '../components/documents'
 import { localized } from '../components/format'
 import { problemCode, problemMessage, toastProblem } from '../components/problem'
+import { SubSupplierReferenceList } from '../cascade/SubSupplierReferenceList'
 import { IntegrityInfo } from '../components/RevisionView'
 import { permittedActions } from '../model/actions'
 import type { DecisionDraft, FindingDraft } from '../model/decision-rules'
@@ -295,6 +296,8 @@ function Review({ approvalCase: c, submission }: { approvalCase: ApprovalCaseDet
           <AlertDescription>{t('review.signatureInvalidDescription')}</AlertDescription>
         </Alert>
       ) : null}
+
+      <SubSupplierReferenceList references={submission.subSupplierReferences} />
 
       <div className="grid grid-cols-1 gap-5 xl:grid-cols-[17rem_minmax(0,1fr)_20rem]">
         <nav aria-label={t('review.elementList')} className="h-fit rounded-lg border bg-card p-2">

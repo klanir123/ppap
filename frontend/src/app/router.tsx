@@ -6,7 +6,6 @@ import {
   redirect,
   type RouterHistory,
 } from '@tanstack/react-router'
-import { Boxes } from 'lucide-react'
 import { z } from 'zod'
 
 import { listSearchSchema } from '@/components/data-table'
@@ -30,8 +29,11 @@ import { RelationDetailPage } from '@/features/masterdata/relations/RelationDeta
 import { RelationsPage } from '@/features/masterdata/relations/RelationsPage'
 import { SitesPage } from '@/features/masterdata/sites/SitesPage'
 import { NotFoundPage } from '@/features/errors/NotFoundPage'
-import { ComingSoonPage } from '@/features/placeholder/ComingSoonPage'
 import { SystemStatusPage } from '@/features/system/SystemStatusPage'
+import { DataspacePage } from '@/features/dataspace/DataspacePage'
+import { PolicyProfileDetailPage } from '@/features/masterdata/policy-profiles/PolicyProfileDetailPage'
+import { PolicyProfilesPage } from '@/features/masterdata/policy-profiles/PolicyProfilesPage'
+import { UsagePage } from '@/features/usage/UsagePage'
 
 import type { NavLabelKey } from './navigation'
 
@@ -76,12 +78,15 @@ const approvalsIndexRoute = createRoute({
   ),
 })
 
-/** Request wizard (UC-03); `caseId` continues an existing draft. */
+/** Request wizard (UC-03); `caseId` continues an existing draft, `parentId` requests from a sub-supplier (UC-09). */
 const approvalNewRoute = createRoute({
   getParentRoute: () => approvalsRoute,
   path: 'new',
   staticData: { crumb: 'newRequest' },
-  validateSearch: z.object({ caseId: z.string().optional().catch(undefined) }),
+  validateSearch: z.object({
+    caseId: z.string().optional().catch(undefined),
+    parentId: z.string().optional().catch(undefined),
+  }),
   component: () => (
     <RequirePermission permission="approvals:request">
       <RequestWizardPage />
@@ -225,13 +230,59 @@ const cockpitRoute = createRoute({
   ),
 })
 
+/** `?present=1` (or `true`) = presentation mode for trade-fair screens. */
+const presentFlag = z
+  .union([z.boolean(), z.number(), z.string()])
+  .optional()
+  .transform((v) => (v === true || v === 1 || v === '1' || v === 'true' ? true : undefined))
+  .catch(undefined)
+
 const dataspaceRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/dataspace',
   staticData: { crumb: 'dataspace' },
+  validateSearch: z.object({ present: presentFlag }),
   component: () => (
     <RequirePermission permission="dataspace:view">
-      <ComingSoonPage titleKey="dataspace" descriptionKey="dataspace.description" icon={Boxes} />
+      <DataspacePage />
+    </RequirePermission>
+  ),
+})
+
+const policyProfilesRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/policy-profiles',
+  staticData: { crumb: 'policyProfiles' },
+})
+
+const policyProfilesIndexRoute = createRoute({
+  getParentRoute: () => policyProfilesRoute,
+  path: '/',
+  component: () => (
+    <RequirePermission permission="policies:manage">
+      <PolicyProfilesPage />
+    </RequirePermission>
+  ),
+})
+
+const policyProfileDetailRoute = createRoute({
+  getParentRoute: () => policyProfilesRoute,
+  path: '$profileId',
+  staticData: { crumb: 'detail' },
+  component: () => (
+    <RequirePermission permission="policies:manage">
+      <PolicyProfileDetailPage />
+    </RequirePermission>
+  ),
+})
+
+const usageRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/usage',
+  staticData: { crumb: 'usage' },
+  component: () => (
+    <RequirePermission permission="usage:view">
+      <UsagePage />
     </RequirePermission>
   ),
 })
@@ -263,7 +314,9 @@ export const routeTree = rootRoute.addChildren([
     elementCatalogRoute,
   ]),
   cockpitRoute,
+  policyProfilesRoute.addChildren([policyProfilesIndexRoute, policyProfileDetailRoute]),
   dataspaceRoute,
+  usageRoute,
   systemRoute,
 ])
 

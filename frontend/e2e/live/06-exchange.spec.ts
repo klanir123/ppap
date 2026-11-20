@@ -160,7 +160,7 @@ test('OEM ↔ Tier-1 over Catena-X: request, submission, decision', async ({ bro
 
   // --- OEM connector admin: cockpit lists the messages of the case ------------------------------
   const admin = await participant(browser, 'oem', 'oem.admin')
-  await admin.goto(`${URLS.oem}/cockpit`)
+  await admin.goto(`${URLS.oem}/cockpit?tab=messages`)
   await expect(admin.getByRole('heading', { level: 1, name: 'Connector-Cockpit' })).toBeVisible()
   await expect(admin.getByRole('status', { name: 'Status: Verfügbar' }).first()).toBeVisible()
   const messages = admin.getByRole('table', { name: 'Nachrichten' })

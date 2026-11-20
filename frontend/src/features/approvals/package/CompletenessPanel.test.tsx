@@ -20,6 +20,7 @@ describe('<CompletenessPanel>', () => {
         onSelect={onSelect}
         completeness={{
           complete: false,
+          hints: [],
           requiredTotal: 17,
           requiredDone: 12,
           issues: [
@@ -45,7 +46,7 @@ describe('<CompletenessPanel>', () => {
       <CompletenessPanel
         names={names}
         onSelect={() => {}}
-        completeness={{ complete: true, requiredTotal: 2, requiredDone: 2, issues: [] }}
+        completeness={{ complete: true, hints: [], requiredTotal: 2, requiredDone: 2, issues: [] }}
       />,
     )
     expect(screen.getByRole('status')).toHaveTextContent('Alle Pflichtangaben sind vollständig.')
@@ -59,6 +60,7 @@ describe('<CompletenessPanel>', () => {
         onSelect={() => {}}
         completeness={{
           complete: false,
+          hints: [],
           requiredTotal: 1,
           requiredDone: 0,
           issues: [{ elementCode: 'PPF-08', code: 'SUBSUPPLIER_MISSING', message: 'Sub-supplier reference missing' }],

@@ -6,6 +6,7 @@ import type { ApprovalCaseDetail } from '@/features/approvals/api/types'
 import { latestSubmission, revisionExchangeMode } from '@/features/approvals/model/submissions'
 
 import { useCaseExchange } from '../api/hooks'
+import type { ExchangeRecord } from '../api/types'
 import { deriveDelivery } from '../model/status'
 import { buildTimeline } from '../model/steps'
 import { DeliveryBadge } from './Delivery'
@@ -38,13 +39,20 @@ export function SubmissionDeliveryText({ approvalCase: c }: { approvalCase: Appr
  */
 export function SubmissionDelivery({ approvalCase: c }: { approvalCase: ApprovalCaseDetail }) {
   const { t } = useTranslation('exchange')
-  const records = useCaseExchange(c.id, c.source !== 'MANUAL')
   const mode = useSubmittedMode(c)
-  if (c.source === 'MANUAL') return null
   const pull = mode === 'PULL'
-  const delivery = pull
-    ? deriveDelivery(records.data, 'TWIN_REGISTRATION')
-    : deriveDelivery(records.data, ['PPAP_SUBMISSION', 'PPAP_SUBMISSION_AVAILABLE'])
+  const deliveryOf = (records: ExchangeRecord[] | undefined) =>
+    pull
+      ? deriveDelivery(records, 'TWIN_REGISTRATION')
+      : deriveDelivery(records, ['PPAP_SUBMISSION', 'PPAP_SUBMISSION_AVAILABLE'])
+  // keep refreshing until the delivery is settled (live events may overtake the stored status)
+  const records = useCaseExchange(
+    c.id,
+    c.source !== 'MANUAL',
+    (list) => deliveryOf(list)?.state !== 'delivered' && deliveryOf(list)?.state !== 'failed',
+  )
+  if (c.source === 'MANUAL') return null
+  const delivery = deliveryOf(records.data)
   const messageType = delivery?.record.messageType ?? (pull ? 'TWIN_REGISTRATION' : 'PPAP_SUBMISSION')
   return (
     <section className="space-y-3 rounded-lg border p-4" aria-labelledby="submission-delivery">

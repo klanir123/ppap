@@ -27,6 +27,8 @@ export type Permission =
   | 'twins:view'
   | 'dataspace:view'
   | 'system:view'
+  | 'policies:manage'
+  | 'usage:view'
 
 const ALL_HUMAN_ROLES: readonly Role[] = [
   'CUSTOMER_QUALITY_ENGINEER',
@@ -59,6 +61,10 @@ const PERMISSION_ROLES: Record<Permission, readonly Role[]> = {
   'twins:view': ['SUPPLIER_QUALITY_MANAGER', 'CONNECTOR_ADMIN'],
   'dataspace:view': ALL_HUMAN_ROLES,
   'system:view': ALL_HUMAN_ROLES,
+  // policy profiles per relation (UC-10 / E5-04)
+  'policies:manage': ['CONNECTOR_ADMIN'],
+  // usage counters per month (UC-12)
+  'usage:view': ['CONNECTOR_ADMIN'],
 }
 
 export function isRole(value: string): value is Role {
@@ -69,4 +75,12 @@ export function hasPermission(roles: readonly string[] | undefined, permission: 
   if (!roles?.length) return false
   const allowed = PERMISSION_ROLES[permission]
   return roles.some((role) => isRole(role) && allowed.includes(role))
+}
+
+/**
+ * Cascade (UC-09): a sub-supplier request is created from a case where we are supplier and makes us customer
+ * of the sub-supplier – the backend requires SUPPLIER_QUALITY_MANAGER **and** CUSTOMER_QUALITY_ENGINEER.
+ */
+export function canCascade(roles: readonly string[] | undefined): boolean {
+  return Boolean(roles?.includes('SUPPLIER_QUALITY_MANAGER') && roles.includes('CUSTOMER_QUALITY_ENGINEER'))
 }

@@ -242,7 +242,11 @@
     "loadError": "Revision konnte nicht geladen werden.",
     "empty": "Noch keine Revision",
     "emptyDescription": "Revisionen entstehen, sobald der Lieferant mit der Bearbeitung beginnt.",
-    "immutableHint": "Eingereichte Revisionen sind unveränderlich; das kanonische Payload (RFC 8785) ist per SHA-256 gehasht und JWS-signiert."
+    "immutableHint": "Eingereichte Revisionen sind unveränderlich; das kanonische Payload (RFC 8785) ist per SHA-256 gehasht und JWS-signiert.",
+    "verifySignature": "Signatur erneut prüfen",
+    "verifyDone": "Signatur geprüft: {{status}}",
+    "verifyStillUnverified": "Signatur weiterhin nicht prüfbar – der Schlüssel des Partners ist noch nicht verfügbar.",
+    "verifyFailed": "Signaturprüfung fehlgeschlagen"
   },
   "decision": {
     "empty": "Noch keine Entscheidung",
@@ -274,7 +278,12 @@
       "EDIT_SUBMISSION": "Paket bearbeitet",
       "RECEIVE_SUBMISSION": "Einreichung empfangen",
       "REVIEW": "Prüfergebnis erfasst",
-      "RECEIVE_DECISION": "Entscheidung empfangen"
+      "RECEIVE_DECISION": "Entscheidung empfangen",
+      "ASSIGN_PART": "Teil zugeordnet",
+      "RECEIVE_WITHDRAWAL": "Rückzug empfangen",
+      "RECEIVE_STATUS_UPDATE": "Statusmeldung empfangen",
+      "REQUEST_SUB_SUPPLIER": "Unterlieferanten-Anforderung angelegt",
+      "VERIFY_SIGNATURE": "Signatur erneut geprüft"
     }
   },
   "documents": {
@@ -474,7 +483,8 @@
       "DOCUMENT_REQUIRED": "Nachweisdokument fehlt",
       "VALUES_REQUIRED": "Strukturierte Werte fehlen",
       "VALUE_SCHEMA_VIOLATION": "Werte entsprechen nicht dem Werteformat"
-    }
+    },
+    "subSupplierPending": "Unterlieferanten-Freigaben stehen noch aus (Hinweis, kein Hindernis für die Einreichung)."
   },
   "excel": {
     "title": "Excel-Formblatt importieren",
@@ -601,5 +611,63 @@
   },
   "part": {
     "unassigned": "Teil nicht zugeordnet"
+  },
+  "cascade": {
+    "parent": {
+      "label": "Übergeordneter Vorgang",
+      "prefix": "Unterlieferanten-Anforderung zu",
+      "customer": "Kunde: {{partner}}"
+    },
+    "panel": {
+      "title": "Unterlieferanten",
+      "empty": "Noch keine Unterlieferanten-Vorgänge zu diesem Vorgang.",
+      "blocking_one": "{{count}} Unterlieferanten-Vorgang noch offen",
+      "blocking_other": "{{count}} Unterlieferanten-Vorgänge noch offen",
+      "allDecided": "Alle Unterlieferanten-Vorgänge sind entschieden.",
+      "openChild": "Noch nicht entschieden"
+    },
+    "request": {
+      "action": "Unterlieferanten-Vorlage anfordern",
+      "title": "Unterlieferanten-Vorlage anfordern",
+      "description": "Fordern Sie für ein eigenes Unterteil eine PPF-Vorlage bei Ihrem Lieferanten an. Der neue Vorgang wird mit der Kundenanforderung verknüpft.",
+      "parentTitle": "Für Vorgang {{caseNumber}} von {{partner}}",
+      "parentHint": "Grund und Vorlagestufe sind aus der Kundenanforderung übernommen, der Termin liegt zwei Wochen vor dem Kundentermin. Wählen Sie das Unterteil und den Unterlieferanten."
+    },
+    "references": {
+      "title": "Unterlieferanten-Freigaben",
+      "description": "Wählen Sie entschiedene Unterlieferanten-Vorgänge, deren Freigabe Sie in Ihrer Einreichung referenzieren. Übermittelt werden nur Unterlieferant, Unterteil, Ergebnis, Datum und Hash der Entscheidung.",
+      "saving": "Wird gespeichert …",
+      "selected_one": "{{count}} Freigabe referenziert",
+      "selected_other": "{{count}} Freigaben referenziert",
+      "pendingTitle": "Unterlieferanten-Freigaben ausstehend",
+      "pendingDescription": "Mindestens ein Unterlieferanten-Vorgang ist noch nicht entschieden. Sie können trotzdem einreichen – Ihr Kunde sieht dann nur die bereits referenzierten Freigaben.",
+      "submitAnyway": "Mindestens ein Unterlieferanten-Vorgang ist noch nicht entschieden. Die Einreichung ist trotzdem möglich.",
+      "loadError": "Unterlieferanten-Vorgänge konnten nicht geladen werden.",
+      "noCandidates": "Noch keine entschiedenen Unterlieferanten-Vorgänge.",
+      "listLabel": "Entschiedene Unterlieferanten-Vorgänge",
+      "noDocuments": "Dokumente von Unterlieferanten werden nicht weitergegeben.",
+      "copyHash": "Hash der Entscheidung kopieren",
+      "openCase": "Vorgang öffnen",
+      "notReferenceable": "Abgelehnt – nur zur Information, nicht referenzierbar",
+      "saveFailed": "Auswahl konnte nicht gespeichert werden"
+    },
+    "received": {
+      "title_one": "Unterlieferanten-Freigabe ({{count}})",
+      "title_other": "Unterlieferanten-Freigaben ({{count}})",
+      "noDocuments": "Dokumente von Unterlieferanten werden nicht weitergegeben. Die Angaben stammen aus der signierten Einreichung Ihres Lieferanten.",
+      "part": "Unterteil",
+      "supplierPartNumber": "beim Unterlieferanten {{number}}",
+      "decision": "Entscheidung",
+      "conditionDue": "Auflagen bis",
+      "hash": "Hash"
+    }
+  },
+  "audit": {
+    "title": "Audit-Trail",
+    "description": "Unveränderliche, hash-verkettete Ereignisse zu diesem Vorgang. Der Export enthält Vorgang, Zeitachse, Einreichungen, Entscheidungen, Austauschprotokoll und Audit-Ereignisse und ist mit dem Schlüssel Ihres Unternehmens signiert.",
+    "export": "Audit exportieren",
+    "exported": "{{fileName}} heruntergeladen",
+    "signed": "Signiert (JWS, Header X-Signature)",
+    "exportFailed": "Audit-Export fehlgeschlagen"
   }
 }

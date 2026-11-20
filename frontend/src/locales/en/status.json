@@ -61,5 +61,10 @@
     "SKIPPED": "Skipped",
     "PENDING": "Pending",
     "NOT_REACHED": "Not reached"
+  },
+  "exchangeHealth": {
+    "OK": "Exchange OK",
+    "DEGRADED": "Degraded",
+    "FAILING": "Failing"
   }
 }

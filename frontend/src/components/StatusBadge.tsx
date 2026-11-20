@@ -6,6 +6,7 @@ import { STATUS_ICONS, type StatusKind } from '@/components/status-icons'
 import type {
   ApprovalStatus,
   Assessment,
+  ExchangeHealthState,
   ExchangeState,
   StepStateValue,
   Finding,
@@ -28,6 +29,7 @@ export type StatusBadgeProps = { className?: string; size?: 'sm' | 'md'; kind: S
   | { kind: 'finding'; status: Finding }
   | { kind: 'exchange'; status: ExchangeState }
   | { kind: 'step'; status: StepStateValue }
+  | { kind: 'exchangeHealth'; status: ExchangeHealthState }
 )
 
 /**

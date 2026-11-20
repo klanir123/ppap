@@ -8,6 +8,8 @@
 
 export interface AssignPartRequest {
   partId: string
+  /** Replace an existing mapping of this part in the relation with the customer part number of the request (default false; otherwise an existing mapping fails with DUPLICATE_KEY) */
+  replaceExistingMapping?: boolean
   /** Also create the part mapping for future requests (default true) */
   saveMapping?: boolean
 }

@@ -9,6 +9,8 @@ import type { CompletenessIssueDto } from './completenessIssueDto'
 
 export interface CompletenessDto {
   complete: boolean
+  /** Non-blocking hints of the whole revision, e.g. SUB_SUPPLIER_PENDING (UC-09); elementCode is null */
+  hints: CompletenessIssueDto[]
   issues: CompletenessIssueDto[]
   requiredDone: number
   requiredTotal: number

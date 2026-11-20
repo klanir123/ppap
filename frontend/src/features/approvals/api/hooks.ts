@@ -3,7 +3,7 @@ import { keepPreviousData, useMutation, useQuery, useQueryClient, type QueryClie
 import { invalidateResource } from '@/features/masterdata/api/resource'
 
 import * as api from './client'
-import type { CaseListParams, CreateCaseInput, DecisionInput, ManualCaseInput } from './types'
+import type { CaseListParams, CreateCaseInput, DecisionInput, ManualCaseInput, SubRequestInput } from './types'
 
 /** Query keys start with the URL (same convention as the orval keys) → prefix invalidation. */
 export const approvalKeys = {
@@ -13,10 +13,13 @@ export const approvalKeys = {
   submissions: (id: string) => [`${api.CASES_URL}/${id}/submissions`] as const,
   submission: (id: string, revision: number | 'draft') => [`${api.CASES_URL}/${id}/submissions/${revision}`] as const,
   formTemplates: () => [`${api.API_BASE}/form-templates`] as const,
+  candidates: (id: string) => [api.subSupplierCandidatesUrl(id)] as const,
+  activity: (limit: number) => [api.ACTIVITY_URL, { limit }] as const,
 }
 
-/** Every write touches the case, its lists, stats and audit trail. */
+/** Every write touches the case, its lists, stats, audit trail and the activity feed. */
 export function invalidateApprovals(queryClient: QueryClient) {
+  void queryClient.invalidateQueries({ queryKey: [api.ACTIVITY_URL] })
   return invalidateResource(queryClient, api.CASES_URL)
 }
 
@@ -118,4 +121,38 @@ export function useFetchDocument() {
   return useInvalidatingMutation(({ caseId, sha256 }: { caseId: string; sha256: string }) =>
     api.fetchCaseDocument(caseId, sha256),
   )
+}
+
+// --- cascade (UC-09) ----------------------------------------------------------------------------
+
+export function useCreateSubRequest() {
+  return useInvalidatingMutation(({ parentId, input }: { parentId: string; input: SubRequestInput }) =>
+    api.createSubRequest(parentId, input),
+  )
+}
+
+export function useSubSupplierCandidates(id: string | undefined, enabled = true) {
+  return useQuery({
+    queryKey: approvalKeys.candidates(id ?? ''),
+    queryFn: ({ signal }) => api.listSubSupplierCandidates(id!, { signal }),
+    enabled: Boolean(id) && enabled,
+  })
+}
+
+export function useVerifySignature() {
+  return useInvalidatingMutation(({ id, revision }: { id: string; revision: number }) =>
+    api.verifySignature(id, revision),
+  )
+}
+
+// --- activity (UC-11) ---------------------------------------------------------------------------
+
+/** Without a live connection callers pass a `refetchInterval` (SSE invalidates the feed on `case.changed`). */
+export function useActivity(limit = 30, options: { enabled?: boolean; refetchInterval?: number | false } = {}) {
+  return useQuery({
+    queryKey: approvalKeys.activity(limit),
+    queryFn: ({ signal }) => api.listActivity(limit, { signal }),
+    enabled: options.enabled ?? true,
+    refetchInterval: options.refetchInterval ?? false,
+  })
 }

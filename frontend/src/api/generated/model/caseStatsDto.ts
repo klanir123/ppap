@@ -9,11 +9,13 @@ import type { CaseStatsDtoByStatus } from './caseStatsDtoByStatus'
 import type { PartnerStatsDto } from './partnerStatsDto'
 
 export interface CaseStatsDto {
-  /** Share of approvals among decisions (0..1) */
+  /** Share of approvals (incl. conditional) among decided revisions (0..1) */
   approvalRate?: number
   approvedLast30Days: number
-  /** Average days from request to approval */
+  /** Average days from request to the last decision of approved cases of the last 12 months */
   averageLeadTimeDays?: number
+  /** Open cases with sub-supplier requests that are not decided yet (UC-09) */
+  blockingChildren: number
   byPartner: PartnerStatsDto[]
   byStatus: CaseStatsDtoByStatus
   inReview: number

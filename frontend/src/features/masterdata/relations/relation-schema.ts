@@ -17,7 +17,7 @@ export function relationDefaults(relation?: Relation): RelationFormValues {
     partnerBpnl: relation?.partnerBpnl ?? '',
     partnerRole: relation?.partnerRole ?? ('' as RelationFormValues['partnerRole']),
     exchangeMode: relation?.exchangeMode ?? 'PUSH_NOTIFY_PULL_PAYLOAD',
-    policyProfile: relation?.policyProfile ?? '',
+    policyProfile: relation?.policyProfile || 'default',
   }
 }
 

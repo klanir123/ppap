@@ -1,0 +1,65 @@
+{
+  "title": "Datenraum",
+  "description": "Ihr Connector und Ihre Partner im Catena-X-Datenraum – jede Nachricht erscheint live auf ihrem Weg.",
+  "caption": "Ansicht aus Sicht von {{participant}} – jeder Teilnehmer sieht nur seinen eigenen Datenaustausch.",
+  "loadError": "Datenraum konnte nicht geladen werden.",
+  "retry": "Erneut versuchen",
+  "noPartners": "Noch keine Partner mit Catena-X-Anbindung in den Stammdaten.",
+  "reducedMotion": "Reduzierte Bewegung aktiv: Nachrichten werden durch Hervorhebung statt Bewegung angezeigt.",
+  "stepsLabel": "Ablauf",
+  "present": {
+    "enter": "Präsentationsmodus",
+    "exit": "Präsentation beenden",
+    "label": "Datenraum im Präsentationsmodus"
+  },
+  "replay": {
+    "start": "Replay letzte 15 Minuten",
+    "stop": "Replay stoppen ({{played}}/{{total}})",
+    "running": "Replay der letzten 15 Minuten im Zeitraffer",
+    "progress": "Fortschritt des Replays",
+    "empty": "In den letzten 15 Minuten wurden keine Nachrichten ausgetauscht.",
+    "count": "{{played}} von {{total}} Nachrichten"
+  },
+  "legend": {
+    "title": "Nachrichten:",
+    "request": "Anforderung",
+    "status": "Statusmeldung",
+    "package": "PPF-Paket / Bereitstellung",
+    "pull": "Abruf",
+    "decision": "Entscheidung",
+    "direction": "Bewegung = Richtung des Datenflusses"
+  },
+  "recent": {
+    "title": "Letzte Nachrichten",
+    "empty": "Noch keine Nachrichten ausgetauscht.",
+    "to": "an {{partner}}",
+    "from": "von {{partner}}"
+  },
+  "announce": {
+    "to": "{{type}} an {{partner}} {{caseNumber}}",
+    "from": "{{type}} von {{partner}} {{caseNumber}}"
+  },
+  "graph": {
+    "label": "Datenraum von {{name}} mit {{count}} Partnern",
+    "core": "Catena-X Core Services",
+    "coreHint": "Identität · Wallet · DID",
+    "self": "Ihr Connector · {{role}}",
+    "selfLabel": "Eigener Connector: {{name}}",
+    "partnerLabel": "Partner-Connector {{name}} ({{bpnl}})",
+    "connector": "EDC-Connector · Dataspace Protocol",
+    "online": "Online",
+    "offline": "Gestört",
+    "ready": "Catena-X-fähig",
+    "notReady": "Nicht angebunden",
+    "role": {
+      "CUSTOMER": "Kunde",
+      "SUPPLIER": "Lieferant",
+      "NONE": "Partner"
+    },
+    "edgeLabel": "Beziehung zu {{partner}}: {{role}}",
+    "mode": "Austauschmodus {{mode}}",
+    "profile": "Policy-Profil {{profile}}",
+    "lastMessage": "Zuletzt: {{type}}",
+    "noMessages": "Noch keine Nachrichten mit diesem Partner."
+  }
+}

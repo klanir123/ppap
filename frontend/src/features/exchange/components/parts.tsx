@@ -57,8 +57,27 @@ export function IdText({ value, label, className }: { value: string; label: stri
 }
 
 /** Glossary term with explanation (keyboard: focusable button with tooltip). */
-export function GlossaryTerm({ term }: { term: 'EDC' | 'DSP' | 'EDR' | 'DTR' }) {
+export type GlossaryKey =
+  'EDC' | 'DSP' | 'EDR' | 'DTR' | 'ASSET' | 'POLICY' | 'CONTRACT_DEFINITION' | 'NEGOTIATION' | 'TRANSFER' | 'ODRL'
+
+export function GlossaryTerm({ term, compact }: { term: GlossaryKey; compact?: boolean }) {
   const { t } = useTranslation('exchange')
+  if (compact) {
+    return (
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <button
+            type="button"
+            className="inline-flex size-6 items-center justify-center rounded-md text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring"
+            aria-label={`${t(`glossary.${term}.term`)}: ${t(`glossary.${term}.text`)}`}
+          >
+            <CircleHelp aria-hidden="true" className="size-3.5" />
+          </button>
+        </TooltipTrigger>
+        <TooltipContent className="max-w-xs text-left">{t(`glossary.${term}.text`)}</TooltipContent>
+      </Tooltip>
+    )
+  }
   return (
     <Tooltip>
       <TooltipTrigger asChild>

@@ -18,7 +18,7 @@ import type {
   UseQueryResult,
 } from '@tanstack/react-query'
 
-import type { AuditEventPage, ListAuditEventsParams, ProblemDetail } from '../../model'
+import type { AuditEventPage, ExportApprovalCaseAudit200, ListAuditEventsParams, ProblemDetail } from '../../model'
 
 import { apiFetch } from '../../../fetcher'
 import type { ErrorType } from '../../../fetcher'
@@ -38,6 +38,127 @@ const withQueryKey = <T extends object, K>(query: T, queryKey: K): T & { queryKe
     })
   }
   return result
+}
+
+export const getExportApprovalCaseAuditUrl = (id: string) => {
+  return `/api/v1/approval-cases/${id}/audit-export`
+}
+
+/**
+ * @summary Audit export of a case: case, timeline, submissions, decisions, exchange records and audit events (RFC 8785 canonical JSON, detached JWS in X-Signature)
+ */
+export const exportApprovalCaseAudit = async (
+  id: string,
+  options?: Parameters<typeof apiFetch>[1],
+): Promise<ExportApprovalCaseAudit200> => {
+  return apiFetch<ExportApprovalCaseAudit200>(getExportApprovalCaseAuditUrl(id), {
+    ...options,
+    method: 'GET',
+  })
+}
+
+export const getExportApprovalCaseAuditQueryKey = (id: string) => {
+  return [`/api/v1/approval-cases/${id}/audit-export`] as const
+}
+
+export const getExportApprovalCaseAuditQueryOptions = <
+  TData = Awaited<ReturnType<typeof exportApprovalCaseAudit>>,
+  TError = ErrorType<ProblemDetail>,
+>(
+  id: string,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof exportApprovalCaseAudit>>, TError, TData>>
+    request?: SecondParameter<typeof apiFetch>
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {}
+
+  const queryKey = queryOptions?.queryKey ?? getExportApprovalCaseAuditQueryKey(id)
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof exportApprovalCaseAudit>>> = ({ signal }) =>
+    exportApprovalCaseAudit(id, { signal, ...requestOptions })
+
+  return { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof exportApprovalCaseAudit>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ExportApprovalCaseAuditQueryResult = NonNullable<Awaited<ReturnType<typeof exportApprovalCaseAudit>>>
+export type ExportApprovalCaseAuditQueryError = ErrorType<ProblemDetail>
+
+/** @summary Audit export of a case: case, timeline, submissions, decisions, exchange records and audit events (RFC 8785 canonical JSON, detached JWS in X-Signature) */
+export function useExportApprovalCaseAudit<
+  TData = Awaited<ReturnType<typeof exportApprovalCaseAudit>>,
+  TError = ErrorType<ProblemDetail>,
+>(
+  id: string,
+  options: {
+    query: Partial<UseQueryOptions<Awaited<ReturnType<typeof exportApprovalCaseAudit>>, TError, TData>> &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof exportApprovalCaseAudit>>,
+          TError,
+          Awaited<ReturnType<typeof exportApprovalCaseAudit>>
+        >,
+        'initialData'
+      >
+    request?: SecondParameter<typeof apiFetch>
+  },
+  queryClient?: QueryClient,
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/** @summary Audit export of a case: case, timeline, submissions, decisions, exchange records and audit events (RFC 8785 canonical JSON, detached JWS in X-Signature) */
+export function useExportApprovalCaseAudit<
+  TData = Awaited<ReturnType<typeof exportApprovalCaseAudit>>,
+  TError = ErrorType<ProblemDetail>,
+>(
+  id: string,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof exportApprovalCaseAudit>>, TError, TData>> &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof exportApprovalCaseAudit>>,
+          TError,
+          Awaited<ReturnType<typeof exportApprovalCaseAudit>>
+        >,
+        'initialData'
+      >
+    request?: SecondParameter<typeof apiFetch>
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/** @summary Audit export of a case: case, timeline, submissions, decisions, exchange records and audit events (RFC 8785 canonical JSON, detached JWS in X-Signature) */
+export function useExportApprovalCaseAudit<
+  TData = Awaited<ReturnType<typeof exportApprovalCaseAudit>>,
+  TError = ErrorType<ProblemDetail>,
+>(
+  id: string,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof exportApprovalCaseAudit>>, TError, TData>>
+    request?: SecondParameter<typeof apiFetch>
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/** @summary Audit export of a case: case, timeline, submissions, decisions, exchange records and audit events (RFC 8785 canonical JSON, detached JWS in X-Signature) */
+export function useExportApprovalCaseAudit<
+  TData = Awaited<ReturnType<typeof exportApprovalCaseAudit>>,
+  TError = ErrorType<ProblemDetail>,
+>(
+  id: string,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof exportApprovalCaseAudit>>, TError, TData>>
+    request?: SecondParameter<typeof apiFetch>
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+  const queryOptions = getExportApprovalCaseAuditQueryOptions(id, options)
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
+    queryKey: DataTag<QueryKey, TData, TError>
+  }
+
+  return withQueryKey(query, queryOptions.queryKey)
 }
 
 export const getListAuditEventsUrl = (params?: ListAuditEventsParams) => {

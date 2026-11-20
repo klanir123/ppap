@@ -13,11 +13,13 @@ import type { CasePartDto } from './casePartDto'
 import type { CasePartnerDto } from './casePartnerDto'
 import type { CaseRequestDto } from './caseRequestDto'
 import type { CatalogRefDto } from './catalogRefDto'
+import type { ChildCaseDto } from './childCaseDto'
 import type { ClarificationDto } from './clarificationDto'
 import type { CompletenessDto } from './completenessDto'
 import type { DecisionDto } from './decisionDto'
 import type { FindingDto } from './findingDto'
 import type { LastOutboundDto } from './lastOutboundDto'
+import type { ParentCaseDto } from './parentCaseDto'
 import type { SubmissionSummaryDto } from './submissionSummaryDto'
 import type { TimelineEntryDto } from './timelineEntryDto'
 
@@ -25,6 +27,8 @@ export interface ApprovalCaseDetailDto {
   /** Actions the current user may perform */
   allowedActions: ApprovalCaseDetailDtoAllowedActionsItem[]
   caseNumber: string
+  /** Sub-supplier requests of this case (UC-09) */
+  childCases: ChildCaseDto[]
   /** Open clarification (UC-04 A1), null if none */
   clarification?: ClarificationDto
   createdAt?: string
@@ -45,6 +49,8 @@ export interface ApprovalCaseDetailDto {
   level: CatalogRefDto
   overdue: boolean
   ownRole: ApprovalCaseDetailDtoOwnRole
+  /** Parent case of a sub-supplier request (UC-09), null otherwise */
+  parentCase?: ParentCaseDto
   /** Own part; null while the part of a received request is not mapped (clarification) */
   part?: CasePartDto
   partner: CasePartnerDto

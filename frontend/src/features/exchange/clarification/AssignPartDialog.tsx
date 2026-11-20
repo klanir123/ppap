@@ -41,9 +41,11 @@ export function AssignPartDialog({ approvalCase: c, partnerPartNumber, open, onO
   const { t, i18n } = useTranslation(['exchange', 'forms'])
   const saveId = useId()
   const hintId = useId()
+  const replaceId = useId()
   const [q, setQ] = useState<string | undefined>(undefined)
   const [partId, setPartId] = useState('')
   const [saveMapping, setSaveMapping] = useState(true)
+  const [replaceExisting, setReplaceExisting] = useState(false)
   const [error, setError] = useState<string>()
   const parts = partsApi.usePage({ q, active: true, size: PAGE, sort: ['partNumber,asc'] })
   const assign = useAssignPart()
@@ -59,6 +61,7 @@ export function AssignPartDialog({ approvalCase: c, partnerPartNumber, open, onO
     setQ(undefined)
     setPartId('')
     setSaveMapping(true)
+    setReplaceExisting(false)
     setError(undefined)
   }
 
@@ -69,7 +72,15 @@ export function AssignPartDialog({ approvalCase: c, partnerPartNumber, open, onO
     }
     setError(undefined)
     assign.mutate(
-      { caseId: c.id, input: { partId, saveMapping }, version: c.version },
+      {
+        caseId: c.id,
+        input: {
+          partId,
+          saveMapping,
+          ...(saveMapping && selectedExisting && replaceExisting ? { replaceExistingMapping: true } : {}),
+        },
+        version: c.version,
+      },
       {
         onSuccess: () => {
           const part = options.find((p) => p.id === partId)
@@ -132,6 +143,7 @@ export function AssignPartDialog({ approvalCase: c, partnerPartNumber, open, onO
                 value={partId}
                 onValueChange={(v) => {
                   setPartId(v)
+                  setReplaceExisting(false)
                   setError(undefined)
                 }}
                 invalid={Boolean(error) && !partId}
@@ -169,10 +181,33 @@ export function AssignPartDialog({ approvalCase: c, partnerPartNumber, open, onO
             </div>
           </div>
 
-          {saveMapping && selectedExisting && !error ? (
-            <p role="status" className="text-xs text-(--status-warning-fg)">
-              {t('clarification.dialog.mappedWarning', { number: selectedExisting, partner })}
-            </p>
+          {saveMapping && selectedExisting ? (
+            <div className="space-y-2 rounded-lg border border-(--status-warning-border) bg-(--status-warning-bg)/40 px-3 py-2.5">
+              <p role="status" className="text-xs text-(--status-warning-fg)">
+                {replaceExisting
+                  ? t('clarification.dialog.replaceWarning', {
+                      number: selectedExisting,
+                      newNumber: partnerPartNumber ?? '–',
+                      partner,
+                    })
+                  : t('clarification.dialog.mappedWarning', { number: selectedExisting, partner })}
+              </p>
+              <div className="flex items-start gap-2.5">
+                <Checkbox
+                  id={replaceId}
+                  checked={replaceExisting}
+                  onCheckedChange={(v) => {
+                    setReplaceExisting(v === true)
+                    setError(undefined)
+                  }}
+                  className="mt-0.5"
+                  data-testid="replace-existing-mapping"
+                />
+                <Label htmlFor={replaceId} className="text-sm font-medium">
+                  {t('clarification.dialog.replaceExisting')}
+                </Label>
+              </div>
+            </div>
           ) : null}
           {error ? (
             <Alert variant="destructive">

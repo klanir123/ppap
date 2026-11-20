@@ -1,0 +1,65 @@
+{
+  "title": "Dataspace",
+  "description": "Your connector and your partners in the Catena-X dataspace – every message appears live on its way.",
+  "caption": "View from the perspective of {{participant}} – every participant only sees its own data exchange.",
+  "loadError": "The dataspace could not be loaded.",
+  "retry": "Try again",
+  "noPartners": "No partners with a Catena-X connection in the master data yet.",
+  "reducedMotion": "Reduced motion is on: messages are shown by highlighting instead of movement.",
+  "stepsLabel": "Steps",
+  "present": {
+    "enter": "Presentation mode",
+    "exit": "Exit presentation",
+    "label": "Dataspace in presentation mode"
+  },
+  "replay": {
+    "start": "Replay last 15 minutes",
+    "stop": "Stop replay ({{played}}/{{total}})",
+    "running": "Time-lapse replay of the last 15 minutes",
+    "progress": "Replay progress",
+    "empty": "No messages were exchanged in the last 15 minutes.",
+    "count": "{{played}} of {{total}} messages"
+  },
+  "legend": {
+    "title": "Messages:",
+    "request": "Request",
+    "status": "Status update",
+    "package": "PPF package / provision",
+    "pull": "Pull",
+    "decision": "Decision",
+    "direction": "Movement = direction of the data flow"
+  },
+  "recent": {
+    "title": "Latest messages",
+    "empty": "No messages exchanged yet.",
+    "to": "to {{partner}}",
+    "from": "from {{partner}}"
+  },
+  "announce": {
+    "to": "{{type}} to {{partner}} {{caseNumber}}",
+    "from": "{{type}} from {{partner}} {{caseNumber}}"
+  },
+  "graph": {
+    "label": "Dataspace of {{name}} with {{count}} partners",
+    "core": "Catena-X core services",
+    "coreHint": "Identity · wallet · DID",
+    "self": "Your connector · {{role}}",
+    "selfLabel": "Own connector: {{name}}",
+    "partnerLabel": "Partner connector {{name}} ({{bpnl}})",
+    "connector": "EDC connector · Dataspace Protocol",
+    "online": "Online",
+    "offline": "Down",
+    "ready": "Catena-X ready",
+    "notReady": "Not connected",
+    "role": {
+      "CUSTOMER": "Customer",
+      "SUPPLIER": "Supplier",
+      "NONE": "Partner"
+    },
+    "edgeLabel": "Relation to {{partner}}: {{role}}",
+    "mode": "exchange mode {{mode}}",
+    "profile": "policy profile {{profile}}",
+    "lastMessage": "Last: {{type}}",
+    "noMessages": "No messages with this partner yet."
+  }
+}

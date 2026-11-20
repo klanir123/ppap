@@ -141,6 +141,30 @@
     "DTR": {
       "term": "DTR",
       "text": "Digital Twin Registry – directory in which the supplier registers a digital twin per case pointing to the PPF package. The customer finds the package there and retrieves it via Catena-X."
+    },
+    "ASSET": {
+      "term": "Asset",
+      "text": "A data offer in the catalog of your own connector (e.g. notification receipt or PPF package per partner). Partners only see it if the access policy allows them."
+    },
+    "POLICY": {
+      "term": "Policy",
+      "text": "Rules for access (who may see the offer) and usage (what the data may be used for), expressed in ODRL."
+    },
+    "CONTRACT_DEFINITION": {
+      "term": "Contract definition",
+      "text": "Links assets to an access policy and a usage policy. This produces the offers in the catalog."
+    },
+    "NEGOTIATION": {
+      "term": "Negotiation",
+      "text": "Contract negotiation via DSP: the consumer accepts an offer, the provider checks the policy, the result is a contract agreement."
+    },
+    "TRANSFER": {
+      "term": "Transfer",
+      "text": "Data transfer based on a contract agreement. With HTTP pull the consumer receives an EDR for the provider's data plane."
+    },
+    "ODRL": {
+      "term": "ODRL",
+      "text": "Open Digital Rights Language – W3C standard in which Catena-X describes policies as JSON-LD (e.g. FrameworkAgreement, UsagePurpose)."
     }
   },
   "delivery": {
@@ -203,14 +227,16 @@
       "success": "Part {{part}} assigned",
       "selectRequired": "Please select a part.",
       "mapped": "Mapped to {{number}}",
-      "mappedWarning": "This part already has a part mapping to {{partner}} (customer part number {{number}}). Only one mapping per part and relation is possible – assign without saving or choose another part.",
+      "mappedWarning": "This part already has a part mapping to {{partner}} (customer part number {{number}}). Only one mapping per part and relation is possible – replace it, assign without saving or choose another part.",
       "duplicate": "Part mapping not saved: {{part}} is already mapped to customer part number {{number}} at {{partner}}. Assign without saving or choose another part.",
-      "duplicateUnknown": "Part mapping not saved: {{part}} already has a part mapping at {{partner}}. Assign without saving or choose another part."
+      "duplicateUnknown": "Part mapping not saved: {{part}} already has a part mapping at {{partner}}. Assign without saving or choose another part.",
+      "replaceExisting": "Replace existing mapping",
+      "replaceWarning": "The existing mapping to customer part number {{number}} will be replaced by {{newNumber}}. The change is recorded in the history of the relation to {{partner}}."
     }
   },
   "cockpit": {
     "title": "Connector cockpit",
-    "description": "Status of your EDC connection and all messages exchanged via Catena-X.",
+    "description": "Your EDC connector, offers and policies, partner catalogs, negotiations, transfers and all messages exchanged via Catena-X.",
     "status": {
       "title": "Status",
       "edc": "EDC connector",
@@ -269,6 +295,169 @@
       "copyPayload": "Copy payload",
       "openCase": "Open case",
       "loadError": "Could not load the message."
+    },
+    "tabs": {
+      "label": "Cockpit sections",
+      "overview": "Overview",
+      "offers": "Offers",
+      "policies": "Policies & contracts",
+      "catalog": "Partner catalog",
+      "processes": "Negotiations & transfers",
+      "messages": "Messages",
+      "log": "Live log"
+    },
+    "overview": {
+      "edc": "EDC connector",
+      "edcShort": "EDC",
+      "dtr": "Digital Twin Registry",
+      "dtrShort": "DTR",
+      "participantId": "Participant ID",
+      "dspEndpoint": "DSP endpoint",
+      "version": "Version",
+      "url": "URL",
+      "noDtr": "No Digital Twin Registry configured.",
+      "dtrHint": "Registry of the digital twins per case – customers find provided PPF packages through it.",
+      "provisioningHint": "The connector creates the required assets, policies and contract definitions itself at start-up and whenever partners change.",
+      "countsTitle": "In your EDC",
+      "counts": {
+        "assets": "Assets",
+        "policies": "Policies",
+        "contractDefinitions": "Contract definitions",
+        "negotiations": "Negotiations",
+        "transfers": "Transfers"
+      },
+      "queuesTitle": "Outbox and inbox",
+      "outboxPending": "Outbox pending",
+      "outboxFailed": "Outbox failed",
+      "inboxRejected": "Inbox rejected",
+      "show": "Show",
+      "responseTime": "Response time",
+      "ms": "{{ms}} ms"
+    },
+    "managed": {
+      "managed": "Managed by the connector",
+      "other": "Created manually",
+      "hintManaged": "Created and kept up to date by the PPAP Connector provisioning.",
+      "hintOther": "Not created by the PPAP Connector (e.g. manually or by another application)."
+    },
+    "policy": {
+      "noConstraints": "No constraints",
+      "constraints": "Policy constraints"
+    },
+    "json": {
+      "empty": "No data.",
+      "copy": "Copy {{title}}"
+    },
+    "assets": {
+      "title": "Offers (assets)",
+      "description": "Everything your connector offers in the dataspace. Partners only see an offer if the access policy allows them.",
+      "search": "Asset ID or type",
+      "details": "Show details",
+      "empty": "No assets",
+      "emptyDescription": "The provisioning creates the assets at start-up.",
+      "properties": "Properties",
+      "columns": {
+        "id": "Asset ID",
+        "type": "Type (dct:type)",
+        "managed": "Origin",
+        "policy": "Usage terms"
+      },
+      "notOffered": "Not offered",
+      "usagePolicy": "Usage policy {{id}}",
+      "accessPolicy": "Access policy {{id}}"
+    },
+    "policies": {
+      "intro": "Policies define who sees an offer (access) and what the data may be used for (usage). Contract definitions link assets to these policies.",
+      "title": "Policies",
+      "search": "Policy ID",
+      "viewJson": "Show JSON",
+      "empty": "No policies",
+      "odrl": "Policy (ODRL, JSON-LD)",
+      "columns": {
+        "id": "Policy ID",
+        "constraints": "Constraints"
+      }
+    },
+    "definitions": {
+      "title": "Contract definitions",
+      "search": "ID or policy ID",
+      "empty": "No contract definitions",
+      "policies": "Assigned policies",
+      "selector": "Asset selector",
+      "columns": {
+        "id": "ID",
+        "accessPolicy": "Access policy",
+        "contractPolicy": "Usage policy"
+      }
+    },
+    "catalog": {
+      "partner": "Partner",
+      "choosePartner": "Choose partner",
+      "hint": "The catalog is requested live from the partner's connector – you see exactly the offers the partner has released for you.",
+      "fetch": "Fetch catalog",
+      "refetch": "Fetch again",
+      "loading": "Requesting catalog via Catena-X …",
+      "failed": "Catalog could not be fetched: {{title}}",
+      "failedHint": "Check the partner's DSP endpoint and DID in the master data and whether the partner's connector is reachable.",
+      "correlationId": "Correlation ID",
+      "emptyTitle": "No catalog fetched yet",
+      "emptyDescription": "Choose a Catena-X-ready partner and fetch its catalog.",
+      "duration": "Response in {{ms}} ms",
+      "datasets_one": "{{count}} offer",
+      "datasets_other": "{{count}} offers",
+      "noDatasets": "The partner offers you no data",
+      "noDatasetsHint": "You may not be in the partner's group or your membership is not recognised.",
+      "offers_one": "{{count}} contract offer",
+      "offers_other": "{{count}} contract offers",
+      "policyJson": "Offer policy (JSON-LD)",
+      "copyPolicy": "Copy policy",
+      "partnerNotReady": "The partner is not set up for Catena-X (DSP endpoint or DID missing)."
+    },
+    "processes": {
+      "stateLabel": "EDC state: {{state}}",
+      "negotiations": "Contract negotiations",
+      "transfers": "Transfers",
+      "stateFilter": "State",
+      "allStates": "All states",
+      "emptyNegotiations": "No negotiations",
+      "emptyTransfers": "No transfers",
+      "types": {
+        "CONSUMER": "We as consumer",
+        "PROVIDER": "We as provider"
+      },
+      "columns": {
+        "partner": "Partner",
+        "asset": "Asset",
+        "state": "State",
+        "time": "Time",
+        "type": "Role",
+        "agreement": "Agreement"
+      }
+    },
+    "log": {
+      "title": "Live log",
+      "description": "Exchange steps in real time (catalog, negotiation, EDR, delivery …), derived from the exchange log.",
+      "search": "Search log",
+      "searchPlaceholder": "Text, message, step or correlation ID",
+      "level": "Level",
+      "levels": {
+        "ALL": "All levels",
+        "INFO": "Info and above",
+        "WARN": "Warnings and errors",
+        "ERROR": "Errors only"
+      },
+      "count_one": "{{count}} entry",
+      "count_other": "{{count}} entries",
+      "queued_one": "{{count}} new entry paused",
+      "queued_other": "{{count}} new entries paused",
+      "pause": "Pause",
+      "resume": "Resume",
+      "clear": "Clear",
+      "emptyTitle": "Waiting for exchange events",
+      "emptyDescription": "As soon as a message is sent or received, its steps appear here.",
+      "offline": "The live connection is down – entries appear after reconnecting.",
+      "noMatch": "No entries for this filter",
+      "copyCorrelation": "Copy correlation ID"
     }
   },
   "mode": {

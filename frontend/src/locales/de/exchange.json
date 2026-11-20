@@ -141,6 +141,30 @@
     "DTR": {
       "term": "DTR",
       "text": "Digital Twin Registry – Verzeichnis, in dem der Lieferant je Vorgang einen Digital Twin mit Verweis auf das PPF-Paket einträgt. Der Kunde findet das Paket darüber und ruft es per Catena-X ab."
+    },
+    "ASSET": {
+      "term": "Asset",
+      "text": "Ein Datenangebot im Katalog des eigenen Connectors (z. B. Benachrichtigungs-Empfang oder PPF-Paket je Partner). Partner sehen es nur, wenn die Zugriffs-Policy sie zulässt."
+    },
+    "POLICY": {
+      "term": "Policy",
+      "text": "Regeln für Zugriff (wer darf das Angebot sehen) und Nutzung (wofür dürfen die Daten verwendet werden), formuliert in ODRL."
+    },
+    "CONTRACT_DEFINITION": {
+      "term": "Contract Definition",
+      "text": "Verknüpft Assets mit einer Zugriffs- und einer Nutzungs-Policy. Daraus entstehen die Angebote im Katalog."
+    },
+    "NEGOTIATION": {
+      "term": "Verhandlung",
+      "text": "Vertragsverhandlung über DSP: Der Konsument akzeptiert ein Angebot, der Anbieter prüft die Policy, das Ergebnis ist ein Contract Agreement."
+    },
+    "TRANSFER": {
+      "term": "Transfer",
+      "text": "Datenübertragung auf Basis eines Contract Agreements. Bei HTTP-Pull erhält der Konsument eine EDR für die Data Plane des Anbieters."
+    },
+    "ODRL": {
+      "term": "ODRL",
+      "text": "Open Digital Rights Language – W3C-Standard, in dem Catena-X Policies als JSON-LD beschreibt (z. B. FrameworkAgreement, UsagePurpose)."
     }
   },
   "delivery": {
@@ -203,14 +227,16 @@
       "success": "Teil {{part}} zugeordnet",
       "selectRequired": "Bitte ein Teil auswählen.",
       "mapped": "Zugeordnet zu {{number}}",
-      "mappedWarning": "Für dieses Teil besteht bereits eine Teilezuordnung zu {{partner}} (Kundensachnummer {{number}}). Je Teil und Beziehung ist nur eine Zuordnung möglich – ordnen Sie ohne Speichern zu oder wählen Sie ein anderes Teil.",
+      "mappedWarning": "Für dieses Teil besteht bereits eine Teilezuordnung zu {{partner}} (Kundensachnummer {{number}}). Je Teil und Beziehung ist nur eine Zuordnung möglich – ersetzen Sie sie, ordnen Sie ohne Speichern zu oder wählen Sie ein anderes Teil.",
       "duplicate": "Teilezuordnung nicht gespeichert: {{part}} ist bei {{partner}} bereits der Kundensachnummer {{number}} zugeordnet. Ordnen Sie ohne Speichern zu oder wählen Sie ein anderes Teil.",
-      "duplicateUnknown": "Teilezuordnung nicht gespeichert: Für {{part}} besteht bei {{partner}} bereits eine Teilezuordnung. Ordnen Sie ohne Speichern zu oder wählen Sie ein anderes Teil."
+      "duplicateUnknown": "Teilezuordnung nicht gespeichert: Für {{part}} besteht bei {{partner}} bereits eine Teilezuordnung. Ordnen Sie ohne Speichern zu oder wählen Sie ein anderes Teil.",
+      "replaceExisting": "Bestehende Zuordnung ersetzen",
+      "replaceWarning": "Die bestehende Zuordnung zur Kundensachnummer {{number}} wird durch {{newNumber}} ersetzt. Die Änderung wird im Änderungsverlauf der Beziehung zu {{partner}} protokolliert."
     }
   },
   "cockpit": {
     "title": "Connector-Cockpit",
-    "description": "Status der eigenen EDC-Anbindung und aller über Catena-X ausgetauschten Nachrichten.",
+    "description": "Eigener EDC-Connector, Angebote und Policies, Kataloge der Partner, Verhandlungen, Transfers und alle über Catena-X ausgetauschten Nachrichten.",
     "status": {
       "title": "Status",
       "edc": "EDC-Connector",
@@ -269,6 +295,169 @@
       "copyPayload": "Payload kopieren",
       "openCase": "Zum Vorgang",
       "loadError": "Nachricht konnte nicht geladen werden."
+    },
+    "tabs": {
+      "label": "Bereiche des Cockpits",
+      "overview": "Übersicht",
+      "offers": "Angebote",
+      "policies": "Policies & Verträge",
+      "catalog": "Partner-Katalog",
+      "processes": "Verhandlungen & Transfers",
+      "messages": "Nachrichten",
+      "log": "Live-Log"
+    },
+    "overview": {
+      "edc": "EDC-Connector",
+      "edcShort": "EDC",
+      "dtr": "Digital Twin Registry",
+      "dtrShort": "DTR",
+      "participantId": "Teilnehmer-ID",
+      "dspEndpoint": "DSP-Endpunkt",
+      "version": "Version",
+      "url": "URL",
+      "noDtr": "Keine Digital Twin Registry konfiguriert.",
+      "dtrHint": "Verzeichnis der Digital Twins je Vorgang – darüber finden Kunden bereitgestellte PPF-Pakete.",
+      "provisioningHint": "Der Connector legt die benötigten Assets, Policies und Contract Definitions beim Start und bei Partneränderungen selbst an.",
+      "countsTitle": "Im eigenen EDC",
+      "counts": {
+        "assets": "Assets",
+        "policies": "Policies",
+        "contractDefinitions": "Contract Definitions",
+        "negotiations": "Verhandlungen",
+        "transfers": "Transfers"
+      },
+      "queuesTitle": "Ausgang und Eingang",
+      "outboxPending": "Ausgang wartend",
+      "outboxFailed": "Ausgang fehlgeschlagen",
+      "inboxRejected": "Eingang abgewiesen",
+      "show": "Anzeigen",
+      "responseTime": "Antwortzeit",
+      "ms": "{{ms}} ms"
+    },
+    "managed": {
+      "managed": "Vom Connector verwaltet",
+      "other": "Manuell angelegt",
+      "hintManaged": "Wird von der Provisionierung des PPAP Connectors angelegt und aktuell gehalten.",
+      "hintOther": "Nicht vom PPAP Connector angelegt (z. B. manuell oder durch eine andere Anwendung)."
+    },
+    "policy": {
+      "noConstraints": "Keine Einschränkungen",
+      "constraints": "Einschränkungen der Policy"
+    },
+    "json": {
+      "empty": "Keine Angaben.",
+      "copy": "{{title}} kopieren"
+    },
+    "assets": {
+      "title": "Angebote (Assets)",
+      "description": "Alles, was Ihr Connector im Datenraum anbietet. Partner sehen ein Angebot nur, wenn die Zugriffs-Policy sie zulässt.",
+      "search": "Asset-ID oder Typ",
+      "details": "Details anzeigen",
+      "empty": "Keine Assets",
+      "emptyDescription": "Die Provisionierung legt die Assets beim Start an.",
+      "properties": "Eigenschaften",
+      "columns": {
+        "id": "Asset-ID",
+        "type": "Typ (dct:type)",
+        "managed": "Herkunft",
+        "policy": "Nutzungsbedingungen"
+      },
+      "notOffered": "Nicht angeboten",
+      "usagePolicy": "Nutzungs-Policy {{id}}",
+      "accessPolicy": "Zugriffs-Policy {{id}}"
+    },
+    "policies": {
+      "intro": "Policies legen fest, wer ein Angebot sieht (Zugriff) und wofür die Daten genutzt werden dürfen (Nutzung). Contract Definitions verbinden Assets mit diesen Policies.",
+      "title": "Policies",
+      "search": "Policy-ID",
+      "viewJson": "JSON anzeigen",
+      "empty": "Keine Policies",
+      "odrl": "Policy (ODRL, JSON-LD)",
+      "columns": {
+        "id": "Policy-ID",
+        "constraints": "Einschränkungen"
+      }
+    },
+    "definitions": {
+      "title": "Contract Definitions",
+      "search": "ID oder Policy-ID",
+      "empty": "Keine Contract Definitions",
+      "policies": "Zugeordnete Policies",
+      "selector": "Asset-Auswahl",
+      "columns": {
+        "id": "ID",
+        "accessPolicy": "Zugriffs-Policy",
+        "contractPolicy": "Nutzungs-Policy"
+      }
+    },
+    "catalog": {
+      "partner": "Partner",
+      "choosePartner": "Partner wählen",
+      "hint": "Der Katalog wird live beim Connector des Partners abgefragt – Sie sehen genau die Angebote, die der Partner für Sie freigegeben hat.",
+      "fetch": "Katalog abrufen",
+      "refetch": "Erneut abrufen",
+      "loading": "Katalog wird über Catena-X abgefragt …",
+      "failed": "Katalog konnte nicht abgerufen werden: {{title}}",
+      "failedHint": "Prüfen Sie DSP-Endpunkt und DID des Partners in den Stammdaten und ob sein Connector erreichbar ist.",
+      "correlationId": "Korrelations-ID",
+      "emptyTitle": "Noch kein Katalog abgerufen",
+      "emptyDescription": "Wählen Sie einen Catena-X-fähigen Partner und rufen Sie seinen Katalog ab.",
+      "duration": "Antwort in {{ms}} ms",
+      "datasets_one": "{{count}} Angebot",
+      "datasets_other": "{{count}} Angebote",
+      "noDatasets": "Der Partner bietet Ihnen keine Daten an",
+      "noDatasetsHint": "Möglicherweise sind Sie nicht in seiner Partnergruppe oder Ihre Mitgliedschaft wird nicht anerkannt.",
+      "offers_one": "{{count}} Vertragsangebot",
+      "offers_other": "{{count}} Vertragsangebote",
+      "policyJson": "Policy des Angebots (JSON-LD)",
+      "copyPolicy": "Policy kopieren",
+      "partnerNotReady": "Der Partner ist nicht für Catena-X eingerichtet (DSP-Endpunkt oder DID fehlt)."
+    },
+    "processes": {
+      "stateLabel": "EDC-Zustand: {{state}}",
+      "negotiations": "Vertragsverhandlungen",
+      "transfers": "Transfers",
+      "stateFilter": "Zustand",
+      "allStates": "Alle Zustände",
+      "emptyNegotiations": "Keine Verhandlungen",
+      "emptyTransfers": "Keine Transfers",
+      "types": {
+        "CONSUMER": "Wir als Konsument",
+        "PROVIDER": "Wir als Anbieter"
+      },
+      "columns": {
+        "partner": "Partner",
+        "asset": "Asset",
+        "state": "Zustand",
+        "time": "Zeitpunkt",
+        "type": "Rolle",
+        "agreement": "Vertrag (Agreement)"
+      }
+    },
+    "log": {
+      "title": "Live-Log",
+      "description": "Austauschschritte in Echtzeit (Katalog, Verhandlung, EDR, Zustellung …), abgeleitet aus dem Austauschprotokoll.",
+      "search": "Log durchsuchen",
+      "searchPlaceholder": "Text, Nachricht, Schritt oder Korrelations-ID",
+      "level": "Stufe",
+      "levels": {
+        "ALL": "Alle Stufen",
+        "INFO": "Info und höher",
+        "WARN": "Warnungen und Fehler",
+        "ERROR": "Nur Fehler"
+      },
+      "count_one": "{{count}} Eintrag",
+      "count_other": "{{count}} Einträge",
+      "queued_one": "{{count}} neuer Eintrag pausiert",
+      "queued_other": "{{count}} neue Einträge pausiert",
+      "pause": "Pausieren",
+      "resume": "Fortsetzen",
+      "clear": "Leeren",
+      "emptyTitle": "Warten auf Austauschereignisse",
+      "emptyDescription": "Sobald eine Nachricht gesendet oder empfangen wird, erscheinen die Schritte hier.",
+      "offline": "Die Live-Verbindung ist getrennt – Einträge erscheinen nach dem Wiederverbinden.",
+      "noMatch": "Keine Einträge für diesen Filter",
+      "copyCorrelation": "Korrelations-ID kopieren"
     }
   },
   "mode": {

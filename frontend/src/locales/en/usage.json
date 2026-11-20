@@ -1,0 +1,44 @@
+{
+  "title": "Usage",
+  "description": "Approval cases and revisions of your company per month – counted from events and reproducible from the raw data at any time.",
+  "export": "Export CSV",
+  "exportFailed": "Export failed",
+  "recompute": "Recompute",
+  "recomputeDone": "Counters recomputed from the raw data",
+  "recomputeFailed": "Recompute failed",
+  "recomputeConfirm": {
+    "title": "Recompute counters?",
+    "description": "The counters are recalculated from the stored revisions and replace the continuously updated values. The result must match the previous values.",
+    "confirm": "Recompute"
+  },
+  "recomputeHint": "Reproducible counting: “Recompute” derives all values from the revisions.",
+  "summary": {
+    "cases": "Approval cases ({{months}} months)",
+    "revisions": "Further revisions ({{months}} months)",
+    "currentMonth": "Approval cases {{month}}"
+  },
+  "chartTitle": "Trend per month",
+  "definition": "An approval case counts once in the month of its first submission (revision 1) – for the submitting supplier and for the receiving customer. Further revisions are shown separately; legacy cases do not count.",
+  "period": "Period",
+  "periodMonths_one": "Last month",
+  "periodMonths_other": "Last {{count}} months",
+  "loadError": "Usage data could not be loaded.",
+  "retry": "Try again",
+  "chartSummary": "Bar chart {{from}} to {{to}}: {{cases}} approval cases and {{revisions}} further revisions. The values per month are in the table below.",
+  "series": {
+    "approvalCases": "Approval cases",
+    "revisions": "Further revisions"
+  },
+  "tableCaption": "Usage per month",
+  "columns": {
+    "month": "Month",
+    "approvalCases": "Approval cases",
+    "submitted": "of which submitted",
+    "received": "of which received",
+    "revisions": "Further revisions"
+  },
+  "recomputeDifferences_one": "Recompute differs: {{count}} difference",
+  "recomputeDifferences_other": "Recompute differs: {{count}} differences",
+  "recomputeConsistent_one": "Identical to the continuously counted values ({{count}} event).",
+  "recomputeConsistent_other": "Identical to the continuously counted values ({{count}} events)."
+}

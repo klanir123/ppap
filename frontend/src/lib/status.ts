@@ -61,3 +61,7 @@ export type ExchangeState = (typeof EXCHANGE_STATES)[number]
 /** State of one exchange step (catalog, negotiation, …); PENDING/NOT_REACHED for steps without a record. */
 export const STEP_STATES = ['OK', 'FAILED', 'SKIPPED', 'PENDING', 'NOT_REACHED'] as const
 export type StepStateValue = (typeof STEP_STATES)[number]
+
+/** Exchange health per partner over the last 24 h (UC-11). */
+export const EXCHANGE_HEALTH_STATES = ['OK', 'DEGRADED', 'FAILING'] as const
+export type ExchangeHealthState = (typeof EXCHANGE_HEALTH_STATES)[number]

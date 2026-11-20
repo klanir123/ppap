@@ -5,6 +5,7 @@
  * REST API of the msg CX PPAP Connector backend.
  * OpenAPI spec version: v1
  */
+import type { ReconciliationDto } from './reconciliationDto'
 import type { RelationDtoExchangeMode } from './relationDtoExchangeMode'
 import type { RelationDtoPartnerRole } from './relationDtoPartnerRole'
 
@@ -19,6 +20,8 @@ export interface RelationDto {
   partnerName?: string
   partnerRole: RelationDtoPartnerRole
   policyProfile: string
+  /** Effect on the offers of the own EDC (only when a write changed policyProfile or exchangeMode, otherwise null) */
+  reconciliation?: ReconciliationDto
   updatedAt?: string
   version: number
 }

@@ -11,6 +11,7 @@ import type { ElementEvidenceDto } from './elementEvidenceDto'
 import type { SignatureDto } from './signatureDto'
 import type { SubmissionDtoExchangeMode } from './submissionDtoExchangeMode'
 import type { SubmissionDtoStatus } from './submissionDtoStatus'
+import type { SubSupplierReferenceDto } from './subSupplierReferenceDto'
 
 export interface SubmissionDto {
   basedOnRevision?: number
@@ -24,6 +25,8 @@ export interface SubmissionDto {
   revision: number
   signature?: SignatureDto
   status: SubmissionDtoStatus
+  /** References to decided approvals of sub-suppliers (UC-09, metadata only; sub-supplier documents are never passed on) */
+  subSupplierReferences: SubSupplierReferenceDto[]
   submittedAt?: string
   submittedBy?: string
 }

@@ -1,4 +1,4 @@
-import { Loader2, Send, TriangleAlert } from 'lucide-react'
+import { Loader2, Network, Send, TriangleAlert } from 'lucide-react'
 import { useId, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
@@ -16,6 +16,7 @@ import {
 import { Label } from '@/components/ui/label'
 
 import { useSubmitDraft, type ApprovalCaseDetail, type Submission } from '../api'
+import { elementIssues, hasSubSupplierPending } from '../cascade/cascade-model'
 import { CasePartText } from '../components/badges'
 import { problemCode, problemMessage } from '../components/problem'
 import type { DraftSaver } from './use-draft-saver'
@@ -49,6 +50,9 @@ export function SubmitDialog({
   const incomplete = completeness ? !completeness.complete : false
   const documentCount = draft.elements.reduce((n, e) => n + e.documents.length, 0)
   const assessed = draft.elements.filter((e) => e.selfAssessment).length
+  const references = draft.subSupplierReferences?.length ?? 0
+  const hasChildren = (approvalCase.childCases?.length ?? 0) > 0
+  const subSupplierPending = hasSubSupplierPending(completeness)
 
   const close = (next: boolean) => {
     onOpenChange(next)
@@ -94,13 +98,26 @@ export function SubmitDialog({
                 <dt className="text-xs text-muted-foreground">{t('submit.documents')}</dt>
                 <dd className="tabular">{documentCount}</dd>
               </div>
+              {hasChildren ? (
+                <div className="col-span-2">
+                  <dt className="text-xs text-muted-foreground">{t('cascade.references.title')}</dt>
+                  <dd className="tabular">{t('cascade.references.selected', { count: references })}</dd>
+                </div>
+              ) : null}
             </dl>
+            {subSupplierPending && !incomplete ? (
+              <Alert>
+                <Network aria-hidden="true" className="text-(--status-warning-solid)" />
+                <AlertTitle>{t('cascade.references.pendingTitle')}</AlertTitle>
+                <AlertDescription>{t('cascade.references.submitAnyway')}</AlertDescription>
+              </Alert>
+            ) : null}
             {incomplete || problemCode(submit.error) === 'INCOMPLETE_SUBMISSION' ? (
               <Alert variant="destructive">
                 <TriangleAlert aria-hidden="true" />
                 <AlertTitle>{t('submit.incompleteTitle')}</AlertTitle>
                 <AlertDescription>
-                  <p>{t('submit.incompleteDescription', { count: completeness?.issues.length ?? 0 })}</p>
+                  <p>{t('submit.incompleteDescription', { count: elementIssues(completeness).length })}</p>
                   <Button
                     variant="link"
                     className="h-auto p-0"
