@@ -3,7 +3,7 @@
 Kommerzielles Produkt (Closed Source) von msg for automotive: digitaler PPAP/PPF-Datenaustausch zwischen OEM und Zulieferern über Catena-X (Tractus-X EDC, DSP). Prototyp → MVP, kein Wegwerf-PoC.
 
 ## Projektstatus
-- Phase 0–5 abgeschlossen (Plan, Fundament, Stammdaten, Freigabevorgang, Austausch über EDC, **Pull über DTR + Dokumente**). Nächste Phase: 6 – Kaskade und Transparenz (UC-09…12).
+- Phase 0–6 abgeschlossen (… Pull über DTR, **Kaskade und Transparenz UC-09…12**). Nächste Phase: 7 – Härtung und Demo (E2E der gesamten Demo-Story, DEMO.md, Integrations- und Betriebsdoku).
 - Vollständige Aufgabenstellung: siehe `docs/input/` bzw. Erst-Prompt; Phasenplan in `docs/backlog.md` und `docs/ARCHITECTURE.md` §12.
 
 ## Wichtige Dokumente
@@ -59,4 +59,8 @@ Kommerzielles Produkt (Closed Source) von msg for automotive: digitaler PPAP/PPF
 - Live-Test des Austauschs: `APP_DECISION_ALLOW_TECHNICAL_CLIENTS=true make up PROFILE=tier2`, dann `./mvnw -pl backend/app -am -Plive verify`. Standard: technische Clients dürfen nicht entscheiden.
 - EDC 0.13: Durch die Data Plane kommt 202 als 200 und 401 als 500 beim Sender an; „Policy referenced“ liefert 400 statt 409. Die Data Plane reicht Antwort-Header des Backends **nicht** weiter (JWS bei Pull daher unter `<href>/signature`).
 - Pull (Phase 5, Vertrag `docs/api/pull-api.md`): Twin je Vorgang in der DTR des Lieferanten (`/api/v3`, Tenant über Header `Edc-Bpn`, `lookup/shells` mit base64url-JSON), Registrierung als lokale Outbox-Aufgabe `TWIN_REGISTRATION` vor `PPAP_SUBMISSION_AVAILABLE`. Pull-Job + Poller in `exchange` (nicht `twin`, Modulzyklus). Assets je Partner `ppap-submission-<BPNL>`, `ppap-documents-<BPNL>`, `ppap-dtr` (OAuth2 über Data Plane, Secret im Vault). Interne Endpunkte: Secret → 401, kein `Edc-Bpn` → 403, nicht geteilt/Entwurf → 404. Dokumente in beiden Richtungen per Pull mit SHA-256-Prüfung (`ex_document_transfer`). Modus der Lieferanten-Beziehung bei Einreichung gilt je Revision. DTR-Angebote werden gecacht (positiv 10 min, „keine DTR“ 60 s, `PPAP_PULL_NO_OFFER_CACHE_TTL`); Retries umgehen den Cache; Poller startet erst nach eigener Provisionierung.
-- Live-Specs `make e2e` (01–08) inkl. Moduswechsel (08); lokal schneller mit `APP_PULL_POLL_INTERVAL=15s make up PROFILE=tier2`.
+- Live-Specs `make e2e` (01–10) inkl. Moduswechsel (08), Kaskade (09), Cockpit/Policies/Nutzung (10); lokal schneller mit `APP_PULL_POLL_INTERVAL=15s make up PROFILE=tier2`. Vor wiederholten Läufen ggf. `make demo PROFILE=tier2`.
+- Kaskade (Phase 6, Vertrag `docs/api/cascade-transparency-api.md`): Kindvorgang = Kundenvorgang mit `parent_case_id`; Referenzen je Revision (JSONB, unveränderlich nach Einreichung), im signierten `PpapSubmission.subSupplierReferences`. Dokumente von Partnern (Uploader `partner:<BPNL>`) sind **nach Herkunft** gesperrt: nie an eigene Einreichung anhängbar (422 `SUB_SUPPLIER_DOCUMENT_NOT_SHAREABLE`), nie ausgeliefert; eigene Uploads mit gleichem Inhalt sind erlaubt (Autorisierung je Dokument-Datensatz, nicht je Hash).
+- Policy-Profile: Profil `default` per Flyway-Migration (Platzhalter), nicht per Seed; gemeinsame Assets nutzen `default`, partnerspezifische das Profil der Beziehung; Policy-IDs inhaltsadressiert; Schreibantworten liefern `reconciliation`.
+- Nutzung: Zähler ereignisbasiert, Monat = `submittedAt` der Revision auf beiden Seiten, `POST /usage/recompute` rechnet aus Rohdaten nach. Audit-Export: kanonisches JSON + JWS (`X-Signature`).
+- Datenraum-Ansicht `/dataspace`: Perspektive des eigenen Teilnehmers (keine Sammelansicht); für Messen die Tier-1-Ansicht, `?present=1` Präsentationsmodus.
