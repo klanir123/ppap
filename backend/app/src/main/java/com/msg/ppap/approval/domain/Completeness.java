@@ -9,14 +9,41 @@ import java.util.Map;
  * Completeness of a revision against the request (contract „Vollständigkeitsregeln“).
  *
  * @param issuesByElement issues per element code (only elements with issues)
+ * @param hints non-blocking findings of the whole revision (e.g. {@link #SUB_SUPPLIER_PENDING}); they never make a
+ *     revision incomplete
  */
-public record Completeness(int requiredTotal, int requiredDone, Map<String, List<Issue>> issuesByElement) {
+public record Completeness(
+        int requiredTotal, int requiredDone, Map<String, List<Issue>> issuesByElement, List<Issue> hints) {
 
     public static final String MISSING_SELF_ASSESSMENT = "MISSING_SELF_ASSESSMENT";
     public static final String COMMENT_REQUIRED = "COMMENT_REQUIRED";
     public static final String DOCUMENT_REQUIRED = "DOCUMENT_REQUIRED";
     public static final String VALUES_REQUIRED = "VALUES_REQUIRED";
     public static final String VALUE_SCHEMA_VIOLATION = "VALUE_SCHEMA_VIOLATION";
+
+    /**
+     * Hint (not a blocker, UC-09): the case has sub-supplier requests that are not decided yet; the supplier decides
+     * whether to submit without the sub-supplier approval (TODO(EG)).
+     */
+    public static final String SUB_SUPPLIER_PENDING = "SUB_SUPPLIER_PENDING";
+
+    public Completeness {
+        hints = hints == null ? List.of() : List.copyOf(hints);
+    }
+
+    public Completeness(int requiredTotal, int requiredDone, Map<String, List<Issue>> issuesByElement) {
+        this(requiredTotal, requiredDone, issuesByElement, List.of());
+    }
+
+    /** Copy with the given (additional) hints. */
+    public Completeness withHints(List<Issue> additional) {
+        if (additional == null || additional.isEmpty()) {
+            return this;
+        }
+        List<Issue> all = new ArrayList<>(hints);
+        all.addAll(additional);
+        return new Completeness(requiredTotal, requiredDone, issuesByElement, all);
+    }
 
     /** An issue of one element; {@code pointer} is set for value schema violations. */
     public record Issue(String elementCode, String code, String message, String pointer) {}

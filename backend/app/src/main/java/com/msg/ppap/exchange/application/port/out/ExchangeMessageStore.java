@@ -102,6 +102,23 @@ public interface ExchangeMessageStore {
     Map<String, Long> countByDirectionAndStatus();
 
     /**
+     * Exchange figures per partner since the given time (dashboard health, phase 6).
+     *
+     * @return figures per partner BPNL; partners without messages are missing
+     */
+    Map<String, PartnerFigures> partnerFigures(java.util.Collection<String> partnerBpnls, Instant since, Instant now);
+
+    /**
+     * Exchange figures of a partner.
+     *
+     * @param failed failed outbound messages / pull jobs since the reference time
+     * @param rejected rejected inbound messages since the reference time
+     * @param retrying open messages with more than one attempt or pending longer than 5 minutes
+     * @param lastExchangeAt last change of any message with the partner (all time)
+     */
+    record PartnerFigures(long failed, long rejected, long retrying, Instant lastExchangeAt) {}
+
+    /**
      * A new message.
      *
      * @param envelope serialized {@code PpapNotification} (outbound: as sent; inbound: as received)

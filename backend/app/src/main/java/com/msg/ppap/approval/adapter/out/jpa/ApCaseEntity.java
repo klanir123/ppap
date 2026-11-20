@@ -66,6 +66,9 @@ class ApCaseEntity {
     @Column(name = "part_number")
     String partNumber;
 
+    @Column(name = "parent_case_id", updatable = false)
+    UUID parentCaseId;
+
     @Column(name = "clarification_reason")
     String clarificationReason;
 

@@ -31,9 +31,11 @@ public class PartnerSharingService implements PartnerSharingUseCase {
     private static final List<String> AWAITING = List.of(CaseStatus.REQUESTED.name(), CaseStatus.IN_PROGRESS.name());
 
     private final ApprovalContext context;
+    private final DocumentRefs documents;
 
-    public PartnerSharingService(ApprovalContext context) {
+    public PartnerSharingService(ApprovalContext context, DocumentRefs documents) {
         this.context = context;
+        this.documents = documents;
     }
 
     @Override
@@ -61,7 +63,8 @@ public class PartnerSharingService implements PartnerSharingUseCase {
         if (sha256 == null || !sha256.matches("^[0-9a-f]{64}$") || partnerBpnl == null || partnerBpnl.isBlank()) {
             return Optional.empty();
         }
-        return context.repository().findSharedDocument(sha256, partnerBpnl);
+        // authorised per document record: only own uploads attached to what was shared with this partner
+        return context.repository().findSharedDocument(sha256, partnerBpnl).filter(documents::ownUpload);
     }
 
     @Override

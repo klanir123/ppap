@@ -20,6 +20,10 @@ spring:
   flyway:
     enabled: true
     locations: classpath:db/migration
+    # V9 creates the policy profile "default" of the instance tenant (docs/api/cascade-transparency-api.md §3)
+    placeholders:
+      tenant_bpnl: ${ppap.tenant.bpnl}
+      usage_purpose: ${ppap.edc.policy.usage-purpose}
   servlet:
     multipart:
       max-file-size: ${PPAP_UPLOAD_MAX_SIZE:50MB}

@@ -5,6 +5,7 @@ import com.msg.ppap.masterdata.application.port.out.CatalogRepository;
 import com.msg.ppap.masterdata.application.port.out.PartMappingRepository;
 import com.msg.ppap.masterdata.application.port.out.PartRepository;
 import com.msg.ppap.masterdata.application.port.out.PartnerRepository;
+import com.msg.ppap.masterdata.application.port.out.PolicyProfileRepository;
 import com.msg.ppap.masterdata.application.port.out.RelationRepository;
 import com.msg.ppap.masterdata.domain.CatalogCode;
 import com.msg.ppap.masterdata.domain.CatalogElement;
@@ -13,6 +14,7 @@ import com.msg.ppap.masterdata.domain.PartMapping;
 import com.msg.ppap.masterdata.domain.PartNumber;
 import com.msg.ppap.masterdata.domain.Partner;
 import com.msg.ppap.masterdata.domain.PartnerRole;
+import com.msg.ppap.masterdata.domain.PolicyProfile;
 import com.msg.ppap.masterdata.domain.Relation;
 import com.msg.ppap.platform.domain.Bpnl;
 import java.util.List;
@@ -35,13 +37,16 @@ public class MasterdataQueryService implements MasterdataQueries {
     private final RelationRepository relations;
     private final PartMappingRepository mappings;
     private final CatalogRepository catalog;
+    private final PolicyProfileRepository profiles;
 
     public MasterdataQueryService(
             PartRepository parts,
             PartnerRepository partners,
             RelationRepository relations,
             PartMappingRepository mappings,
-            CatalogRepository catalog) {
+            CatalogRepository catalog,
+            PolicyProfileRepository profiles) {
+        this.profiles = profiles;
         this.parts = parts;
         this.partners = partners;
         this.relations = relations;
@@ -148,6 +153,46 @@ public class MasterdataQueryService implements MasterdataQueries {
                 .toList();
     }
 
+    @Override
+    public List<RelationInfo> relations() {
+        return relations.findAll().stream().map(this::relation).toList();
+    }
+
+    @Override
+    public List<PartnerInfo> partners() {
+        return partners.search(null, null, org.springframework.data.domain.Pageable.unpaged()).getContent().stream()
+                .map(MasterdataQueryService::partner)
+                .sorted(java.util.Comparator.comparing(PartnerInfo::bpnl))
+                .toList();
+    }
+
+    @Override
+    public Optional<PolicyProfileInfo> findPolicyProfile(String code) {
+        return profiles.findByCode(code).map(MasterdataQueryService::profile);
+    }
+
+    @Override
+    public Optional<PolicyProfileInfo> findPolicyProfile(UUID id) {
+        return id == null ? Optional.empty() : profiles.findById(id).map(MasterdataQueryService::profile);
+    }
+
+    private static PolicyProfileInfo profile(PolicyProfile profile) {
+        var v = profile.values();
+        return new PolicyProfileInfo(
+                profile.id(),
+                v.code(),
+                v.name(),
+                v.accessType().name(),
+                v.membershipRequired(),
+                v.frameworkAgreement(),
+                v.usagePurposes(),
+                v.additionalConstraints().stream()
+                        .map(c -> new ConstraintInfo(c.leftOperand(), c.operator(), c.rightOperand()))
+                        .toList(),
+                profile.active(),
+                profile.version() == null ? 0 : profile.version());
+    }
+
     private static PartInfo part(Part part) {
         var v = part.values();
         return new PartInfo(part.id(), v.partNumber().value(), v.nameDe(), v.nameEn(), part.active());
@@ -176,7 +221,8 @@ public class MasterdataQueryService implements MasterdataQueries {
                 name,
                 v.partnerRole().name(),
                 relation.active(),
-                v.exchangeMode().name());
+                v.exchangeMode().name(),
+                v.policyProfile());
     }
 
     private PartMappingInfo mapping(PartMapping mapping) {

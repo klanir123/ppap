@@ -44,7 +44,8 @@ class CaseStateMachineTest {
             "REVIEW     | CUSTOMER | IN_REVIEW                                       | CQE,SI | POLICY",
             "DECIDE             | CUSTOMER | IN_REVIEW                                       | CQE,SI | POLICY",
             "RECEIVE_DECISION   | SUPPLIER | SUBMITTED,IN_REVIEW                             | EX     | ",
-            "NEW_REVISION       | SUPPLIER | REJECTED,CONDITIONALLY_APPROVED                 | SQM,SI | ");
+            "NEW_REVISION       | SUPPLIER | REJECTED,CONDITIONALLY_APPROVED                 | SQM,SI | ",
+            "REQUEST_SUB_SUPPLIER | SUPPLIER | REQUESTED,IN_PROGRESS                         | SQM,SI | ");
 
     enum Outcome {
         OK,

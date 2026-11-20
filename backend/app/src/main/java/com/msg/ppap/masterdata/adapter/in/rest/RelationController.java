@@ -1,5 +1,6 @@
 package com.msg.ppap.masterdata.adapter.in.rest;
 
+import com.msg.ppap.masterdata.api.OfferReconciler;
 import com.msg.ppap.masterdata.application.RelationService;
 import com.msg.ppap.masterdata.application.RelationView;
 import com.msg.ppap.masterdata.domain.PartnerRole;
@@ -9,6 +10,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
@@ -36,9 +38,11 @@ public class RelationController {
     private static final Sort DEFAULT_SORT = Sort.by("partnerBpnl", "partnerRole");
 
     private final RelationService relations;
+    private final ObjectProvider<OfferReconciler> reconciler;
 
-    public RelationController(RelationService relations) {
+    public RelationController(RelationService relations, ObjectProvider<OfferReconciler> reconciler) {
         this.relations = relations;
+        this.reconciler = reconciler;
     }
 
     @GetMapping
@@ -83,7 +87,15 @@ public class RelationController {
             @PathVariable UUID id,
             @RequestBody RelationRequest request,
             @RequestHeader(name = HttpHeaders.IF_MATCH, required = false) String ifMatch) {
-        return respond(relations.update(id, request.toCommand(), RestSupport.expectedVersion(ifMatch)));
+        var before = relations.view(id).relation().values();
+        RelationView view = relations.update(id, request.toCommand(), RestSupport.expectedVersion(ifMatch));
+        var after = view.relation().values();
+        boolean offersAffected =
+                !before.policyProfile().equals(after.policyProfile()) || before.exchangeMode() != after.exchangeMode();
+        // phase 6: profile or mode changes are applied to the EDC offers right away (result in the response)
+        return RestSupport.ok(
+                RelationDto.from(view, offersAffected ? ReconciliationDto.run(reconciler) : null),
+                view.relation().version());
     }
 
     @DeleteMapping("/{id}")

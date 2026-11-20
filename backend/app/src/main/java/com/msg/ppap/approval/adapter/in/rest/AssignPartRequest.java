@@ -8,4 +8,9 @@ public record AssignPartRequest(
         @Schema(requiredMode = Schema.RequiredMode.REQUIRED) UUID partId,
 
         @Schema(description = "Also create the part mapping for future requests (default true)")
-        Boolean saveMapping) {}
+        Boolean saveMapping,
+
+        @Schema(
+                description = "Replace an existing mapping of this part in the relation with the customer part number"
+                        + " of the request (default false; otherwise an existing mapping fails with DUPLICATE_KEY)")
+        Boolean replaceExistingMapping) {}

@@ -9,6 +9,10 @@ public final class ExchangeAssets {
     public static final String PUBLIC_KEYS_TYPE = "cx-taxo:PpapPublicKeys";
     public static final String ASSET_VERSION = "0.1";
     public static final String ACCESS_POLICY = "ppap-access-partners";
+
+    /** Prefix of all own access policies (shared and per partner). */
+    public static final String ACCESS_POLICY_PREFIX = "ppap-access-";
+
     public static final String USAGE_POLICY = "ppap-usage";
     public static final String NOTIFICATION_CONTRACT = "ppap-notification-cd";
     public static final String PUBLIC_KEYS_CONTRACT = "ppap-public-keys-cd";
@@ -46,6 +50,16 @@ public final class ExchangeAssets {
     /** Asset of the documents offered to a partner. */
     public static String documentsAsset(String partnerBpnl) {
         return DOCUMENTS_PREFIX + partnerBpnl;
+    }
+
+    /** Contract definition of an offered asset. */
+    public static String contractOf(String assetId) {
+        return switch (assetId) {
+            case NOTIFICATION_ASSET -> NOTIFICATION_CONTRACT;
+            case PUBLIC_KEYS_ASSET -> PUBLIC_KEYS_CONTRACT;
+            case DTR_ASSET -> DTR_CONTRACT;
+            default -> assetId + CONTRACT_SUFFIX;
+        };
     }
 
     /** Backend paths the own data plane calls. */

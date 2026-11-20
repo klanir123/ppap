@@ -52,6 +52,7 @@ public final class ApprovalCase {
     private final List<TimelineEntry> timeline;
     private final CaseMetadata metadata;
     private Clarification clarification;
+    private UUID parentCaseId;
     private final List<CaseChange> changes = new ArrayList<>();
 
     private ApprovalCase(
@@ -130,6 +131,36 @@ public final class ApprovalCase {
         return created;
     }
 
+    /**
+     * Cascade (UC-09): the supplier of {@code parent} requests the approval of a sub-part from its own supplier. The
+     * new case is a customer draft linked to the parent; the parent records the action. Allowed while the parent is
+     * {@code REQUESTED} or {@code IN_PROGRESS}; the user needs both {@code SUPPLIER_QUALITY_MANAGER} and {@code
+     * CUSTOMER_QUALITY_ENGINEER} (technical clients: {@code SYSTEM_INTEGRATION}).
+     */
+    public static ApprovalCase createSubRequest(
+            ApprovalCase parent,
+            String caseNumber,
+            CaseHeader header,
+            List<RequestedElement> elements,
+            Actor actor,
+            Instant now) {
+        parent.check(CaseAction.REQUEST_SUB_SUPPLIER, actor, CasePolicy.DEFAULT);
+        if (!mayRequestSubSupplier(actor)) {
+            throw ApprovalErrors.forbidden(CaseAction.REQUEST_SUB_SUPPLIER);
+        }
+        ApprovalCase child = createDraft(caseNumber, header, elements, actor, now);
+        child.parentCaseId = parent.id;
+        parent.record(
+                CaseAction.REQUEST_SUB_SUPPLIER, parent.status, parent.status, actor, now, caseNumber, null, null);
+        return child;
+    }
+
+    /** Both sides of the cascade: supplier and customer role (or a technical client). */
+    static boolean mayRequestSubSupplier(Actor actor) {
+        return actor.has(UserRole.SYSTEM_INTEGRATION)
+                || (actor.has(UserRole.SUPPLIER_QUALITY_MANAGER) && actor.has(UserRole.CUSTOMER_QUALITY_ENGINEER));
+    }
+
     /** Supplier receives a request via the dataspace (source {@code EXCHANGE}). */
     public static ApprovalCase receiveRequest(
             String caseNumber, UUID exchangeId, CaseHeader header, ApprovalRequest request, Actor actor, Instant now) {
@@ -166,6 +197,41 @@ public final class ApprovalCase {
         created.clarification = clarification;
         created.record(CaseAction.RECEIVE_REQUEST, null, CaseStatus.REQUESTED, actor, now, null, null, null);
         return created;
+    }
+
+    /** Restores a persisted case with clarification and parent case (sub-supplier request, UC-09) without checks. */
+    @SuppressWarnings("java:S107")
+    public static ApprovalCase restore(
+            UUID id,
+            String caseNumber,
+            UUID exchangeId,
+            CaseRole ownRole,
+            CaseSource source,
+            CaseStatus status,
+            CaseHeader header,
+            ApprovalRequest request,
+            List<Submission> submissions,
+            Collection<ElementFinding> reviewFindings,
+            List<TimelineEntry> timeline,
+            CaseMetadata metadata,
+            Clarification clarification,
+            UUID parentCaseId) {
+        ApprovalCase restored = restore(
+                id,
+                caseNumber,
+                exchangeId,
+                ownRole,
+                source,
+                status,
+                header,
+                request,
+                submissions,
+                reviewFindings,
+                timeline,
+                metadata,
+                clarification);
+        restored.parentCaseId = parentCaseId;
+        return restored;
     }
 
     /** Restores a persisted case with an open clarification without checks. */
@@ -380,6 +446,21 @@ public final class ApprovalCase {
         record(CaseAction.EDIT_SUBMISSION, status, status, actor, now, null, draft.revision(), code);
     }
 
+    /**
+     * Replaces the sub-supplier references of the draft revision (UC-09). The application layer ensures that each
+     * reference points to an own, decided (approved) child case of this case (AK-09-1).
+     */
+    public void replaceSubSupplierReferences(List<SubSupplierReference> references, Actor actor, Instant now) {
+        check(CaseAction.EDIT_SUBMISSION, actor, CasePolicy.DEFAULT);
+        Submission draft = draftSubmission();
+        Map<UUID, SubSupplierReference> unique = new LinkedHashMap<>();
+        for (SubSupplierReference reference : references) {
+            unique.putIfAbsent(reference.exchangeId(), reference);
+        }
+        draft.replaceSubSupplierReferences(List.copyOf(unique.values()));
+        record(CaseAction.EDIT_SUBMISSION, status, status, actor, now, null, draft.revision(), null);
+    }
+
     /** Completeness of a revision against the request. */
     public Completeness completeness(Submission submission, ValueValidator validator) {
         return Completeness.evaluate(request.elements(), submission.evidenceByCode(), validator);
@@ -475,6 +556,24 @@ public final class ApprovalCase {
             ExchangeMode exchangeMode,
             Actor actor,
             Instant now) {
+        return receiveSubmission(
+                revision, elements, List.of(), submittedAt, submittedBy, seal, exchangeMode, actor, now);
+    }
+
+    /**
+     * Customer receives a submitted revision with the sub-supplier references it contains (UC-09, metadata only).
+     */
+    @SuppressWarnings("java:S107")
+    public boolean receiveSubmission(
+            int revision,
+            List<ElementEvidence> elements,
+            List<SubSupplierReference> references,
+            Instant submittedAt,
+            String submittedBy,
+            Seal seal,
+            ExchangeMode exchangeMode,
+            Actor actor,
+            Instant now) {
         Optional<Submission> existing =
                 submissions.stream().filter(s -> s.revision() == revision).findFirst();
         if (existing.isPresent()) {
@@ -502,7 +601,12 @@ public final class ApprovalCase {
                 submittedBy,
                 seal,
                 null,
-                exchangeMode));
+                exchangeMode,
+                references == null
+                        ? List.of()
+                        : references.stream()
+                                .map(SubSupplierReference::withoutChildCase)
+                                .toList()));
         reviewFindings.clear();
         transition(CaseAction.RECEIVE_SUBMISSION, CaseStatus.SUBMITTED, actor, now, null, revision);
         return true;
@@ -536,6 +640,27 @@ public final class ApprovalCase {
         }
         reviewFindings.clear();
         transition(CaseAction.START_REVIEW, CaseStatus.IN_REVIEW, actor, now, null, current.revision());
+    }
+
+    /**
+     * Verifies the signature of a submitted revision again (e.g. {@code UNVERIFIED} because the partner key was not
+     * known on receipt). Only the verification status changes; the revision itself stays immutable.
+     *
+     * @return the new status
+     */
+    public SignatureStatus reverifySignature(int revision, SealVerifier verifier, Actor actor, Instant now) {
+        Submission target = submission(revision);
+        Seal seal = target.seal();
+        if (seal == null) {
+            throw new NotFoundException("Signature of revision", revision);
+        }
+        SignatureStatus before = seal.signature().status();
+        SignatureStatus after = !seal.hashValid() ? SignatureStatus.INVALID : verifier.verify(seal);
+        if (after != before) {
+            target.signatureStatus(after);
+            record(CaseAction.VERIFY_SIGNATURE, status, status, actor, now, before + " -> " + after, revision, null);
+        }
+        return after;
     }
 
     /** Records the (unsigned, intermediate) review result of an element. */
@@ -731,7 +856,13 @@ public final class ApprovalCase {
         return CaseStateMachine.allowedActions(ownRole, source, status, actor, policy).stream()
                 .filter(action ->
                         clarification == null ? action != CaseAction.ASSIGN_PART : action != CaseAction.START_WORK)
+                .filter(action -> action != CaseAction.REQUEST_SUB_SUPPLIER || mayRequestSubSupplier(actor))
                 .toList();
+    }
+
+    /** Parent case of a sub-supplier request (UC-09), {@code null} otherwise. */
+    public UUID parentCaseId() {
+        return parentCaseId;
     }
 
     /** Open clarification, {@code null} if none. */

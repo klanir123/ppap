@@ -52,4 +52,32 @@ public interface ApprovalCaseRepository {
 
     /** Short key of a case. */
     record CaseKey(UUID id, String caseNumber, UUID exchangeId, String partnerBpnl, Integer currentRevision) {}
+
+    /** Sub-supplier requests (child cases) of a case (UC-09), oldest first. */
+    java.util.List<CaseSummary> findChildren(UUID parentId);
+
+    /** Customer cases of the partner with a received revision whose signature is {@code UNVERIFIED}. */
+    java.util.List<UUID> findCasesWithUnverifiedSignatures(String partnerBpnl);
+
+    /** Latest timeline entries over all cases of the tenant (activity feed), newest first. */
+    java.util.List<ActivityRow> recentActivity(int limit);
+
+    /** A timeline entry with its case. */
+    record ActivityRow(
+            java.time.Instant at,
+            UUID caseId,
+            String caseNumber,
+            String action,
+            String actor,
+            String fromStatus,
+            String toStatus,
+            String partnerBpnl,
+            String partnerName) {}
+
+    /** All submitted revisions of the tenant (raw data of the usage counters, UC-12). */
+    java.util.List<RevisionRow> submittedRevisions();
+
+    /** A submitted revision. */
+    record RevisionRow(
+            UUID caseId, UUID exchangeId, String ownRole, String source, int revision, java.time.Instant submittedAt) {}
 }

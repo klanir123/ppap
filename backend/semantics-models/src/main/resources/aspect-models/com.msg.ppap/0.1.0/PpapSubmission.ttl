@@ -66,30 +66,63 @@
    samm:dataType :SubSupplierReference .
 
 :SubSupplierReference a samm:Entity ;
-   samm:description "Reference to the approval of a sub-supplier."@en ;
-   samm:properties ( :subSupplierBpnl :partNumber :exchangeId :revision :subSupplierResult :hash ) .
+   samm:description "Reference to the decided approval of a sub-supplier (UC-09): metadata only, never documents or inspection results of the sub-supplier. The integrity of the statement is covered by the signature of the submission (the sub-supplier's customer, i.e. the submitting supplier, made and signed the referenced decision). TODO(EG): pseudonymisation of the sub-supplier BPNL (ASSUMPTIONS A-18)."@en ;
+   samm:properties ( :subSupplierBpnl [ samm:property :subSupplierName ; samm:optional true ] :exchangeId :caseNumber :partNumber [ samm:property :subSupplierPartName ; samm:optional true ] [ samm:property :supplierPartNumber ; samm:optional true ] :revision :decisionResult :decidedAt :decisionHash [ samm:property :conditionDueDate ; samm:optional true ] ) .
 
 :subSupplierBpnl a samm:Property ;
+   samm:description "BPNL of the sub-supplier (plain text, TODO(EG) pseudonymisation)."@en ;
    samm:characteristic :BpnlCharacteristic ;
    samm:exampleValue "BPNL000000TIER02" .
 
+:subSupplierName a samm:Property ;
+   samm:description "Name of the sub-supplier from the master data of the submitting supplier."@en ;
+   samm:characteristic :NameCharacteristic ;
+   samm:exampleValue "Demo-Tier2 KG" .
+
 :partNumber a samm:Property ;
+   samm:description "Part number of the sub-part at the submitting supplier (its own part number)."@en ;
    samm:characteristic :PartNumberCharacteristic ;
-   samm:exampleValue "T2-1000" .
+   samm:exampleValue "T1-2000-01" .
 
-:subSupplierResult a samm:Property ;
-   samm:characteristic :SubSupplierResult ;
-   samm:exampleValue "APPROVED" ;
-   samm:payloadName "result" .
+:subSupplierPartName a samm:Property ;
+   samm:description "Name of the sub-part at the submitting supplier."@en ;
+   samm:characteristic :NameCharacteristic ;
+   samm:exampleValue "Rastnase" ;
+   samm:payloadName "partName" .
 
-:SubSupplierResult a samm-c:Enumeration ;
+:decisionResult a samm:Property ;
+   samm:description "Result of the referenced decision; only approvals can be referenced."@en ;
+   samm:characteristic :ReferencedDecisionResult ;
+   samm:exampleValue "APPROVED" .
+
+:ReferencedDecisionResult a samm-c:Enumeration ;
    samm:dataType xsd:string ;
-   samm-c:values ( "APPROVED" "CONDITIONALLY_APPROVED" "REJECTED" ) .
+   samm-c:values ( "APPROVED" "CONDITIONALLY_APPROVED" ) .
 
-:hash a samm:Property ;
-   samm:description "Hash of the referenced decision payload."@en ;
+:decidedAt a samm:Property ;
+   samm:characteristic samm-c:Timestamp ;
+   samm:exampleValue "2026-11-19T10:15:30.123Z"^^xsd:dateTime .
+
+:decisionHash a samm:Property ;
+   samm:description "payloadHash of the referenced (signed) PpapDecision."@en ;
    samm:characteristic :PayloadHashCharacteristic ;
    samm:exampleValue "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc" .
+
+:conditionDueDate a samm:Property ;
+   samm:description "Due date of the conditions."@en ;
+   samm:characteristic :DateCharacteristic ;
+   samm:exampleValue "2026-12-31"^^xsd:date .
+
+:DateCharacteristic a samm:Characteristic ;
+   samm:description "Calendar date (ISO 8601)."@en ;
+   samm:dataType xsd:date .
+
+:NameCharacteristic a samm-c:Trait ;
+   samm-c:baseCharacteristic samm-c:Text ;
+   samm-c:constraint :NameLength .
+
+:NameLength a samm-c:LengthConstraint ;
+   samm-c:maxValue "255"^^xsd:nonNegativeInteger .
 
 :submittedAt a samm:Property ;
    samm:characteristic samm-c:Timestamp ;

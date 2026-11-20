@@ -161,7 +161,9 @@ public class SubmissionPullService {
             discovery.forEach(step -> context.store().addStep(id, step));
             context.live()
                     .exchangeChanged(
-                            own.map(PartnerSharingUseCase.CaseRef::caseId).orElse(null), id, "PENDING");
+                            own.map(PartnerSharingUseCase.CaseRef::caseId).orElse(null),
+                            messageId(exchangeId, revision),
+                            "PENDING");
             LOG.info("Pull of revision {} of {} from {} queued ({})", revision, exchangeId, supplierBpnl, trigger);
         }
         return inserted;

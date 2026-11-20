@@ -4,7 +4,9 @@ import io.swagger.v3.oas.annotations.media.Schema;
 
 /** Completeness issue with element code. */
 public record CompletenessIssueDto(
-        @Schema(requiredMode = Schema.RequiredMode.REQUIRED) String elementCode,
+        @Schema(description = "Element code; null for hints of the whole revision")
+        String elementCode,
+
         @Schema(requiredMode = Schema.RequiredMode.REQUIRED) String code,
         @Schema(requiredMode = Schema.RequiredMode.REQUIRED) String message,
 

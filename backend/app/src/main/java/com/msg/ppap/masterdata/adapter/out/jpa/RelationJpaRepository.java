@@ -37,4 +37,8 @@ interface RelationJpaRepository extends JpaRepository<RelationEntity, UUID> {
             @Param("partner") String partnerBpnl,
             @Param("role") PartnerRole role,
             Pageable pageable);
+
+    boolean existsByTenantIdAndPolicyProfile(String tenantId, String policyProfile);
+
+    java.util.List<RelationEntity> findByTenantIdOrderByPartnerBpnlAscPartnerRoleAsc(String tenantId);
 }

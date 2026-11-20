@@ -3,6 +3,7 @@ package com.msg.ppap.approval.application;
 import com.msg.ppap.approval.CaseExchangeStatus;
 import com.msg.ppap.approval.CaseExchangeStatus.LastOutbound;
 import com.msg.ppap.approval.DocumentTransferStatus;
+import com.msg.ppap.approval.PartnerExchangeHealth;
 import com.msg.ppap.approval.application.port.out.CaseNumberGenerator;
 import com.msg.ppap.approval.application.port.out.CaseQuery;
 import com.msg.ppap.approval.application.port.out.CaseStatistics;
@@ -56,6 +57,8 @@ public class ApprovalCaseService {
     private final PartMappingRegistry mappingRegistry;
     private final ObjectProvider<CaseExchangeStatus> exchangeStatus;
     private final ObjectProvider<DocumentTransferStatus> transfers;
+    private final ObjectProvider<PartnerExchangeHealth> exchangeHealth;
+    private final CascadeQueries cascade;
 
     @SuppressWarnings("java:S107")
     public ApprovalCaseService(
@@ -67,8 +70,12 @@ public class ApprovalCaseService {
             ValueValidator validator,
             PartMappingRegistry mappingRegistry,
             ObjectProvider<CaseExchangeStatus> exchangeStatus,
-            ObjectProvider<DocumentTransferStatus> transfers) {
+            ObjectProvider<DocumentTransferStatus> transfers,
+            ObjectProvider<PartnerExchangeHealth> exchangeHealth,
+            CascadeQueries cascade) {
         this.transfers = transfers;
+        this.exchangeHealth = exchangeHealth;
+        this.cascade = cascade;
         this.mappingRegistry = mappingRegistry;
         this.exchangeStatus = exchangeStatus;
         this.context = context;
@@ -82,6 +89,35 @@ public class ApprovalCaseService {
     /** Customer creates a draft (DRAFT). Relation and part mapping to the supplier must exist. */
     public CaseView create(CaseCommands.Create command) {
         Actor actor = context.actor();
+        DraftInput input = draftInput(command);
+        ApprovalCase created = ApprovalCase.createDraft(
+                caseNumbers.next(context.today().getYear()), input.header(), input.elements(), actor, context.now());
+        return view(context.save(created), actor);
+    }
+
+    /**
+     * Cascade (UC-09): the supplier of the parent case requests the approval of an own sub-part from its supplier.
+     * Same input as {@link #create}; the new customer draft is linked to the parent.
+     */
+    public CaseView createSubRequest(UUID parentId, CaseCommands.Create command) {
+        Actor actor = context.actor();
+        ApprovalCase parent = context.load(parentId);
+        DraftInput input = draftInput(command);
+        ApprovalCase child = ApprovalCase.createSubRequest(
+                parent,
+                caseNumbers.next(context.today().getYear()),
+                input.header(),
+                input.elements(),
+                actor,
+                context.now());
+        ApprovalCase saved = context.save(child);
+        context.save(parent);
+        return view(saved, actor);
+    }
+
+    private record DraftInput(CaseHeader header, List<RequestedElement> elements) {}
+
+    private DraftInput draftInput(CaseCommands.Create command) {
         var v = new Validation();
         PartInfo part = part(v, command.partId());
         RelationInfo relation = null;
@@ -133,9 +169,7 @@ public class ApprovalCaseService {
                 dueDate,
                 remarks,
                 null);
-        ApprovalCase created = ApprovalCase.createDraft(
-                caseNumbers.next(context.today().getYear()), header, requested, actor, context.now());
-        return view(context.save(created), actor);
+        return new DraftInput(header, requested);
     }
 
     /** Supplier captures a request received outside the dataspace (REQUESTED, source MANUAL). */
@@ -222,7 +256,8 @@ public class ApprovalCaseService {
         if (documentId == null) {
             throw ValidationException.of("documentId", ViolationCodes.REQUIRED, "must not be blank");
         }
-        c.addAttachment(documents.resolve(documentId), actor, context.now());
+        // request attachments are sent to the supplier: received document records are never passed on
+        c.addAttachment(documents.resolveShareable(documentId), actor, context.now());
         return view(context.save(c), actor);
     }
 
@@ -265,6 +300,15 @@ public class ApprovalCaseService {
      * optionally saves the part mapping for future requests.
      */
     public CaseView assignPart(UUID id, UUID partId, boolean saveMapping, Long expectedVersion) {
+        return assignPart(id, partId, saveMapping, false, expectedVersion);
+    }
+
+    /**
+     * Assigns the part; with {@code replaceExistingMapping} an existing mapping of this part in the relation gets the
+     * customer part number of the request (instead of failing with {@code DUPLICATE_KEY}).
+     */
+    public CaseView assignPart(
+            UUID id, UUID partId, boolean saveMapping, boolean replaceExistingMapping, Long expectedVersion) {
         Actor actor = context.actor();
         ApprovalCase c = loadChecked(id, expectedVersion);
         var v = new Validation();
@@ -274,7 +318,11 @@ public class ApprovalCaseService {
                 c.clarification() == null ? null : c.clarification().partnerPartNumber();
         c.assignPart(partRef(part), actor, context.now());
         if (saveMapping && partnerPartNumber != null && c.header().relationId() != null) {
-            mappingRegistry.registerMapping(c.header().relationId(), part.id(), partnerPartNumber);
+            if (replaceExistingMapping) {
+                mappingRegistry.replaceMapping(c.header().relationId(), part.id(), partnerPartNumber);
+            } else {
+                mappingRegistry.registerMapping(c.header().relationId(), part.id(), partnerPartNumber);
+            }
         }
         return view(context.save(c), actor);
     }
@@ -301,9 +349,41 @@ public class ApprovalCaseService {
 
     @Transactional(readOnly = true)
     public CaseStatistics statistics() {
-        return context.repository()
+        CaseStatistics stats = context.repository()
                 .statistics(new CaseStatistics.Parameters(
-                        context.today(), context.now().minus(Duration.ofDays(30))));
+                        context.today(),
+                        context.now().minus(Duration.ofDays(30)),
+                        context.now().minus(Duration.ofDays(365))));
+        PartnerExchangeHealth health = exchangeHealth.getIfAvailable();
+        if (health == null || stats.byPartner().isEmpty()) {
+            return stats;
+        }
+        Map<String, PartnerExchangeHealth.Health> byPartner = health.health(stats.byPartner().stream()
+                .map(CaseStatistics.PartnerFigures::bpnl)
+                .toList());
+        return stats.withPartners(stats.byPartner().stream()
+                .map(p -> {
+                    PartnerExchangeHealth.Health h = byPartner.get(p.bpnl());
+                    return h == null ? p.withExchange("OK", null) : p.withExchange(h.status(), h.lastExchangeAt());
+                })
+                .toList());
+    }
+
+    /** Activity feed (UC-11): latest timeline entries over all cases with display names of the actors. */
+    @Transactional(readOnly = true)
+    public List<ActivityView> activity(int limit) {
+        return context.repository().recentActivity(Math.clamp(limit, 1, 200)).stream()
+                .map(row -> new ActivityView(
+                        row.at(),
+                        row.caseId(),
+                        row.caseNumber(),
+                        row.action(),
+                        row.actor(),
+                        cascade.display(row.actor(), new PartnerRef(row.partnerBpnl(), row.partnerName())),
+                        new PartnerRef(row.partnerBpnl(), row.partnerName()),
+                        row.fromStatus(),
+                        row.toStatus()))
+                .toList();
     }
 
     /** Today, as used for {@code overdue}. */
@@ -312,9 +392,10 @@ public class ApprovalCaseService {
     }
 
     CaseView view(ApprovalCase c, Actor actor) {
+        List<CaseSummary> children = cascade.childSummaries(c);
         Completeness completeness = c.currentSubmission()
                 .filter(Submission::draft)
-                .map(s -> c.completeness(s, validator))
+                .map(s -> c.completeness(s, validator).withHints(cascade.pendingHints(children)))
                 .orElse(null);
         return new CaseView(
                 c,
@@ -322,7 +403,18 @@ public class ApprovalCaseService {
                 context.today(),
                 completeness,
                 lastOutbound(List.of(c.id())).get(c.id()),
-                transfers(c.id()));
+                transfers(c.id()),
+                cascade.parent(c).orElse(null),
+                children.stream()
+                        .map(s -> new CascadeQueries.ChildRef(
+                                s.id(),
+                                s.caseNumber(),
+                                s.partner(),
+                                s.part() == null ? null : s.part().partNumber(),
+                                s.status(),
+                                s.lastDecision()))
+                        .toList(),
+                cascade.actorDisplays(c));
     }
 
     private Map<String, DocumentTransferStatus.Transfer> transfers(UUID caseId) {

@@ -25,4 +25,10 @@ public record SubmissionDto(
         @Schema(
                 description = "Effective exchange mode of the revision (supplier: how it was provided, customer: how"
                         + " it was received); null for drafts and local cases")
-        ExchangeMode exchangeMode) {}
+        ExchangeMode exchangeMode,
+
+        @Schema(
+                requiredMode = Schema.RequiredMode.REQUIRED,
+                description = "References to decided approvals of sub-suppliers (UC-09, metadata only; sub-supplier"
+                        + " documents are never passed on)")
+        List<SubSupplierReferenceDto> subSupplierReferences) {}

@@ -147,6 +147,30 @@ public class SubmissionController {
         return ResponseEntity.noContent().eTag(ApprovalRest.etag(version)).build();
     }
 
+    @PutMapping("/draft/sub-supplier-references")
+    @PreAuthorize(ApprovalRest.SUPPLIER)
+    @Operation(
+            operationId = "replaceSubSupplierReferences",
+            summary = "Cascade (UC-09): references of the draft to own, approved sub-supplier cases (If-Match);"
+                    + " 422 SUB_SUPPLIER_REFERENCE_INVALID otherwise")
+    public ResponseEntity<SubmissionDto> replaceSubSupplierReferences(
+            @PathVariable UUID id,
+            @RequestBody SubSupplierReferencesRequest request,
+            @RequestHeader(name = HttpHeaders.IF_MATCH, required = false) String ifMatch) {
+        return respond(submissions.replaceSubSupplierReferences(
+                id, request.childCaseIds(), ApprovalRest.expectedVersion(ifMatch)));
+    }
+
+    @PostMapping("/{revision}/verify-signature")
+    @PreAuthorize(ApprovalRest.ANY_QUALITY)
+    @Operation(
+            operationId = "verifySubmissionSignature",
+            summary = "Verify the signature of a received revision again (UNVERIFIED: the partner keys are fetched"
+                    + " via EDC first)")
+    public ResponseEntity<SubmissionDto> verifySignature(@PathVariable UUID id, @PathVariable int revision) {
+        return respond(submissions.verifySignature(id, revision));
+    }
+
     @PostMapping("/draft/submit")
     @PreAuthorize(ApprovalRest.SUPPLIER)
     @Operation(

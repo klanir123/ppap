@@ -2,6 +2,7 @@ package com.msg.ppap.masterdata.application;
 
 import com.msg.ppap.masterdata.application.port.out.PartMappingRepository;
 import com.msg.ppap.masterdata.application.port.out.PartnerRepository;
+import com.msg.ppap.masterdata.application.port.out.PolicyProfileRepository;
 import com.msg.ppap.masterdata.application.port.out.RelationRepository;
 import com.msg.ppap.masterdata.domain.MasterdataType;
 import com.msg.ppap.masterdata.domain.Partner;
@@ -37,14 +38,17 @@ public class RelationService extends MasterdataService<Relation, RelationValues>
     private final PartnerRepository partners;
     private final PartMappingRepository mappings;
     private final MasterdataUsages usages;
+    private final PolicyProfileRepository profiles;
 
     public RelationService(
             RelationRepository relations,
             PartnerRepository partners,
             PartMappingRepository mappings,
             MasterdataUsages usages,
-            MasterdataEvents events) {
+            MasterdataEvents events,
+            PolicyProfileRepository profiles) {
         super(events);
+        this.profiles = profiles;
         this.relations = relations;
         this.partners = partners;
         this.mappings = mappings;
@@ -109,6 +113,13 @@ public class RelationService extends MasterdataService<Relation, RelationValues>
                     "partnerRole",
                     ViolationCodes.ROLE_MISMATCH,
                     "partner does not have the role " + values.partnerRole());
+        }
+        // phase 6: the policy profile is a reference (FK) to an active profile of the tenant
+        boolean profileActive =
+                profiles.findByCode(values.policyProfile()).map(p -> p.active()).orElse(false);
+        if (!profileActive) {
+            throw ValidationException.of(
+                    "policyProfile", ViolationCodes.UNKNOWN_REFERENCE, "unknown or inactive policy profile");
         }
         return values;
     }

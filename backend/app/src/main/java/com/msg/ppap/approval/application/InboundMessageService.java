@@ -156,6 +156,7 @@ public class InboundMessageService
         boolean applied = c.receiveSubmission(
                 submission.revision(),
                 ExchangeMessageMapper.evidence(submission),
+                ExchangeMessageMapper.references(submission),
                 submission.submittedAt(),
                 submission.submittedBy(),
                 seal,

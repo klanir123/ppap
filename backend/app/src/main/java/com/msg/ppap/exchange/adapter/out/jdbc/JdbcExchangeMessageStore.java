@@ -4,6 +4,7 @@ import com.msg.ppap.exchange.application.port.out.ExchangeMessageStore;
 import com.msg.ppap.exchange.domain.Direction;
 import com.msg.ppap.exchange.domain.ExchangeRecord;
 import com.msg.ppap.exchange.domain.ExchangeStep;
+import com.msg.ppap.exchange.domain.ExchangeStepRecorded;
 import com.msg.ppap.exchange.domain.MessageStatus;
 import com.msg.ppap.exchange.domain.StepName;
 import com.msg.ppap.exchange.domain.StepStatus;
@@ -20,6 +21,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -48,10 +50,12 @@ class JdbcExchangeMessageStore implements ExchangeMessageStore {
 
     private final NamedParameterJdbcTemplate jdbc;
     private final TenantContext tenant;
+    private final ApplicationEventPublisher events;
 
-    JdbcExchangeMessageStore(NamedParameterJdbcTemplate jdbc, TenantContext tenant) {
+    JdbcExchangeMessageStore(NamedParameterJdbcTemplate jdbc, TenantContext tenant, ApplicationEventPublisher events) {
         this.jdbc = jdbc;
         this.tenant = tenant;
+        this.events = events;
     }
 
     @Override
@@ -235,6 +239,62 @@ class JdbcExchangeMessageStore implements ExchangeMessageStore {
 
     @Override
     public void addStep(UUID id, ExchangeStep step) {
+        insertStep(id, step);
+        // phase 6: live log of the connector cockpit (connector.log), derived from the persisted steps
+        jdbc.query(
+                        """
+                        select message_id, message_type, correlation_id, case_id, direction, partner_bpnl
+                          from ex_message where tenant_id = :tenant and id = :id
+                        """,
+                        params().addValue("id", id),
+                        (rs, i) -> new ExchangeStepRecorded(
+                                id,
+                                rs.getObject("message_id", UUID.class),
+                                rs.getString("message_type"),
+                                rs.getString("correlation_id"),
+                                rs.getObject("case_id", UUID.class),
+                                Direction.valueOf(rs.getString("direction")),
+                                rs.getString("partner_bpnl"),
+                                step))
+                .forEach(events::publishEvent);
+    }
+
+    @Override
+    public Map<String, PartnerFigures> partnerFigures(
+            java.util.Collection<String> partnerBpnls, Instant since, Instant now) {
+        Map<String, PartnerFigures> figures = new LinkedHashMap<>();
+        if (partnerBpnls.isEmpty()) {
+            return figures;
+        }
+        jdbc.query(
+                """
+                select partner_bpnl,
+                       count(*) filter (where status = 'FAILED' and updated_at >= :since) as failed,
+                       count(*) filter (where direction = 'INBOUND' and status = 'REJECTED' and updated_at >= :since)
+                           as rejected,
+                       count(*) filter (where status in ('PENDING', 'IN_PROGRESS')
+                                          and (attempts > 1 or created_at < :stale)) as retrying,
+                       max(coalesce(completed_at, updated_at)) as last_at
+                  from ex_message
+                 where tenant_id = :tenant and partner_bpnl in (:partners)
+                 group by partner_bpnl
+                """,
+                params().addValue("partners", partnerBpnls)
+                        .addValue("since", ts(since))
+                        .addValue("stale", ts(now.minus(java.time.Duration.ofMinutes(5)))),
+                rs -> {
+                    figures.put(
+                            rs.getString("partner_bpnl"),
+                            new PartnerFigures(
+                                    rs.getLong("failed"),
+                                    rs.getLong("rejected"),
+                                    rs.getLong("retrying"),
+                                    instant(rs.getTimestamp("last_at"))));
+                });
+        return figures;
+    }
+
+    private void insertStep(UUID id, ExchangeStep step) {
         jdbc.update(
                 """
                 insert into ex_message_step (id, tenant_id, message_ref, attempt, step, status, at, duration_ms, details)

@@ -41,7 +41,9 @@ public class AuditController {
                                                 "SUBMISSION_REASON",
                                                 "SEED",
                                                 "APPROVAL_CASE",
-                                                "DOCUMENT"
+                                                "DOCUMENT",
+                                                "POLICY_PROFILE",
+                                                "PUBLIC_KEYS"
                                             }))
                     String objectType,
             @RequestParam(required = false) String objectId,

@@ -9,6 +9,8 @@ import java.util.function.Consumer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 /**
  * Fan-out of live events to the subscribers of the event stream (SSE). Subscribers only receive events of their own
@@ -47,6 +49,60 @@ public class LiveEventService {
         publish(LiveEvent.EXCHANGE_CHANGED, data);
     }
 
+    /**
+     * {@code connector.log { at, level, correlationId, messageType?, step?, text }}: a step of an exchange record
+     * (UC-10 live log, derived from {@code ExchangeRecord} steps, not from server logs).
+     */
+    public void connectorLog(com.msg.ppap.exchange.domain.ExchangeStepRecorded recorded) {
+        var step = recorded.step();
+        var data = new java.util.LinkedHashMap<String, Object>();
+        data.put("at", step.at().toString());
+        data.put("level", level(step.status()));
+        data.put("correlationId", recorded.correlationId());
+        data.put("messageType", recorded.messageType());
+        data.put("step", step.step().name());
+        data.put("status", step.status().name());
+        data.put("direction", recorded.direction().name());
+        data.put("partnerBpnl", recorded.partnerBpnl());
+        data.put("caseId", recorded.caseId() == null ? null : recorded.caseId().toString());
+        data.put(
+                "messageId",
+                recorded.messageId() == null ? null : recorded.messageId().toString());
+        data.put("text", text(recorded));
+        publish(LiveEvent.CONNECTOR_LOG, data);
+    }
+
+    static String level(com.msg.ppap.exchange.domain.StepStatus status) {
+        return switch (status) {
+            case OK -> "INFO";
+            case SKIPPED -> "DEBUG";
+            case FAILED -> "ERROR";
+        };
+    }
+
+    static String text(com.msg.ppap.exchange.domain.ExchangeStepRecorded recorded) {
+        var step = recorded.step();
+        var text = new StringBuilder();
+        text.append(recorded.direction() == com.msg.ppap.exchange.domain.Direction.OUTBOUND ? "→ " : "← ")
+                .append(recorded.partnerBpnl())
+                .append(' ')
+                .append(recorded.messageType())
+                .append(": ")
+                .append(step.step().name())
+                .append(' ')
+                .append(step.status().name())
+                .append(" (")
+                .append(step.durationMs())
+                .append(" ms)");
+        for (String key : java.util.List.of("assetId", "httpStatus", "targetRef", "error")) {
+            Object value = step.details().get(key);
+            if (value != null && !String.valueOf(value).isBlank()) {
+                text.append(", ").append(key).append('=').append(value);
+            }
+        }
+        return text.toString();
+    }
+
     /** Heartbeat to all subscribers (keeps proxies from closing idle connections). */
     public void heartbeat() {
         publish(LiveEvent.HEARTBEAT, Map.of("at", Instant.now().toString()));
@@ -57,8 +113,31 @@ public class LiveEventService {
         return subscriptions.size();
     }
 
+    /**
+     * Publishes an event to the subscribers of its tenant – <b>after commit</b> of the current transaction, so that a
+     * client refetching on the event reads the committed state; immediately if no transaction is active. Delivery
+     * happens in {@code afterCompletion(COMMITTED)}: Spring re-reads the synchronizations for that phase, so events
+     * published from {@code afterCommit} callbacks are delivered too; inside {@code afterCompletion} (e.g. {@code
+     * AFTER_COMMIT} event listeners) synchronization is no longer active and events go out directly. Events of a
+     * rolled-back transaction are dropped.
+     */
     void publish(String type, Map<String, Object> data) {
         var event = new LiveEvent(tenant.tenantId(), type, data);
+        if (TransactionSynchronizationManager.isSynchronizationActive()) {
+            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                @Override
+                public void afterCompletion(int status) {
+                    if (status == STATUS_COMMITTED) {
+                        deliver(event);
+                    }
+                }
+            });
+            return;
+        }
+        deliver(event);
+    }
+
+    private void deliver(LiveEvent event) {
         for (Subscription subscription : subscriptions) {
             if (!subscription.tenantId().equals(event.tenantId())) {
                 continue;

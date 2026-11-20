@@ -125,11 +125,17 @@ public class ExchangeMapperV0_1 implements ExchangeMapper {
                         m.subSupplierReferences(),
                         r -> new PayloadsV0_1.SubSupplierReference(
                                 r.subSupplierBpnl(),
-                                r.partNumber(),
+                                blankToNull(r.subSupplierName()),
                                 str(r.exchangeId()),
+                                r.caseNumber(),
+                                r.partNumber(),
+                                blankToNull(r.partName()),
+                                blankToNull(r.supplierPartNumber()),
                                 r.revision(),
-                                r.result(),
-                                r.hash())),
+                                r.decisionResult(),
+                                str(r.decidedAt()),
+                                r.decisionHash(),
+                                str(r.conditionDueDate()))),
                 str(m.submittedAt()),
                 m.submittedBy());
         return MAPPER.valueToTree(payload);
@@ -162,11 +168,17 @@ public class ExchangeMapperV0_1 implements ExchangeMapper {
                         p.subSupplierReferences(),
                         r -> new SubmissionMessage.SubSupplierReference(
                                 r.subSupplierBpnl(),
-                                r.partNumber(),
+                                r.subSupplierName(),
                                 UUID.fromString(r.exchangeId()),
+                                r.caseNumber(),
+                                r.partNumber(),
+                                r.partName(),
+                                r.supplierPartNumber(),
                                 r.revision(),
-                                r.result(),
-                                r.hash())),
+                                r.decisionResult(),
+                                Instant.parse(r.decidedAt()),
+                                r.decisionHash(),
+                                r.conditionDueDate() == null ? null : LocalDate.parse(r.conditionDueDate()))),
                 Instant.parse(p.submittedAt()),
                 p.submittedBy());
     }

@@ -63,4 +63,10 @@ public record ApprovalCaseDetailDto(
         ClarificationDto clarification,
 
         @Schema(description = "Latest message sent to the partner, null if none")
-        LastOutboundDto lastOutbound) {}
+        LastOutboundDto lastOutbound,
+
+        @Schema(description = "Parent case of a sub-supplier request (UC-09), null otherwise")
+        ParentCaseDto parentCase,
+
+        @Schema(requiredMode = Schema.RequiredMode.REQUIRED, description = "Sub-supplier requests of this case (UC-09)")
+        List<ChildCaseDto> childCases) {}

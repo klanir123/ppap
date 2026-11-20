@@ -18,4 +18,9 @@ public class PartMappingRegistration implements PartMappingRegistry {
     public void registerMapping(UUID relationId, UUID partId, String partnerPartNumber) {
         mappings.create(relationId, new PartMappingCommand(partId.toString(), null, partnerPartNumber, null, null));
     }
+
+    @Override
+    public void replaceMapping(UUID relationId, UUID partId, String partnerPartNumber) {
+        mappings.upsert(relationId, new PartMappingCommand(partId.toString(), null, partnerPartNumber, null, null));
+    }
 }

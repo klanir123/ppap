@@ -5,6 +5,7 @@ import com.msg.ppap.approval.application.port.in.PartnerSharingUseCase.SharedSub
 import com.msg.ppap.documents.api.DocumentContent;
 import com.msg.ppap.documents.api.Documents;
 import com.msg.ppap.exchange.application.ExchangeAssets;
+import com.msg.ppap.exchange.application.ServedContentAudit;
 import com.msg.ppap.exchange.application.SubmissionPullService;
 import com.msg.ppap.platform.domain.NotFoundException;
 import io.swagger.v3.oas.annotations.Hidden;
@@ -45,11 +46,17 @@ class EdcContentController {
     private final CallbackAuthentication authentication;
     private final PartnerSharingUseCase sharing;
     private final Documents documents;
+    private final ServedContentAudit audit;
 
-    EdcContentController(CallbackAuthentication authentication, PartnerSharingUseCase sharing, Documents documents) {
+    EdcContentController(
+            CallbackAuthentication authentication,
+            PartnerSharingUseCase sharing,
+            Documents documents,
+            ServedContentAudit audit) {
         this.authentication = authentication;
         this.sharing = sharing;
         this.documents = documents;
+        this.audit = audit;
     }
 
     @GetMapping({
@@ -70,6 +77,13 @@ class EdcContentController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
         SharedSubmission s = shared.get();
+        audit.submission(
+                s.caseId(),
+                UUID.fromString(exchangeId),
+                s.revision(),
+                s.payloadHash(),
+                consumer,
+                request.getHeader(CallbackAuthentication.EDC_AGREEMENT_HEADER));
         LOG.info(
                 "Served submodel PpapSubmission {}/{} ({}) to {} (agreement {})",
                 exchangeId,
@@ -128,6 +142,12 @@ class EdcContentController {
         } catch (NotFoundException ex) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
+        audit.document(
+                documentId.get(),
+                content.info().sha256(),
+                content.contentLength(),
+                consumer,
+                request.getHeader(CallbackAuthentication.EDC_AGREEMENT_HEADER));
         LOG.info(
                 "Served document {} ({} bytes) to {} (agreement {})",
                 sha256,

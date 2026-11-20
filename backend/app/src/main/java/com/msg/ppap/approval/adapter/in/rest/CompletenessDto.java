@@ -8,4 +8,10 @@ public record CompletenessDto(
         @Schema(requiredMode = Schema.RequiredMode.REQUIRED) boolean complete,
         @Schema(requiredMode = Schema.RequiredMode.REQUIRED) int requiredTotal,
         @Schema(requiredMode = Schema.RequiredMode.REQUIRED) int requiredDone,
-        @Schema(requiredMode = Schema.RequiredMode.REQUIRED) List<CompletenessIssueDto> issues) {}
+        @Schema(requiredMode = Schema.RequiredMode.REQUIRED) List<CompletenessIssueDto> issues,
+
+        @Schema(
+                requiredMode = Schema.RequiredMode.REQUIRED,
+                description = "Non-blocking hints of the whole revision, e.g. SUB_SUPPLIER_PENDING (UC-09); elementCode"
+                        + " is null")
+        List<CompletenessIssueDto> hints) {}

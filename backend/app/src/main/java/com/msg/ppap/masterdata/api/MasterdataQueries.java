@@ -42,6 +42,18 @@ public interface MasterdataQueries {
      */
     List<PartnerInfo> exchangePartners();
 
+    /** All relations of the tenant (active and inactive), sorted by partner and role (phase 6: topology, EDC). */
+    List<RelationInfo> relations();
+
+    /** All partners of the tenant, sorted by BPNL. */
+    List<PartnerInfo> partners();
+
+    /** Policy profile by code (phase 6, docs/api/cascade-transparency-api.md §3). */
+    Optional<PolicyProfileInfo> findPolicyProfile(String code);
+
+    /** Policy profile by id. */
+    Optional<PolicyProfileInfo> findPolicyProfile(UUID id);
+
     /** Own part. */
     record PartInfo(UUID id, String partNumber, String nameDe, String nameEn, boolean active) {}
 
@@ -66,9 +78,58 @@ public interface MasterdataQueries {
      * Relation with partner name; {@code partnerRole} is the role of the partner.
      *
      * @param exchangeMode {@code PUSH}, {@code PULL} or {@code PUSH_NOTIFY_PULL_PAYLOAD}
+     * @param policyProfile code of the policy profile (phase 6)
      */
     record RelationInfo(
-            UUID id, String partnerBpnl, String partnerName, String partnerRole, boolean active, String exchangeMode) {}
+            UUID id,
+            String partnerBpnl,
+            String partnerName,
+            String partnerRole,
+            boolean active,
+            String exchangeMode,
+            String policyProfile) {
+
+        public RelationInfo(
+                UUID id,
+                String partnerBpnl,
+                String partnerName,
+                String partnerRole,
+                boolean active,
+                String exchangeMode) {
+            this(id, partnerBpnl, partnerName, partnerRole, active, exchangeMode, "default");
+        }
+    }
+
+    /**
+     * Policy profile (CX-0152 2025/9).
+     *
+     * @param accessType {@code BPN_GROUP} or {@code BPN}
+     * @param additionalConstraints further usage constraints
+     */
+    record PolicyProfileInfo(
+            UUID id,
+            String code,
+            String name,
+            String accessType,
+            boolean membershipRequired,
+            String frameworkAgreement,
+            List<String> usagePurposes,
+            List<ConstraintInfo> additionalConstraints,
+            boolean active,
+            long version) {
+
+        public PolicyProfileInfo {
+            usagePurposes = List.copyOf(usagePurposes);
+            additionalConstraints = List.copyOf(additionalConstraints);
+        }
+    }
+
+    /**
+     * Atomic constraint of a policy profile.
+     *
+     * @param rightOperand string or list of strings
+     */
+    record ConstraintInfo(String leftOperand, String operator, Object rightOperand) {}
 
     /** Part mapping. */
     record PartMappingInfo(UUID id, UUID relationId, UUID partId, String partNumber, String partnerPartNumber) {}

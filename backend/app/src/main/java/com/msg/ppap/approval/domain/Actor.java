@@ -44,4 +44,22 @@ public record Actor(String name, Set<UserRole> roles, boolean technical, Instant
     public boolean has(UserRole role) {
         return roles.contains(role);
     }
+
+    /**
+     * Human-readable form of a recorded actor (timeline, activity feed): {@code partner:<BPNL>} becomes the partner's
+     * name (UC-11), all other actors (user names, {@code client:<id>}, {@code system:*}) stay as recorded.
+     *
+     * @param partnerName name of a partner by BPNL, if known
+     */
+    public static String display(
+            String actor, java.util.function.Function<String, java.util.Optional<String>> partnerName) {
+        if (actor == null) {
+            return null;
+        }
+        if (actor.startsWith(PARTNER_PREFIX)) {
+            String bpnl = actor.substring(PARTNER_PREFIX.length());
+            return partnerName.apply(bpnl).filter(n -> !n.isBlank()).orElse(bpnl);
+        }
+        return actor;
+    }
 }
